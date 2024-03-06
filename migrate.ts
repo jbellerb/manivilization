@@ -1,7 +1,8 @@
 #!/usr/bin/env -S deno run -A
 
-import { Client } from "postgres/mod.ts";
 import { join } from "$std/path/mod.ts";
+import { Client } from "postgres/mod.ts";
+
 import getEnvRequired from "./utils/get_env_required.ts";
 
 // lower 64 bits of sha3-256("migrations")
@@ -47,7 +48,7 @@ async function unlock(db: Client) {
 }
 
 async function appliedMigrations(db: Client) {
-  const res = await db.queryArray<[string, Date]>`
+  const res = await db.queryObject<{ name: string; date: Date }>`
     SELECT name, date FROM migration;
   `;
   return res.rows;
@@ -57,10 +58,10 @@ async function migrate(db: Client) {
   await lock(db);
   try {
     const applied = new Set(
-      (await appliedMigrations(db)).map(([name]) => name),
+      (await appliedMigrations(db)).map(({ name }) => name),
     );
     const unapplied = [];
-    const migrations_dir = Deno.args[1] || "migrations";
+    const migrations_dir = Deno.args[1] ?? "migrations";
     for await (const file of Deno.readDir(migrations_dir)) {
       if (file.isFile && !applied.has(file.name)) {
         const migration = await Deno.readTextFile(
@@ -97,7 +98,7 @@ async function status(db: Client) {
   try {
     const applied = await appliedMigrations(db);
     const local = new Set();
-    const migrations_dir = Deno.args[1] || "migrations";
+    const migrations_dir = Deno.args[1] ?? "migrations";
     for await (const file of Deno.readDir(migrations_dir)) {
       if (file.isFile) {
         local.add(file.name);
@@ -105,17 +106,18 @@ async function status(db: Client) {
     }
     const missing = new Set();
     for (const migration of applied) {
-      if (!local.has(migration[0])) {
-        missing.add(migration[0]);
+      if (!local.has(migration.name)) {
+        missing.add(migration.name);
       }
     }
 
     console.log(`Total migrations: ${local.size + missing.size}`);
     console.log(`Applied: ${applied.length}`);
+    console.log(`Unapplied: ${local.size - (applied.length - missing.size)}`);
     console.log(`Missing: ${missing.size}`);
 
-    applied.sort(([_a, a], [_b, b]) => (a < b) ? 1 : (a > b) ? -1 : 0);
-    console.log(`Most recent: ${applied[0][0]} at ${applied[0][1]}`);
+    applied.sort(({ date: a }, { date: b }) => (a < b) ? 1 : (a > b) ? -1 : 0);
+    console.log(`Most recent: ${applied[0].name} at ${applied[0].date}`);
   } finally {
     await unlock(db);
   }

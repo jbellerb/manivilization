@@ -4,7 +4,11 @@
 
 import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
+import * as $_middleware from "./routes/_middleware.ts";
 import * as $index from "./routes/index.tsx";
+import * as $oauth_callback from "./routes/oauth/callback.ts";
+import * as $oauth_login from "./routes/oauth/login.ts";
+import * as $oauth_logout from "./routes/oauth/logout.ts";
 
 import { type Manifest } from "$fresh/server.ts";
 
@@ -12,7 +16,11 @@ const manifest = {
   routes: {
     "./routes/_404.tsx": $_404,
     "./routes/_app.tsx": $_app,
+    "./routes/_middleware.ts": $_middleware,
     "./routes/index.tsx": $index,
+    "./routes/oauth/callback.ts": $oauth_callback,
+    "./routes/oauth/login.ts": $oauth_login,
+    "./routes/oauth/logout.ts": $oauth_logout,
   },
   islands: {},
   baseUrl: import.meta.url,
