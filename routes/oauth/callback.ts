@@ -7,20 +7,19 @@ import {
 import { STATUS_CODE } from "$std/http/status.ts";
 import { Handlers } from "$fresh/server.ts";
 
-import { db } from "../../utils/db.ts";
+import { State } from "../_middleware.ts";
 import { oauthClient } from "../../utils/oauth.ts";
 import { createSession, popAuthSession } from "../../utils/session.ts";
 
 // expire sessions after 90 days
 const SESSION_EXPIRE = 90 * 24 * 60 * 60;
 
-export const handler: Handlers = {
-  async GET(req, _ctx) {
+export const handler: Handlers<null, State> = {
+  async GET(req, ctx) {
     const authSessionId = getCookies(req.headers)["__Host-oauth-session"];
     if (!authSessionId) throw new Error("missing session cookie");
 
-    const client = await db.connect();
-    const authSession = await popAuthSession(client, authSessionId);
+    const authSession = await popAuthSession(ctx.state.client, authSessionId);
 
     const tokens = await oauthClient.code.getToken(req.url, {
       state: authSession.state,
@@ -36,8 +35,7 @@ export const handler: Handlers = {
         ? new Date(Date.now() + tokens.expiresIn * 1000)
         : undefined,
     };
-    await createSession(client, session);
-    client.end();
+    await createSession(ctx.state.client, session);
 
     const headers = new Headers({ Location: authSession.redirect });
     deleteCookie(headers, "__Host-oauth-session");

@@ -4,7 +4,7 @@ import { FreshContext } from "$fresh/server.ts";
 import { Client } from "postgres/client.ts";
 
 import { db } from "../utils/db.ts";
-import { getUser, type User } from "../utils/discord.ts";
+import { getUser, type User } from "../utils/discord/user.ts";
 import { oauthClient } from "../utils/oauth.ts";
 import {
   BadSessionError,
@@ -15,7 +15,8 @@ import {
 } from "../utils/session.ts";
 
 export type State = {
-  client?: Client;
+  client: Client;
+  sessionId?: string;
   accessToken?: string;
   user?: User;
 };
@@ -25,10 +26,8 @@ function loginRedirect(redirect: string): Response {
     Location: `/oauth/login?redirect=${redirect}`,
   });
   deleteCookie(headers, "__Host-session");
-  return new Response(null, {
-    status: STATUS_CODE.Found,
-    headers,
-  });
+
+  return new Response(null, { status: STATUS_CODE.Found, headers });
 }
 
 async function renewToken(client: Client, session: Session): Promise<Session> {
@@ -52,42 +51,36 @@ async function renewToken(client: Client, session: Session): Promise<Session> {
   return newSession;
 }
 
-export async function handler(
-  req: Request,
-  ctx: FreshContext<State>,
-) {
-  const sessionId = getCookies(req.headers)["__Host-session"];
-  const { pathname } = new URL(req.url);
+export async function handler(req: Request, ctx: FreshContext<State>) {
+  if (ctx.destination !== "route") return await ctx.next();
 
-  if (
-    sessionId &&
-    ctx.destination == "route" &&
-    !pathname.startsWith("/oauth")
-  ) {
-    ctx.state.client = await db.connect();
-    try {
-      let session = await getSession(ctx.state.client, sessionId);
-      if (
-        session.access_expires &&
-        session.access_expires < new Date(Date.now() + 2 * 60 * 1000)
-      ) {
-        // refresh access token first if withing 2 minutes of it expiring
-        session = await renewToken(ctx.state.client, session);
-      }
-      ctx.state.accessToken = session.access_token;
-      ctx.state.user = await getUser(ctx.state.accessToken);
+  ctx.state.client = await db.connect();
+  ctx.state.sessionId = getCookies(req.headers)["__Host-session"];
 
-      return await ctx.next();
-    } catch (e) {
-      if (e instanceof BadSessionError || e instanceof ExpiredSessionError) {
-        return loginRedirect(pathname);
-      } else {
-        throw e;
+  try {
+    const { pathname } = new URL(req.url);
+    if (ctx.state.sessionId && !pathname.startsWith("/oauth")) {
+      try {
+        let session = await getSession(ctx.state.client, ctx.state.sessionId);
+        if (
+          session.access_expires &&
+          session.access_expires < new Date(Date.now() + 2 * 60 * 1000)
+        ) {
+          // refresh access token first if withing 2 minutes of it expiring
+          session = await renewToken(ctx.state.client, session);
+        }
+        ctx.state.accessToken = session.access_token;
+        ctx.state.user = await getUser(ctx.state.accessToken);
+      } catch (e) {
+        if (e instanceof BadSessionError || e instanceof ExpiredSessionError) {
+          return loginRedirect(pathname);
+        } else {
+          throw e;
+        }
       }
-    } finally {
-      await ctx.state.client.end();
     }
+    return await ctx.next();
+  } finally {
+    await ctx.state.client.end();
   }
-
-  return await ctx.next();
 }
