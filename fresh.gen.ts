@@ -6,7 +6,10 @@ import * as $_404 from "./routes/_404.tsx";
 import * as $_500 from "./routes/_500.tsx";
 import * as $_app from "./routes/_app.tsx";
 import * as $_middleware from "./routes/_middleware.ts";
+import * as $admin_layout from "./routes/admin/_layout.tsx";
 import * as $admin_middleware from "./routes/admin/_middleware.ts";
+import * as $admin_forms_form_id_ from "./routes/admin/forms/[form_id].tsx";
+import * as $admin_forms_new from "./routes/admin/forms/new.ts";
 import * as $admin_index from "./routes/admin/index.tsx";
 import * as $index from "./routes/index.tsx";
 import * as $oauth_callback from "./routes/oauth/callback.ts";
@@ -21,7 +24,10 @@ const manifest = {
     "./routes/_500.tsx": $_500,
     "./routes/_app.tsx": $_app,
     "./routes/_middleware.ts": $_middleware,
+    "./routes/admin/_layout.tsx": $admin_layout,
     "./routes/admin/_middleware.ts": $admin_middleware,
+    "./routes/admin/forms/[form_id].tsx": $admin_forms_form_id_,
+    "./routes/admin/forms/new.ts": $admin_forms_new,
     "./routes/admin/index.tsx": $admin_index,
     "./routes/index.tsx": $index,
     "./routes/oauth/callback.ts": $oauth_callback,
