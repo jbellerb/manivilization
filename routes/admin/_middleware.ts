@@ -13,7 +13,7 @@ export type State = {
   user: User;
 };
 
-export async function handler(_req: Request, ctx: FreshContext<State>) {
+export async function handler(req: Request, ctx: FreshContext<State>) {
   ctx.state.ctx = ctx.state as unknown as RootState;
   if (ctx.state.ctx.user) {
     ctx.state.user = { ...ctx.state.ctx.user };
@@ -22,6 +22,15 @@ export async function handler(_req: Request, ctx: FreshContext<State>) {
     if (ctx.state.user.roles.includes(ADMIN_ROLE)) {
       return await ctx.next();
     }
+
+    return new Response("Unauthorized.", { status: STATUS_CODE.Unauthorized });
   }
-  return new Response("Unauthorized.", { status: STATUS_CODE.Found });
+
+  const { pathname } = new URL(req.url);
+  return new Response(null, {
+    status: STATUS_CODE.Found,
+    headers: new Headers({
+      Location: `/oauth/login?redirect=${pathname}`,
+    }),
+  });
 }
