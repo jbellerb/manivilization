@@ -8,7 +8,8 @@ import * as $_app from "./routes/_app.tsx";
 import * as $_middleware from "./routes/_middleware.ts";
 import * as $admin_layout from "./routes/admin/_layout.tsx";
 import * as $admin_middleware from "./routes/admin/_middleware.ts";
-import * as $admin_forms_form_id_ from "./routes/admin/forms/[form_id].tsx";
+import * as $admin_forms_form_id_layout from "./routes/admin/forms/[form_id]/_layout.tsx";
+import * as $admin_forms_form_id_index from "./routes/admin/forms/[form_id]/index.tsx";
 import * as $admin_forms_new from "./routes/admin/forms/new.ts";
 import * as $admin_index from "./routes/admin/index.tsx";
 import * as $index from "./routes/index.tsx";
@@ -26,7 +27,8 @@ const manifest = {
     "./routes/_middleware.ts": $_middleware,
     "./routes/admin/_layout.tsx": $admin_layout,
     "./routes/admin/_middleware.ts": $admin_middleware,
-    "./routes/admin/forms/[form_id].tsx": $admin_forms_form_id_,
+    "./routes/admin/forms/[form_id]/_layout.tsx": $admin_forms_form_id_layout,
+    "./routes/admin/forms/[form_id]/index.tsx": $admin_forms_form_id_index,
     "./routes/admin/forms/new.ts": $admin_forms_new,
     "./routes/admin/index.tsx": $admin_index,
     "./routes/index.tsx": $index,

@@ -12,10 +12,10 @@ export default async function AdminLayout(
   const formId = ctx.params.form_id;
 
   return (
-    <div class="flex px-3 py-4 h-screen">
+    <div class="flex h-screen">
       <aside
         id="sidebar"
-        class="flex flex-col w-48 h-full flex-col"
+        class="flex flex-col w-48 h-full px-3 py-4 border-r border-black"
         aria-label="Sidebar"
       >
         <div class="h-full overflow-y-auto">
@@ -23,27 +23,27 @@ export default async function AdminLayout(
             {forms.map(({ id, name }) => (
               <li
                 class={classnames(
-                  "inline-block py-2 ml-2 border-b border-transparent",
+                  "inline-block pt-2 pb-1 ml-2 border-b border-transparent italic",
                   id === formId
                     ? "text-browser-purple hover:border-browser-purple"
                     : "text-browser-blue hover:border-browser-blue",
                 )}
               >
-                <a href={`admin/forms/${id}`}>{name}</a>
+                <a href={`/admin/forms/${id}`}>{name}</a>
               </li>
             ))}
           </ul>
         </div>
         <div class="pt-4 mt-4 border-t border-black">
-          <button class="py-2 ml-2 text-browser-blue border-b border-transparent hover:border-browser-blue">
+          <a
+            href="/admin/forms/new"
+            class="ml-2 text-browser-blue border-b border-transparent hover:border-browser-blue italic"
+          >
             Create new form
-          </button>
+          </a>
         </div>
       </aside>
-
-      <div class="w-full pl-3 ml-3 border-l border-black overflow-y-auto">
-        <ctx.Component />
-      </div>
+      <ctx.Component />
     </div>
   );
 }
