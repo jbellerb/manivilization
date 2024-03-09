@@ -22,7 +22,7 @@ export default function FormLayout({ Component, params, url }: PageProps) {
   const formId = params.form_id;
 
   return (
-    <div class="flex flex-col w-full h-full overflow-y-auto">
+    <>
       <div class="flex py-4 px-3 justify-end">
         <LinkButton
           active={url.pathname === `/admin/forms/${formId}`}
@@ -36,6 +36,6 @@ export default function FormLayout({ Component, params, url }: PageProps) {
         />
       </div>
       <Component />
-    </div>
+    </>
   );
 }

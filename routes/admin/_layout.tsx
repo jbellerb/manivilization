@@ -43,7 +43,9 @@ export default async function AdminLayout(
           </a>
         </div>
       </aside>
-      <ctx.Component />
+      <div class="flex flex-col grow h-full overflow-y-auto">
+        <ctx.Component />
+      </div>
     </div>
   );
 }
