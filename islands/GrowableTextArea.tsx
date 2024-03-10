@@ -15,7 +15,7 @@ export default function TextArea(props: Props) {
 
   return (
     <div
-      class="relative z-0 mt-8 growable after:px-3 after:py-2"
+      class="relative z-0 pt-7 growable after:px-3 after:py-2"
       data-value={value + " "}
     >
       <textarea
@@ -31,7 +31,7 @@ export default function TextArea(props: Props) {
       />
       <label
         for={props.name}
-        class="absolute text-gray-400 peer-focus-visible:text-gray-600 font-semibold peer-placeholder-shown:font-normal origin-[0] top-2 -translate-y-10 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:translate-x-3 scale-[88%] peer-placeholder-shown:scale-100 transition -z-10"
+        class="absolute text-sm font-semibold text-gray-400 peer-focus-visible:text-gray-600 origin-[0] top-0 transition-color -z-10"
       >
         {props.label}
       </label>

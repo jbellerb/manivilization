@@ -31,9 +31,9 @@ export default function FormEditor(props: PageProps<Form>) {
       method="post"
       class="flex justify-center p-8 bg-black text-white flex-1 font-sans"
     >
-      <div class="max-w-xl w-full mt-6">
-        <div class="flex flex-col space-y-10">
-          <div class="relative z-0 mt-3">
+      <div class="max-w-xl w-full mt-8">
+        <div class="flex flex-col space-y-4">
+          <div class="relative z-0 pt-3">
             <input
               type="text"
               name="name"
@@ -44,7 +44,7 @@ export default function FormEditor(props: PageProps<Form>) {
             />
             <label
               for="name"
-              class="absolute text-3xl text-gray-400 peer-focus-visible:text-gray-600 font-semibold peer-placeholder-shown:font-bold origin-[0] top-2 -translate-y-7 peer-placeholder-shown:translate-y-0 scale-[47%] peer-placeholder-shown:scale-100 transition -z-10"
+              class="absolute text-sm font-semibold text-gray-400 peer-focus-visible:text-gray-600 origin-[0] top-0 transition-color -z-10"
             >
               Form Name
             </label>
@@ -59,17 +59,17 @@ export default function FormEditor(props: PageProps<Form>) {
             label="Success message"
             value={props.data.success_message}
           />
-          <div class="flex mt-10 items-center">
+          <div class="flex pt-[0.875rem] items-center">
             <input
               type="checkbox"
               name="active"
               class="w-6 h-6 bg-black border-2 checked:border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white rounded transition-border-color focus-visible:outline-none"
               checked={props.data.active}
             />
-            <span class="ml-3 mb-[2px] mr-1 text-gray-400 tracking-wide">
+            <span class="ml-3 mr-1 text-gray-400 tracking-wide">
               http://../
             </span>
-            <div class="relative z-0">
+            <div class="relative mt-[0.125rem] z-0">
               <input
                 type="text"
                 name="slug"
@@ -80,7 +80,7 @@ export default function FormEditor(props: PageProps<Form>) {
               />
               <label
                 for="slug"
-                class="absolute text-lg text-gray-400 peer-focus-visible:text-gray-600 font-semibold peer-placeholder-shown:font-normal origin-[0] top-1 -translate-y-6 peer-placeholder-shown:translate-y-0 scale-[78%] peer-placeholder-shown:scale-100 transition -z-10"
+                class="absolute text-sm text-gray-400 peer-focus-visible:text-gray-600 font-semibold origin-[0] -top-4 transition-color -z-10"
               >
                 slug
               </label>
