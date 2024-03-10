@@ -17,6 +17,7 @@ import * as $oauth_callback from "./routes/oauth/callback.ts";
 import * as $oauth_login from "./routes/oauth/login.ts";
 import * as $oauth_logout from "./routes/oauth/logout.ts";
 import * as $GrowableTextArea from "./islands/GrowableTextArea.tsx";
+import * as $QuestionEditor from "./islands/QuestionEditor.tsx";
 import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
@@ -38,6 +39,7 @@ const manifest = {
   },
   islands: {
     "./islands/GrowableTextArea.tsx": $GrowableTextArea,
+    "./islands/QuestionEditor.tsx": $QuestionEditor,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

@@ -12,9 +12,11 @@ export type Form = {
 
 export type Question = {
   type: "text";
-  placeholder?: string;
+  name: string;
+  label: string;
 } | {
   type: "checkbox";
+  name: string;
   options: string[];
 };
 

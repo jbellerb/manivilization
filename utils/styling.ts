@@ -1,7 +1,22 @@
-import { Preflight, Preset } from "@unocss/core";
+import { Preflight, Preset, Rule } from "@unocss/core";
 
+export function buildPreflight(
+  rules: Record<string, Record<string, string>>,
+): Preflight {
+  return {
+    getCSS: () =>
+      Object.entries(rules).map((rule) => {
+        const styles = Object.entries(rule[1])
+          .map(([key, value]) => `${key}:${value};`)
+          .join("");
+        return `${rule[0]}{${styles}}`;
+      }).join(""),
+  };
+}
 export function formPreflight(): Preflight {
-  const rules = {
+  return buildPreflight({
+    "input:focus-visible, textarea:focus-visible, button:focus-visible, select:focus-visible":
+      { outline: "none" },
     "[type='checkbox']": {
       appearance: "none",
       display: "flex",
@@ -25,6 +40,34 @@ export function formPreflight(): Preflight {
     "[type='checkbox']:checked::before": {
       transform: "scale(1)",
     },
+    "select": {
+      appearance: "none",
+      "background-color": "transparent",
+      outline: "none",
+      border: "none",
+      width: "100%",
+    },
+    ".select-wrapper": {
+      display: "grid",
+      height: "fit-content",
+      "align-items": "center",
+    },
+    ".select-wrapper > select": {
+      "padding-right": "1.125rem",
+      "grid-area": "1 / 1 / -1 / -1",
+      "z-index": "1",
+    },
+    ".select-wrapper::after": {
+      content: '""',
+      width: "1.125rem",
+      height: "1.125rem",
+      "background-color": "currentColor",
+      // Path taken from Firefox source (https://hg.mozilla.org/mozilla-central/file/tip/widget/Theme.cpp#l764)
+      "clip-path":
+        "polygon(21% 43%, 46% 71%, 54% 71%, 79% 43%, 79% 36%, 71% 36%, 50% 61%, 50% 61%, 29% 36%, 21% 36%)",
+      "grid-area": "1 / 1 / -1 / -1",
+      "justify-self": "end",
+    },
     ".growable": { display: "grid" },
     ".growable::after": {
       content: 'attr(data-value) ""',
@@ -34,19 +77,30 @@ export function formPreflight(): Preflight {
     ".growable > textarea, .growable::after": {
       "grid-area": "1 / 1 / -1 / -1",
     },
+  });
+}
+
+export function iconRules(): Rule[] {
+  // All paths based on Google's Material Design Icons
+  const icons = {
+    "arrow-down":
+      "polygon(45% 14%, 45% 67%, 21% 43%, 14% 50%, 50% 86%, 86% 50%, 79% 43%, 55% 67%, 55% 14%, 45% 14%)",
+    "arrow-up":
+      "polygon(45% 86%, 45% 33%, 21% 57%, 14% 50%, 50% 14%, 86% 50%, 79% 57%, 55% 33%, 55% 86%, 45% 86%)",
+    "close":
+      "polygon(26% 81%, 19% 74%, 43% 50%, 19% 26%, 26% 19%, 50% 43%, 74% 19%, 81% 26%, 57% 50%, 81% 74%, 74% 81%, 50% 57%, 26% 81%)",
+    "plus":
+      "polygon(45% 55%, 18% 55%, 18% 45%, 45% 45%, 45% 18%, 55% 18%, 55% 45%, 82% 45%, 82% 55%, 55% 55%, 55% 82%, 45% 82%, 45% 55%)",
   };
 
-  return {
-    getCSS: () =>
-      Object.entries(rules).map(
-        (rule: [string, Record<string, string>]) => {
-          const styles = Object.entries(rule[1])
-            .map(([key, value]) => `${key}:${value};`)
-            .join("");
-          return `${rule[0]}{${styles}}`;
-        },
-      ).join(""),
-  };
+  return Object.entries(icons).map(([name, path]) => [`i-mdi-${name}`, {
+    content: '""',
+    display: "block",
+    width: "1.5rem",
+    height: "1.5rem",
+    "background-color": "currentColor",
+    "clip-path": path,
+  }]);
 }
 
 export function presetStyling(): Preset {
@@ -55,6 +109,9 @@ export function presetStyling(): Preset {
     name: "unocss-preset-forms",
     preflights: [
       formPreflight(),
+    ],
+    rules: [
+      ...iconRules(),
     ],
   };
 }
