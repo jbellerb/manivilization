@@ -54,9 +54,10 @@ function OptionsEditor(props: OptionsEditorProps) {
           {props.options.map((option, idx) => (
             <li class="flex">
               <TextInput
-                name={`${props.name}-option-${idx}`}
+                name={`${props.name}-options-${idx}`}
                 value={option}
                 onChange={(e) => updateOption(e.currentTarget.value, idx)}
+                required
               />
               <IconButton
                 label="Delete option"
@@ -76,7 +77,10 @@ export type Props = {
 };
 
 export default function FormEditor(props: Props) {
-  const questions = useSignal(props.questions ?? []);
+  if (props.questions && props.questions.version !== "v1") {
+    throw new Error("unsupported question format version");
+  }
+  const questions = useSignal(props.questions?.questions ?? []);
 
   const addQuestion = (question: Question) =>
     questions.value = [...questions.value, question];
@@ -165,6 +169,7 @@ export default function FormEditor(props: Props) {
                         ...question,
                         label: e.currentTarget.value,
                       }, idx)}
+                    required
                   />
                 )
                 : (question.type === "checkbox")

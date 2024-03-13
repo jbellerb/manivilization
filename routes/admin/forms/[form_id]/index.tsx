@@ -2,7 +2,14 @@ import { STATUS_CODE } from "$std/http/status.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
 
 import { State } from "../../_middleware.ts";
-import { BadFormError, Form, getForm } from "../../../../utils/form.ts";
+import {
+  BadFormError,
+  Form,
+  FormParseError,
+  getForm,
+  parseFormData,
+  updateForm,
+} from "../../../../utils/form.ts";
 
 import TextInput from "../../../../components/TextInput.tsx";
 import GrowableTextArea from "../../../../islands/GrowableTextArea.tsx";
@@ -18,12 +25,22 @@ export const handler: Handlers<Form, State> = {
       throw e;
     }
   },
-  async POST(req, _ctx) {
-    console.log(await req.formData());
+  async POST(req, ctx) {
+    const formData = await req.formData();
+    try {
+      const form = { id: ctx.params.form_id, ...parseFormData(formData) };
+      await updateForm(ctx.state.ctx.client, form);
 
-    const { pathname } = new URL(req.url);
-    const headers = new Headers({ Location: pathname });
-    return new Response(null, { status: STATUS_CODE.Found, headers });
+      const { pathname } = new URL(req.url);
+      const headers = new Headers({ Location: pathname });
+      return new Response(null, { status: STATUS_CODE.Found, headers });
+    } catch (e) {
+      if (e instanceof FormParseError) {
+        console.log(e);
+        return new Response("Bad Request", { status: STATUS_CODE.BadRequest });
+      }
+      throw e;
+    }
   },
 };
 
