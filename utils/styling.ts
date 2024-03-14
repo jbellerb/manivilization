@@ -16,12 +16,6 @@ export function buildPreflight(
   };
 }
 
-export function baseStylePreflight(): Preflight {
-  return buildPreflight({
-    "html": { "font-family": '"Times New Roman", Times, ui-serif, serif' },
-  }, { layer: "base" });
-}
-
 export function formPreflight(): Preflight {
   return buildPreflight({
     "input:focus-visible, textarea:focus-visible, button:focus-visible, select:focus-visible":
@@ -114,10 +108,9 @@ export function presetStyling(): Preset {
     // name: "preset-styling",
     name: "unocss-preset-forms",
     preflights: [
-      baseStylePreflight(),
       formPreflight(),
     ],
-    layers: { base: -90, forms: -50, icons: -30 },
+    layers: { forms: -50, icons: -30 },
     rules: [
       ...iconRules(),
     ],

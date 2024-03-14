@@ -21,6 +21,9 @@ export default {
       "browser-blue": "blue",
       "browser-purple": "purple",
     },
+    fontFamily: {
+      times: ['"Times New Roman"', "Times", "ui-serif", "serif"],
+    },
     transitionProperty: {
       "border-color": "border-color",
     },

@@ -156,6 +156,11 @@ export default function FormEditor(props: Props) {
                   name={`question-${idx}-name`}
                   label="Column Name"
                   value={question.name}
+                  onChange={(e) =>
+                    updateQuestion(
+                      { ...question, name: e.currentTarget.value },
+                      idx,
+                    )}
                 />
               </div>
               {(question.type === "text")

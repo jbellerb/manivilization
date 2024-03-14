@@ -11,6 +11,8 @@ import {
   updateForm,
 } from "../../../../utils/form.ts";
 
+import Button from "../../../../components/Button.tsx";
+import Checkbox from "../../../../components/Checkbox.tsx";
 import TextInput from "../../../../components/TextInput.tsx";
 import GrowableTextArea from "../../../../islands/GrowableTextArea.tsx";
 import QuestionEditor from "../../../../islands/QuestionEditor.tsx";
@@ -49,6 +51,7 @@ export default function FormEditor(props: PageProps<Form>) {
     <form
       method="post"
       class="flex justify-center p-8 bg-black text-white flex-1 font-sans"
+      name={props.data.id}
     >
       <div class="max-w-xl w-full mt-8">
         <div class="flex flex-col space-y-6">
@@ -71,12 +74,7 @@ export default function FormEditor(props: PageProps<Form>) {
             value={props.data.success_message}
           />
           <div class="flex pt-[0.875rem] items-center">
-            <input
-              type="checkbox"
-              name="active"
-              class="w-6 h-6 bg-black border-2 checked:border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white rounded transition-border-color"
-              checked={props.data.active}
-            />
+            <Checkbox name="active" checked={props.data.active} />
             <span class="ml-3 mr-1 text-gray-400 tracking-wide">
               http://../
             </span>
@@ -87,15 +85,16 @@ export default function FormEditor(props: PageProps<Form>) {
               class="mr-6 max-w-60 -mt-[0.875rem]"
               required
             />
-            <button
-              type="submit"
-              class="ml-auto px-4 py-1 font-semibold tracking-wide border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white rounded-full transition-border-color"
-            >
-              Save
-            </button>
+            <Button name="Save" class="ml-auto" />
           </div>
         </div>
       </div>
+      {/* Reset the form to prevent Firefox from restoring past unsaved values */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `document["${props.data.id}"].reset();`,
+        }}
+      />
     </form>
   );
 }

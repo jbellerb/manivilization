@@ -12,7 +12,7 @@ export default async function AdminLayout(
   const formId = ctx.params.form_id;
 
   return (
-    <div class="flex h-screen">
+    <div class="flex h-screen font-times">
       <aside
         id="sidebar"
         class="flex flex-col w-48 h-full px-3 py-4 border-r border-black"

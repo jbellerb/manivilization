@@ -51,7 +51,19 @@ export async function getForm(client: Client, id: string): Promise<Form> {
   const form = rows[0];
 
   if (!form) throw new BadFormError("unknown form");
+  return form;
+}
 
+export async function getFormBySlug(
+  client: Client,
+  slug: string,
+): Promise<Form> {
+  const { rows } = await client.queryObject<Form>`
+    SELECT * FROM forms WHERE slug = ${slug};
+  `;
+  const form = rows[0];
+
+  if (!form) throw new BadFormError("unknown form");
   return form;
 }
 
