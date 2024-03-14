@@ -6,7 +6,7 @@ function LinkButton(props: { active: boolean; href: string; text: string }) {
   return (
     <a
       class={classnames(
-        "mx-2 border-b border-transparent italic",
+        "inline border-b border-transparent italic",
         props.active
           ? "text-browser-purple hover:border-browser-purple"
           : "text-browser-blue hover:border-browser-blue",
@@ -23,7 +23,7 @@ export default function FormLayout({ Component, params, url }: PageProps) {
 
   return (
     <>
-      <div class="flex py-4 px-3 justify-end">
+      <div class="ml-auto py-4 px-5 space-x-4">
         <LinkButton
           active={url.pathname === `/admin/forms/${formId}`}
           href={`/admin/forms/${formId}`}

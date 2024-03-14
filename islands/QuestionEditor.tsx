@@ -17,7 +17,7 @@ function IconButton(props: IconButtonProps) {
       aria-label={props.label}
       type="button"
       class={classnames(
-        "p-1 text-gray-600 hover:text-gray-500 focus-visible:text-gray-400 active:text-white transition-color after:block after:content-[''] after:w-6 after:h-6",
+        "p-1 text-gray-600 hover:text-gray-500 focus-visible:text-gray-400 active:text-white transition-color after:block after:content-empty after:w-6 after:h-6",
         props.class,
       )}
       onClick={props.onClick}
@@ -193,7 +193,7 @@ export default function FormEditor(props: Props) {
       >
         <button
           type="button"
-          class="p-2 border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white rounded-full transition-border-color after:block after:content-[''] after:w-6 after:h-6 after:i-mdi-plus"
+          class="p-2 border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white rounded-full transition-border-color after:block after:content-empty after:w-6 after:h-6 after:i-mdi-plus"
           onClick={() => (addQuestion({
             type: "text",
             name: `col_${questions.value.length + 1}`,
