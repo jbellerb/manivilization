@@ -12,8 +12,8 @@ export default {
     filesystem: ["{routes,islands,components}/**/*.{ts,tsx}"],
   },
   presets: [
-    presetUno(),
     presetStyling(),
+    presetUno(),
   ],
   preflights: [{ getCSS: () => PREFLIGHT }],
   theme: {

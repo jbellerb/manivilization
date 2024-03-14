@@ -19,7 +19,7 @@ export default async function AdminLayout(
         aria-label="Sidebar"
       >
         <div class="h-full overflow-y-auto">
-          <ul class="space-y-2">
+          <ul class="space-y-2 flex flex-col">
             {forms.map(({ id, name }) => (
               <li
                 class={classnames(

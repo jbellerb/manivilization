@@ -2,6 +2,7 @@ import { Preflight, Preset, Rule } from "@unocss/core";
 
 export function buildPreflight(
   rules: Record<string, Record<string, string>>,
+  extra?: Omit<Preflight, "getCSS">,
 ): Preflight {
   return {
     getCSS: () =>
@@ -11,8 +12,16 @@ export function buildPreflight(
           .join("");
         return `${rule[0]}{${styles}}`;
       }).join(""),
+    ...extra,
   };
 }
+
+export function baseStylePreflight(): Preflight {
+  return buildPreflight({
+    "html": { "font-family": '"Times New Roman", Times, ui-serif, serif' },
+  }, { layer: "base" });
+}
+
 export function formPreflight(): Preflight {
   return buildPreflight({
     "input:focus-visible, textarea:focus-visible, button:focus-visible, select:focus-visible":
@@ -77,7 +86,7 @@ export function formPreflight(): Preflight {
     ".growable > textarea, .growable::after": {
       "grid-area": "1 / 1 / -1 / -1",
     },
-  });
+  }, { layer: "forms" });
 }
 
 export function iconRules(): Rule[] {
@@ -94,13 +103,10 @@ export function iconRules(): Rule[] {
   };
 
   return Object.entries(icons).map(([name, path]) => [`i-mdi-${name}`, {
-    content: '""',
-    display: "block",
-    width: "1.5rem",
-    height: "1.5rem",
     "background-color": "currentColor",
+    color: "inherit",
     "clip-path": path,
-  }]);
+  }, { layer: "icons" }]);
 }
 
 export function presetStyling(): Preset {
@@ -108,8 +114,10 @@ export function presetStyling(): Preset {
     // name: "preset-styling",
     name: "unocss-preset-forms",
     preflights: [
+      baseStylePreflight(),
       formPreflight(),
     ],
+    layers: { base: -90, forms: -50, icons: -30 },
     rules: [
       ...iconRules(),
     ],
