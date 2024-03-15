@@ -1,7 +1,7 @@
 import { STATUS_CODE } from "$std/http/status.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
 
-import { State } from "../../_middleware.ts";
+import { AdminState } from "../../_middleware.ts";
 import {
   BadFormError,
   Form,
@@ -17,7 +17,7 @@ import TextInput from "../../../../components/TextInput.tsx";
 import GrowableTextArea from "../../../../islands/GrowableTextArea.tsx";
 import QuestionEditor from "../../../../islands/QuestionEditor.tsx";
 
-export const handler: Handlers<Form, State> = {
+export const handler: Handlers<Form, AdminState> = {
   async GET(_req, ctx) {
     try {
       const form = await getForm(ctx.state.client, ctx.params.form_id);
@@ -46,7 +46,7 @@ export const handler: Handlers<Form, State> = {
   },
 };
 
-export default function FormEditor(props: PageProps<Form>) {
+export default (props: PageProps<Form>) => {
   return (
     <form
       method="post"
@@ -97,4 +97,4 @@ export default function FormEditor(props: PageProps<Form>) {
       />
     </form>
   );
-}
+};

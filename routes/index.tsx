@@ -1,4 +1,6 @@
-export default function Home() {
+import { defineRoute } from "$fresh/server.ts";
+
+export default defineRoute(() => {
   return (
     <>
       <img
@@ -12,4 +14,4 @@ export default function Home() {
       </h1>
     </>
   );
-}
+});

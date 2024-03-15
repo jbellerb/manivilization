@@ -1,13 +1,10 @@
-import { FreshContext } from "$fresh/server.ts";
+import { defineLayout } from "$fresh/server.ts";
 
-import { State } from "./_middleware.ts";
+import { AdminState } from "./_middleware.ts";
 import classnames from "../../utils/classnames.ts";
 import { listForms } from "../../utils/form.ts";
 
-export default async function AdminLayout(
-  _req: Request,
-  ctx: FreshContext<State>,
-) {
+export default defineLayout<AdminState>(async (_req, ctx) => {
   const forms = await listForms(ctx.state.client);
   const formId = ctx.params.form_id;
 
@@ -51,4 +48,4 @@ export default async function AdminLayout(
       </div>
     </div>
   );
-}
+});

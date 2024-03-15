@@ -2,10 +2,10 @@ import { deleteCookie } from "$std/http/cookie.ts";
 import { STATUS_CODE } from "$std/http/status.ts";
 import { Handlers } from "$fresh/server.ts";
 
-import { State } from "../_middleware.ts";
+import { RootState } from "../_middleware.ts";
 import { deleteSession } from "../../utils/session.ts";
 
-export const handler: Handlers<null, State> = {
+export const handler: Handlers<void, RootState> = {
   async GET(req, ctx) {
     const { searchParams } = new URL(req.url);
     const redirectUrl = searchParams.get("redirect") ?? "/";

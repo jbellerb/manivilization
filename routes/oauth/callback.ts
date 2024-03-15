@@ -7,14 +7,14 @@ import {
 import { STATUS_CODE } from "$std/http/status.ts";
 import { Handlers } from "$fresh/server.ts";
 
-import { State } from "../_middleware.ts";
+import { RootState } from "../_middleware.ts";
 import { oauthClient } from "../../utils/oauth.ts";
 import { createSession, popAuthSession } from "../../utils/session.ts";
 
 // expire sessions after 90 days
 const SESSION_EXPIRE = 90 * 24 * 60 * 60;
 
-export const handler: Handlers<null, State> = {
+export const handler: Handlers<void, RootState> = {
   async GET(req, ctx) {
     const authSessionId = getCookies(req.headers)["__Host-oauth-session"];
     if (!authSessionId) throw new Error("missing session cookie");

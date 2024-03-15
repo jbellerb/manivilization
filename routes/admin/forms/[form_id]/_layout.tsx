@@ -1,8 +1,14 @@
-import { PageProps } from "$fresh/server.ts";
+import { defineLayout } from "$fresh/server.ts";
 
 import classnames from "../../../../utils/classnames.ts";
 
-function LinkButton(props: { active: boolean; href: string; text: string }) {
+type LinkProps = {
+  active: boolean;
+  href: string;
+  text: string;
+};
+
+function Link(props: LinkProps) {
   return (
     <a
       class={classnames(
@@ -18,18 +24,18 @@ function LinkButton(props: { active: boolean; href: string; text: string }) {
   );
 }
 
-export default function FormLayout({ Component, params, url }: PageProps) {
+export default defineLayout((_req, { Component, params, url }) => {
   const formId = params.form_id;
 
   return (
     <>
       <div class="ml-auto py-4 px-5 space-x-4">
-        <LinkButton
+        <Link
           active={url.pathname === `/admin/forms/${formId}`}
           href={`/admin/forms/${formId}`}
           text="Edit"
         />
-        <LinkButton
+        <Link
           active={url.pathname === `/admin/forms/${formId}/results`}
           href={`/admin/forms/${formId}/results`}
           text="Results"
@@ -38,4 +44,4 @@ export default function FormLayout({ Component, params, url }: PageProps) {
       <Component />
     </>
   );
-}
+});

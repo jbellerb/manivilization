@@ -1,10 +1,10 @@
 import { STATUS_CODE } from "$std/http/status.ts";
 import { Handlers } from "$fresh/server.ts";
 
-import { State } from "../_middleware.ts";
+import { AdminState } from "../_middleware.ts";
 import { createForm } from "../../../utils/form.ts";
 
-export const handler: Handlers<null, State> = {
+export const handler: Handlers<void, AdminState> = {
   async GET(_req, ctx) {
     const form = {
       id: crypto.randomUUID(),

@@ -2,14 +2,14 @@ import { Cookie, setCookie } from "$std/http/cookie.ts";
 import { STATUS_CODE } from "$std/http/status.ts";
 import { Handlers } from "$fresh/server.ts";
 
-import { State } from "../_middleware.ts";
+import { RootState } from "../_middleware.ts";
 import { oauthClient } from "../../utils/oauth.ts";
 import { createAuthSession } from "../../utils/session.ts";
 
 // expire auth sessions after 10 minutes
 const AUTH_EXPIRE = 10 * 60;
 
-export const handler: Handlers<null, State> = {
+export const handler: Handlers<void, RootState> = {
   async GET(req, ctx) {
     const { searchParams } = new URL(req.url);
 

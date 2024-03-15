@@ -1,8 +1,8 @@
-import { PageProps } from "$fresh/server.ts";
+import { defineRoute } from "$fresh/server.ts";
 
-import type { State } from "./_middleware.ts";
+import type { AdminState } from "./_middleware.ts";
 
-export default function Home({ state }: PageProps<null, State>) {
+export default defineRoute<AdminState>((_req, { state }) => {
   return (
     <>
       <h1 class="self-center my-auto text-3xl font-semibold">
@@ -10,4 +10,4 @@ export default function Home({ state }: PageProps<null, State>) {
       </h1>
     </>
   );
-}
+});

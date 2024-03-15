@@ -1,6 +1,7 @@
 import { Head } from "$fresh/runtime.ts";
+import { defineRoute } from "$fresh/server.ts";
 
-export default function Error404() {
+export default defineRoute(() => {
   return (
     <>
       <Head>
@@ -11,4 +12,4 @@ export default function Error404() {
       <a href="/">Go back home</a>
     </>
   );
-}
+});

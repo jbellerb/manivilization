@@ -1,6 +1,7 @@
 import { Head } from "$fresh/runtime.ts";
+import { defineRoute } from "$fresh/server.ts";
 
-export default function Error500() {
+export default defineRoute(() => {
   return (
     <>
       <Head>
@@ -10,4 +11,4 @@ export default function Error500() {
       <p>Something went wrong while processing your request.</p>
     </>
   );
-}
+});

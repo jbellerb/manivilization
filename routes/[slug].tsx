@@ -12,7 +12,7 @@ import {
   getSession,
 } from "../utils/session.ts";
 
-import type { State } from "./_middleware.ts";
+import type { RootState } from "./_middleware.ts";
 import type { User } from "../utils/discord/user.ts";
 import type { Form, Question } from "../utils/form.ts";
 
@@ -81,7 +81,7 @@ type Data = {
   user?: User;
 };
 
-export const handler: Handlers<Data, State> = {
+export const handler: Handlers<Data, RootState> = {
   async GET(_req, ctx) {
     try {
       const form = await getFormBySlug(ctx.state.client, ctx.params.slug);
@@ -115,7 +115,7 @@ export const handler: Handlers<Data, State> = {
   },
 };
 
-export default function Form({ data }: PageProps<Data>) {
+export default ({ data }: PageProps<Data>) => {
   return (
     <>
       <div class="flex flex-col min-h-screen items-center px-8 py-16 bg-black text-white">
@@ -133,4 +133,4 @@ export default function Form({ data }: PageProps<Data>) {
       </div>
     </>
   );
-}
+};

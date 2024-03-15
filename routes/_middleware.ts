@@ -4,12 +4,12 @@ import { FreshContext } from "$fresh/server.ts";
 import { Client } from "postgres/client.ts";
 import { db } from "../utils/db.ts";
 
-export type State = {
+export type RootState = {
   client: Client;
   sessionToken?: string;
 };
 
-export async function handler(req: Request, ctx: FreshContext<State>) {
+export async function handler(req: Request, ctx: FreshContext<RootState>) {
   if (ctx.destination !== "route") return await ctx.next();
 
   ctx.state.client = await db.connect();

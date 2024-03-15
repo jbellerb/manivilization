@@ -11,17 +11,17 @@ import {
   getSession,
 } from "../../utils/session.ts";
 
-import type { State as RootState } from "../_middleware.ts";
+import type { RootState } from "../_middleware.ts";
 import type { User } from "../../utils/discord/user.ts";
 
 const ADMIN_ROLE = getEnvRequired("DISCORD_ADMIN_ROLE");
 
-export type State = RootState & {
+export type AdminState = RootState & {
   user: User;
   roles: string[];
 };
 
-export async function handler(req: Request, ctx: FreshContext<State>) {
+export async function handler(req: Request, ctx: FreshContext<AdminState>) {
   if (ctx.state.sessionToken) {
     try {
       const session = await getSession(
