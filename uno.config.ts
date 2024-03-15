@@ -1,4 +1,5 @@
 import type { UserConfig } from "@unocss/core";
+import presetTypography from "@unocss/preset-typography";
 import presetUno from "@unocss/preset-uno";
 
 import { presetStyling } from "./utils/styling.ts";
@@ -14,6 +15,7 @@ export default {
   presets: [
     presetStyling(),
     presetUno(),
+    presetTypography({ selectorName: "markdown" }),
   ],
   preflights: [{ getCSS: () => PREFLIGHT }],
   theme: {

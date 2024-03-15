@@ -1,11 +1,19 @@
 import { deleteCookie } from "$std/http/cookie.ts";
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { STATUS_CODE } from "$std/http/status.ts";
+import { FreshContext, Handlers, PageProps } from "$fresh/server.ts";
+import { HtmlRenderer, Parser } from "commonmark";
 
 import Button from "../components/Button.tsx";
 import Checkbox from "../components/Checkbox.tsx";
 import TextInput from "../components/TextInput.tsx";
 import { getUser } from "../utils/discord/user.ts";
-import { BadFormError, getFormBySlug } from "../utils/form.ts";
+import {
+  BadFormError,
+  createResponse,
+  FormParseError,
+  getFormBySlug,
+  parseFormData,
+} from "../utils/form.ts";
 import {
   BadSessionError,
   ExpiredSessionError,
@@ -21,8 +29,14 @@ type Data = {
   user?: User;
 };
 
-export const handler: Handlers<Data, RootState> = {
-  async GET(_req, ctx) {
+function buildHandler(
+  fn: (
+    req: Request,
+    ctx: FreshContext<RootState>,
+    data: Data,
+  ) => Promise<Response>,
+) {
+  return async (req: Request, ctx: FreshContext<RootState>) => {
     try {
       const form = await getFormBySlug(ctx.state.client, ctx.params.slug);
       let user;
@@ -43,7 +57,7 @@ export const handler: Handlers<Data, RootState> = {
         }
       }
 
-      const res = await ctx.render({ form, user });
+      const res = await fn(req, ctx, { form, user });
       if (ctx.state.sessionToken && !user) {
         deleteCookie(res.headers, "__Host-session");
       }
@@ -52,12 +66,75 @@ export const handler: Handlers<Data, RootState> = {
       if (e instanceof BadFormError) return ctx.renderNotFound();
       throw e;
     }
-  },
+  };
+}
+
+export const handler: Handlers<Data, RootState> = {
+  GET: buildHandler(async (_req, ctx, data) => {
+    return await ctx.render({ ...data, method: "get" });
+  }),
+  POST: buildHandler(async (req, ctx, data) => {
+    if (!data.user) {
+      return new Response("Forbidden.", { status: STATUS_CODE.Forbidden });
+    }
+
+    const formData = await req.formData();
+    try {
+      const answers = parseFormData(formData, data.form);
+      await createResponse(ctx.state.client, data.form, data.user, answers);
+
+      return await ctx.render({ ...data, method: "post" });
+    } catch (e) {
+      if (e instanceof FormParseError) {
+        return new Response("Bad Request.", { status: STATUS_CODE.BadRequest });
+      }
+      throw e;
+    }
+  }),
 };
 
-export default ({ data }: PageProps<Data>) => {
-  const form = data.user
+export default ({ data }: PageProps<Data & { method: "get" | "post" }>) => {
+  const content = data.method === "post"
     ? (
+      <section
+        class="-my-4 markdown markdown-invert markdown-gray"
+        dangerouslySetInnerHTML={{
+          __html: (new HtmlRenderer()).render(
+            (new Parser()).parse(data.form.success_message ?? ""),
+          ),
+        }}
+      />
+    )
+    : !data.user
+    ? (
+      <section class="flex flex-col items-center mt-4">
+        <span class="text-lg">
+          Connect with Discord to fill out the form
+        </span>
+        <a
+          href={`/oauth/login?redirect=/${data.form.slug}`}
+          class="mt-4 px-4 py-2 flex items-center border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white rounded-lg transition-border-color"
+        >
+          {/* svg from https://discord.com/branding */}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="-9.02 -24.41 145.18 145.18"
+            class="w-10 h-10"
+          >
+            <path
+              fill="currentColor"
+              d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"
+            />
+          </svg>
+          <div class="ml-4">
+            Sign in with
+            <br />
+            <span class="text-xl font-semibold">Discord</span>
+          </div>
+        </a>
+      </section>
+    )
+    : (
       <>
         <section class="flex justify-between items-center">
           <div class="flex items-center">
@@ -91,16 +168,22 @@ export default ({ data }: PageProps<Data>) => {
               question: Question,
             ) =>
               question.type === "text"
-                ? <TextInput name={question.name} label={question.label} />
+                ? (
+                  <TextInput
+                    name={`question-${question.name}`}
+                    label={question.label}
+                  />
+                )
                 : question.type === "checkbox"
                 ? (
                   <fieldset class="space-y-2">
                     <legend class="text-lg">{question.name}</legend>
                     {question.options.map((option, idx) => (
                       <Checkbox
-                        name={question.name}
-                        label={option}
+                        name={`question-${question.name}`}
                         id={`checkbox-${question.name}-${idx}`}
+                        label={option}
+                        value={option}
                       />
                     ))}
                   </fieldset>
@@ -111,49 +194,26 @@ export default ({ data }: PageProps<Data>) => {
           </form>
         </section>
       </>
-    )
-    : (
-      <section class="flex flex-col items-center mt-4">
-        <span class="text-lg">
-          Connect with Discord to fill out the form
-        </span>
-        <a
-          href={`/oauth/login?redirect=/${data.form.slug}`}
-          class="mt-4 px-4 py-2 flex items-center border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white rounded-lg transition-border-color"
-        >
-          {/* svg from https://discord.com/branding */}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="-9.02 -24.41 145.18 145.18"
-            class="w-10 h-10"
-          >
-            <path
-              fill="currentColor"
-              d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"
-            />
-          </svg>
-          <div class="ml-4">
-            Sign in with
-            <br />
-            <span class="text-xl font-semibold">Discord</span>
-          </div>
-        </a>
-      </section>
     );
 
   return (
-    <>
-      <div class="flex flex-col min-h-screen items-center px-8 py-16 bg-black text-white">
-        <header class="max-w-xl w-full">
-          <h1 class="pb-1 text-3xl font-bold">
-            {data.form.name}
-          </h1>
-          <p class="mt-3 italic">{data.form.description}</p>
-        </header>
-        <main class="max-w-xl w-full mt-8">
-          {form}
-        </main>
-      </div>
-    </>
+    <div class="flex flex-col min-h-screen items-center px-8 py-16 bg-black text-white">
+      <header class="max-w-xl w-full">
+        <h1 class="pb-1 text-3xl font-bold">
+          {data.form.name}
+        </h1>
+        <div
+          class="-mt-1 -mb-4 markdown markdown-invert markdown-gray italic"
+          dangerouslySetInnerHTML={{
+            __html: (new HtmlRenderer()).render(
+              (new Parser()).parse(data.form.description ?? ""),
+            ),
+          }}
+        />
+      </header>
+      <main class="max-w-xl w-full mt-8">
+        {content}
+      </main>
+    </div>
   );
 };

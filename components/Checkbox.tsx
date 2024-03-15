@@ -7,6 +7,7 @@ type Props = {
   label?: string;
   id?: string;
   onChange?: (event: JSX.TargetedEvent<HTMLInputElement, Event>) => void;
+  value?: string;
   checked?: boolean;
   required?: boolean;
   class?: string;
@@ -23,6 +24,7 @@ export default function Checkbox(props: Props) {
         id={props.id ?? `checkbox-${props.name}`}
         class="w-6 h-6 bg-black border-2 checked:border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white rounded transition-border-color"
         onChange={props.onChange}
+        value={props.value}
         checked={props.checked}
         required={props.required ?? false}
       />

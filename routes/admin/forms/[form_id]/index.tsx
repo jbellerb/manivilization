@@ -7,7 +7,7 @@ import {
   Form,
   FormParseError,
   getForm,
-  parseFormData,
+  parseEditorFormData,
   updateForm,
 } from "../../../../utils/form.ts";
 
@@ -30,7 +30,7 @@ export const handler: Handlers<Form, AdminState> = {
   async POST(req, ctx) {
     const formData = await req.formData();
     try {
-      const form = { id: ctx.params.form_id, ...parseFormData(formData) };
+      const form = { id: ctx.params.form_id, ...parseEditorFormData(formData) };
       await updateForm(ctx.state.client, form);
 
       const { pathname } = new URL(req.url);

@@ -1,5 +1,7 @@
 import { Client } from "postgres/client.ts";
 
+import type { User } from "./discord/user.ts";
+
 export type Form = {
   id: string;
   name: string;
@@ -80,7 +82,7 @@ export async function updateForm(client: Client, form: Form) {
   `;
 }
 
-export function parseFormData(data: FormData): Omit<Form, "id"> {
+export function parseEditorFormData(data: FormData): Omit<Form, "id"> {
   const parseValue = <T>(name: string, value: T | undefined | null): T => {
     if (!value) throw new FormParseError(`${name} missing from request`);
     return value;
@@ -180,6 +182,49 @@ export function parseFormData(data: FormData): Omit<Form, "id"> {
       data.get("success_message"),
     ),
   };
+}
+
+export function parseFormData(data: FormData, form: Form): object {
+  const answers: Record<string, string[]> = {};
+  for (const pair of data.entries()) {
+    if (pair[0].startsWith("question-") && typeof pair[1] === "string") {
+      answers[pair[0].substring(9)] ??= [];
+      answers[pair[0].substring(9)].push(pair[1]);
+    }
+  }
+
+  const response: Record<string, string> = {};
+  if (form.questions) {
+    for (const question of form.questions.questions) {
+      if (question.type === "text") {
+        if (!answers[question.name]) {
+          throw new FormParseError(`${question.name} missing from request`);
+        }
+        response[question.name] = answers[question.name][0];
+      } else if (question.type === "checkbox") {
+        response[question.name] = (answers[question.name] ?? []).join(", ");
+      }
+    }
+  }
+
+  return response;
+}
+
+export async function createResponse(
+  client: Client,
+  form: Form,
+  user: User,
+  response: object,
+) {
+  await client.queryArray`
+    INSERT INTO responses VALUES (
+      ${crypto.randomUUID()},
+      ${form.id},
+      ${user.id},
+      ${response},
+      ${new Date()}
+    );
+  `;
 }
 
 export class BadFormError extends Error {
