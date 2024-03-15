@@ -13,9 +13,9 @@ export const handler: Handlers<null, State> = {
     const headers = new Headers({ Location: redirectUrl });
     const response = new Response(null, { status: STATUS_CODE.Found, headers });
 
-    if (!ctx.state.sessionId) return response;
+    if (!ctx.state.sessionToken) return response;
 
-    await deleteSession(ctx.state.client, ctx.state.sessionId);
+    await deleteSession(ctx.state.client, ctx.state.sessionToken);
     deleteCookie(response.headers, "__Host-session");
 
     return response;

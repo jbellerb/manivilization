@@ -20,7 +20,7 @@ import QuestionEditor from "../../../../islands/QuestionEditor.tsx";
 export const handler: Handlers<Form, State> = {
   async GET(_req, ctx) {
     try {
-      const form = await getForm(ctx.state.ctx.client, ctx.params.form_id);
+      const form = await getForm(ctx.state.client, ctx.params.form_id);
       return await ctx.render(form);
     } catch (e) {
       if (e instanceof BadFormError) return ctx.renderNotFound();
@@ -31,7 +31,7 @@ export const handler: Handlers<Form, State> = {
     const formData = await req.formData();
     try {
       const form = { id: ctx.params.form_id, ...parseFormData(formData) };
-      await updateForm(ctx.state.ctx.client, form);
+      await updateForm(ctx.state.client, form);
 
       const { pathname } = new URL(req.url);
       const headers = new Headers({ Location: pathname });

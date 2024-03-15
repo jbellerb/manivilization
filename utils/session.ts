@@ -1,4 +1,5 @@
 import { Client } from "postgres/client.ts";
+import { oauthClient } from "./oauth.ts";
 
 export type AuthSession = {
   id: string;
@@ -69,7 +70,11 @@ export async function getSession(client: Client, id: string): Promise<Session> {
     throw new ExpiredSessionError("session has expired");
   }
 
-  return session;
+  if (session.access_expires && session.access_expires < new Date()) {
+    return refreshSession(client, session);
+  } else {
+    return session;
+  }
 }
 
 export async function updateSession(client: Client, session: Session) {
@@ -86,6 +91,32 @@ export async function deleteSession(client: Client, id: string) {
   await client.queryArray`
     DELETE FROM sessions WHERE id = ${id};
   `;
+}
+
+async function refreshSession(
+  client: Client,
+  session: Session,
+): Promise<Session> {
+  if (!session.refresh_token) {
+    throw new ExpiredSessionError("expired session can't be refreshed");
+  }
+
+  try {
+    const tokens = await oauthClient.refreshToken.refresh(
+      session.refresh_token,
+    );
+    session.access_token = tokens.accessToken;
+    session.refresh_token = tokens.refreshToken ?? session.refresh_token;
+    session.access_expires = tokens.expiresIn
+      ? new Date(Date.now() + tokens.expiresIn * 1000)
+      : undefined;
+  } catch {
+    throw new ExpiredSessionError("failed to refresh expired session");
+  }
+
+  await updateSession(client, session);
+
+  return session;
 }
 
 export class BadSessionError extends Error {

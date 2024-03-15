@@ -8,7 +8,7 @@ export default async function AdminLayout(
   _req: Request,
   ctx: FreshContext<State>,
 ) {
-  const forms = await listForms(ctx.state.ctx.client);
+  const forms = await listForms(ctx.state.client);
   const formId = ctx.params.form_id;
 
   return (

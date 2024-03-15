@@ -1,9 +1,16 @@
+import { deleteCookie } from "$std/http/cookie.ts";
 import { Handlers, PageProps } from "$fresh/server.ts";
 
 import Button from "../components/Button.tsx";
 import Checkbox from "../components/Checkbox.tsx";
 import TextInput from "../components/TextInput.tsx";
+import { getUser } from "../utils/discord/user.ts";
 import { BadFormError, getFormBySlug } from "../utils/form.ts";
+import {
+  BadSessionError,
+  ExpiredSessionError,
+  getSession,
+} from "../utils/session.ts";
 
 import type { State } from "./_middleware.ts";
 import type { User } from "../utils/discord/user.ts";
@@ -71,13 +78,36 @@ function Questions({ user, form }: QuestionsPrompts) {
 
 type Data = {
   form: Form;
+  user?: User;
 };
 
 export const handler: Handlers<Data, State> = {
   async GET(_req, ctx) {
     try {
       const form = await getFormBySlug(ctx.state.client, ctx.params.slug);
-      return await ctx.render({ form });
+      let user;
+
+      if (ctx.state.sessionToken) {
+        try {
+          const session = await getSession(
+            ctx.state.client,
+            ctx.state.sessionToken,
+          );
+          user = await getUser(session.access_token);
+        } catch (e) {
+          if (
+            !(e instanceof BadSessionError || e instanceof ExpiredSessionError)
+          ) {
+            throw e;
+          }
+        }
+      }
+
+      const res = await ctx.render({ form, user });
+      if (ctx.state.sessionToken && !user) {
+        deleteCookie(res.headers, "__Host-session");
+      }
+      return res;
     } catch (e) {
       if (e instanceof BadFormError) return ctx.renderNotFound();
       throw e;
@@ -85,7 +115,7 @@ export const handler: Handlers<Data, State> = {
   },
 };
 
-export default function Form({ data, state }: PageProps<Data, State>) {
+export default function Form({ data }: PageProps<Data>) {
   return (
     <>
       <div class="flex flex-col min-h-screen items-center px-8 py-16 bg-black text-white">
@@ -97,7 +127,7 @@ export default function Form({ data, state }: PageProps<Data, State>) {
         </header>
         <main class="max-w-xl w-full mt-8">
           {state.user
-            ? <Questions user={state.user} form={data.form} />
+            ? <Questions user={data.user} form={data.form} />
             : <LogIn />}
         </main>
       </div>

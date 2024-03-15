@@ -12,14 +12,6 @@ const AUTH_EXPIRE = 10 * 60;
 export const handler: Handlers<null, State> = {
   async GET(req, ctx) {
     const { searchParams } = new URL(req.url);
-    if (ctx.state.sessionId) {
-      return new Response(null, {
-        status: STATUS_CODE.Found,
-        headers: new Headers({
-          Location: searchParams.get("redirect") ?? "/",
-        }),
-      });
-    }
 
     const state = crypto.randomUUID();
     const { uri, codeVerifier } = await oauthClient.code.getAuthorizationUri({

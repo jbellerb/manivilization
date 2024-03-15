@@ -12,7 +12,7 @@ export const handler: Handlers<null, State> = {
       slug: "",
       active: false,
     };
-    await createForm(ctx.state.ctx.client, form);
+    await createForm(ctx.state.client, form);
 
     const headers = new Headers({ Location: `/admin/forms/${form.id}` });
     return new Response(null, { status: STATUS_CODE.Found, headers });

@@ -13,7 +13,6 @@ export type User = {
   name: string;
   username: string;
   avatar: string;
-  roles?: string[];
 };
 
 export async function getUser(accessToken: string): Promise<User> {
