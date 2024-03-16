@@ -3,8 +3,6 @@
 import { join } from "$std/path/mod.ts";
 import { Client } from "postgres/mod.ts";
 
-import getEnvRequired from "./utils/get_env_required.ts";
-
 // lower 64 bits of sha3-256("migrations")
 const LOCK_ID = -6902354483765142115n;
 
@@ -142,7 +140,12 @@ if (
     (args[0] !== "init" && args.length <= 2))
 ) {
   try {
-    const db = new Client(getEnvRequired("DATABASE_URL"));
+    const DATABASE_URL = Deno.env.get("DATABASE_URL");
+    if (!DATABASE_URL) {
+      throw new Error("DATABASE_URL is not set for connecting to Postgresql");
+    }
+
+    const db = new Client(DATABASE_URL);
     await db.connect();
     await commands[Deno.args[0]](db);
     await db.end();

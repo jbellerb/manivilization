@@ -4,7 +4,6 @@ import { FreshContext } from "$fresh/server.ts";
 
 import { getRoles } from "../../utils/discord/guild.ts";
 import { getUser } from "../../utils/discord/user.ts";
-import getEnvRequired from "../../utils/get_env_required.ts";
 import {
   BadSessionError,
   ExpiredSessionError,
@@ -14,7 +13,10 @@ import {
 import type { RootState } from "../_middleware.ts";
 import type { User } from "../../utils/discord/user.ts";
 
-const ADMIN_ROLE = getEnvRequired("DISCORD_ADMIN_ROLE");
+const ADMIN_ROLE = Deno.env.get("DISCORD_ADMIN_ROLE") as string;
+if (!ADMIN_ROLE) {
+  throw new Error("DISCORD_ADMIN_ROLE is not set for Discord authentication");
+}
 
 export type AdminState = RootState & {
   user: User;
