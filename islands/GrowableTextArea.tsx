@@ -1,5 +1,4 @@
 import { IS_BROWSER } from "$fresh/runtime.ts";
-
 import { useSignal } from "@preact/signals";
 
 import classnames from "../utils/classnames.ts";
@@ -11,7 +10,7 @@ type Props = {
   required?: boolean;
 };
 
-export default function TextArea(props: Props) {
+export default function GrowableTextArea(props: Props) {
   const value = useSignal(props.value ?? "");
 
   return (

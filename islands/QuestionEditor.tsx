@@ -76,7 +76,7 @@ export type Props = {
   questions: Form["questions"];
 };
 
-export default function FormEditor(props: Props) {
+export default function QuestionEditor(props: Props) {
   if (props.questions && props.questions.version !== "v1") {
     throw new Error("unsupported question format version");
   }

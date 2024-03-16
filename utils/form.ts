@@ -247,6 +247,16 @@ export async function getResponse(
   return rows[0];
 }
 
+export async function getFormResponses(
+  client: Client,
+  id: string,
+): Promise<Response[]> {
+  const { rows } = await client.queryObject<Response>`
+    SELECT * FROM responses WHERE form = ${id};
+  `;
+  return rows;
+}
+
 export class BadFormError extends Error {
   constructor(message?: string) {
     super(message);

@@ -1,12 +1,9 @@
 import { STATUS_CODE } from "$std/http/status.ts";
-import { Handlers, PageProps } from "$fresh/server.ts";
+import { defineRoute, Handlers } from "$fresh/server.ts";
 
-import { AdminState } from "../../_middleware.ts";
+import { AdminFormState } from "./_middleware.ts";
 import {
-  BadFormError,
-  Form,
   FormParseError,
-  getForm,
   parseEditorFormData,
   updateForm,
 } from "../../../../utils/form.ts";
@@ -17,24 +14,16 @@ import TextInput from "../../../../components/TextInput.tsx";
 import GrowableTextArea from "../../../../islands/GrowableTextArea.tsx";
 import QuestionEditor from "../../../../islands/QuestionEditor.tsx";
 
-export const handler: Handlers<Form, AdminState> = {
-  async GET(_req, ctx) {
-    try {
-      const form = await getForm(ctx.state.client, ctx.params.form_id);
-      return await ctx.render(form);
-    } catch (e) {
-      if (e instanceof BadFormError) return ctx.renderNotFound();
-      throw e;
-    }
-  },
+export const handler: Handlers<void, AdminFormState> = {
   async POST(req, ctx) {
     const formData = await req.formData();
     try {
-      const form = { id: ctx.params.form_id, ...parseEditorFormData(formData) };
+      const form = { id: ctx.state.form.id, ...parseEditorFormData(formData) };
       await updateForm(ctx.state.client, form);
 
-      const { pathname } = new URL(req.url);
-      const headers = new Headers({ Location: pathname });
+      const headers = new Headers({
+        Location: `/admin/forms/${ctx.state.form.id}`,
+      });
       return new Response(null, { status: STATUS_CODE.Found, headers });
     } catch (e) {
       if (e instanceof FormParseError) {
@@ -46,42 +35,42 @@ export const handler: Handlers<Form, AdminState> = {
   },
 };
 
-export default (props: PageProps<Form>) => {
+export default defineRoute<AdminFormState>((_req, { state }) => {
   return (
     <form
       method="post"
       class="flex justify-center p-8 bg-black text-white flex-1 font-sans"
-      name={props.data.id}
+      name={state.form.id}
     >
       <div class="max-w-xl w-full mt-8">
         <div class="flex flex-col space-y-6">
           <TextInput
             name="name"
             label="Form Name"
-            value={props.data.name}
+            value={state.form.name}
             class="max-w-md !text-3xl font-bold"
             required
           />
           <GrowableTextArea
             name="description"
             label="Description"
-            value={props.data.description}
+            value={state.form.description}
           />
-          <QuestionEditor questions={props.data.questions} />
+          <QuestionEditor questions={state.form.questions} />
           <GrowableTextArea
             name="success_message"
             label="Success Message"
-            value={props.data.success_message}
+            value={state.form.success_message}
           />
           <div class="flex pt-[0.875rem] items-center">
-            <Checkbox name="active" checked={props.data.active} />
+            <Checkbox name="active" checked={state.form.active} />
             <span class="ml-3 mr-1 text-gray-400 tracking-wide">
               http://../
             </span>
             <TextInput
               name="slug"
               label="Slug"
-              value={props.data.slug}
+              value={state.form.slug}
               class="mr-6 max-w-60 -mt-[0.875rem]"
               required
             />
@@ -92,9 +81,9 @@ export default (props: PageProps<Form>) => {
       {/* Reset the form to prevent Firefox from restoring past unsaved values */}
       <script
         dangerouslySetInnerHTML={{
-          __html: `document["${props.data.id}"].reset();`,
+          __html: `document["${state.form.id}"].reset();`,
         }}
       />
     </form>
   );
-};
+});

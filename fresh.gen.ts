@@ -13,7 +13,9 @@ import * as $_middleware from "./routes/_middleware.ts";
 import * as $admin_layout from "./routes/admin/_layout.tsx";
 import * as $admin_middleware from "./routes/admin/_middleware.ts";
 import * as $admin_forms_form_id_layout from "./routes/admin/forms/[form_id]/_layout.tsx";
+import * as $admin_forms_form_id_middleware from "./routes/admin/forms/[form_id]/_middleware.ts";
 import * as $admin_forms_form_id_index from "./routes/admin/forms/[form_id]/index.tsx";
+import * as $admin_forms_form_id_results from "./routes/admin/forms/[form_id]/results.tsx";
 import * as $admin_forms_new from "./routes/admin/forms/new.ts";
 import * as $admin_index from "./routes/admin/index.tsx";
 import * as $index from "./routes/index.tsx";
@@ -22,6 +24,7 @@ import * as $oauth_login from "./routes/oauth/login.ts";
 import * as $oauth_logout from "./routes/oauth/logout.ts";
 import * as $GrowableTextArea from "./islands/GrowableTextArea.tsx";
 import * as $QuestionEditor from "./islands/QuestionEditor.tsx";
+import * as $ResultsTable from "./islands/ResultsTable.tsx";
 import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
@@ -37,7 +40,10 @@ const manifest = {
     "./routes/admin/_layout.tsx": $admin_layout,
     "./routes/admin/_middleware.ts": $admin_middleware,
     "./routes/admin/forms/[form_id]/_layout.tsx": $admin_forms_form_id_layout,
+    "./routes/admin/forms/[form_id]/_middleware.ts":
+      $admin_forms_form_id_middleware,
     "./routes/admin/forms/[form_id]/index.tsx": $admin_forms_form_id_index,
+    "./routes/admin/forms/[form_id]/results.tsx": $admin_forms_form_id_results,
     "./routes/admin/forms/new.ts": $admin_forms_new,
     "./routes/admin/index.tsx": $admin_index,
     "./routes/index.tsx": $index,
@@ -48,6 +54,7 @@ const manifest = {
   islands: {
     "./islands/GrowableTextArea.tsx": $GrowableTextArea,
     "./islands/QuestionEditor.tsx": $QuestionEditor,
+    "./islands/ResultsTable.tsx": $ResultsTable,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;
