@@ -12,6 +12,14 @@ export type Form = {
   success_message?: string;
 };
 
+export type Response = {
+  id: string;
+  form: string;
+  discord_id: string;
+  response?: Record<string, string>;
+  date?: Date;
+};
+
 export type Question = {
   type: "text";
   name: string;
@@ -215,16 +223,28 @@ export async function createResponse(
   form: Form,
   user: User,
   response: object,
-) {
+): Promise<string> {
+  const id = crypto.randomUUID();
   await client.queryArray`
     INSERT INTO responses VALUES (
-      ${crypto.randomUUID()},
+      ${id},
       ${form.id},
       ${user.id},
       ${response},
       ${new Date()}
     );
   `;
+  return id;
+}
+
+export async function getResponse(
+  client: Client,
+  id: string,
+): Promise<Response | undefined> {
+  const { rows } = await client.queryObject<Response>`
+    SELECT * FROM responses WHERE id = ${id};
+  `;
+  return rows[0];
 }
 
 export class BadFormError extends Error {

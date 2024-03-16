@@ -1,118 +1,56 @@
-import { deleteCookie } from "$std/http/cookie.ts";
 import { STATUS_CODE } from "$std/http/status.ts";
-import { FreshContext, Handlers, PageProps } from "$fresh/server.ts";
-import { HtmlRenderer, Parser } from "commonmark";
+import { defineRoute, Handlers } from "$fresh/server.ts";
 
-import Button from "../components/Button.tsx";
-import Checkbox from "../components/Checkbox.tsx";
-import TextInput from "../components/TextInput.tsx";
-import { getUser } from "../utils/discord/user.ts";
+import Button from "../../components/Button.tsx";
+import Checkbox from "../../components/Checkbox.tsx";
+import TextInput from "../../components/TextInput.tsx";
 import {
-  BadFormError,
   createResponse,
   FormParseError,
-  getFormBySlug,
   parseFormData,
-} from "../utils/form.ts";
-import {
-  BadSessionError,
-  ExpiredSessionError,
-  getSession,
-} from "../utils/session.ts";
+} from "../../utils/form.ts";
 
-import type { RootState } from "./_middleware.ts";
-import type { User } from "../utils/discord/user.ts";
-import type { Form, Question } from "../utils/form.ts";
+import type { FormState } from "./_middleware.ts";
+import type { Question } from "../../utils/form.ts";
 
-type Data = {
-  form: Form;
-  user?: User;
-};
-
-function buildHandler(
-  fn: (
-    req: Request,
-    ctx: FreshContext<RootState>,
-    data: Data,
-  ) => Promise<Response>,
-) {
-  return async (req: Request, ctx: FreshContext<RootState>) => {
-    try {
-      const form = await getFormBySlug(ctx.state.client, ctx.params.slug);
-      let user;
-
-      if (ctx.state.sessionToken) {
-        try {
-          const session = await getSession(
-            ctx.state.client,
-            ctx.state.sessionToken,
-          );
-          user = await getUser(session.access_token);
-        } catch (e) {
-          if (
-            !(e instanceof BadSessionError || e instanceof ExpiredSessionError)
-          ) {
-            throw e;
-          }
-        }
-      }
-
-      const res = await fn(req, ctx, { form, user });
-      if (ctx.state.sessionToken && !user) {
-        deleteCookie(res.headers, "__Host-session");
-      }
-      return res;
-    } catch (e) {
-      if (e instanceof BadFormError) return ctx.renderNotFound();
-      throw e;
-    }
-  };
-}
-
-export const handler: Handlers<Data, RootState> = {
-  GET: buildHandler(async (_req, ctx, data) => {
-    return await ctx.render({ ...data, method: "get" });
-  }),
-  POST: buildHandler(async (req, ctx, data) => {
-    if (!data.user) {
+export const handler: Handlers<void, FormState> = {
+  async POST(req, ctx) {
+    if (!ctx.state.user) {
       return new Response("Forbidden.", { status: STATUS_CODE.Forbidden });
     }
 
     const formData = await req.formData();
     try {
-      const answers = parseFormData(formData, data.form);
-      await createResponse(ctx.state.client, data.form, data.user, answers);
+      const answers = parseFormData(formData, ctx.state.form);
+      const responseId = await createResponse(
+        ctx.state.client,
+        ctx.state.form,
+        ctx.state.user,
+        answers,
+      );
 
-      return await ctx.render({ ...data, method: "post" });
+      const headers = new Headers({
+        Location: `/${ctx.state.form.slug}/success?response=${responseId}`,
+      });
+      return new Response(null, { status: STATUS_CODE.SeeOther, headers });
     } catch (e) {
       if (e instanceof FormParseError) {
         return new Response("Bad Request.", { status: STATUS_CODE.BadRequest });
       }
       throw e;
     }
-  }),
+  },
 };
 
-export default ({ data }: PageProps<Data & { method: "get" | "post" }>) => {
-  const content = data.method === "post"
-    ? (
-      <section
-        class="-my-4 markdown markdown-invert markdown-gray"
-        dangerouslySetInnerHTML={{
-          __html: (new HtmlRenderer()).render(
-            (new Parser()).parse(data.form.success_message ?? ""),
-          ),
-        }}
-      />
-    )
-    : !data.user
-    ? (
+export default defineRoute<FormState>((_req, { state }) => {
+  if (!state.user) {
+    return (
       <section class="flex flex-col items-center mt-4">
         <span class="text-lg">
           Connect with Discord to fill out the form
         </span>
         <a
-          href={`/oauth/login?redirect=/${data.form.slug}`}
+          href={`/oauth/login?redirect=/${state.form.slug}`}
           class="mt-4 px-4 py-2 flex items-center border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white rounded-lg transition-border-color"
         >
           {/* svg from https://discord.com/branding */}
@@ -133,27 +71,28 @@ export default ({ data }: PageProps<Data & { method: "get" | "post" }>) => {
           </div>
         </a>
       </section>
-    )
-    : (
+    );
+  } else {
+    return (
       <>
         <section class="flex justify-between items-center">
           <div class="flex items-center">
             <img
-              src={data.user.avatar}
+              src={state.user.avatar}
               width="48"
               height="48"
-              alt={`Discord avatar of ${data.user.name}`}
+              alt={`Discord avatar of ${state.user.name}`}
               class="rounded-full"
             />
             <div class="ml-2">
-              <span class="block text-lg">{data.user.name}</span>
+              <span class="block text-lg">{state.user.name}</span>
               <span class="block text-sm text-gray-400">
-                {data.user.username}
+                {state.user.username}
               </span>
             </div>
           </div>
           <a
-            href={`/oauth/logout?redirect=/${data.form.slug}`}
+            href={`/oauth/logout?redirect=/${state.form.slug}`}
             class="px-4 py-1 font-semibold tracking-wide border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white rounded-full transition-border-color"
           >
             Sign out
@@ -164,7 +103,7 @@ export default ({ data }: PageProps<Data & { method: "get" | "post" }>) => {
             method="post"
             class="w-full space-y-8"
           >
-            {data.form.questions && data.form.questions.questions.map((
+            {state.form.questions && state.form.questions.questions.map((
               question: Question,
             ) =>
               question.type === "text"
@@ -195,25 +134,5 @@ export default ({ data }: PageProps<Data & { method: "get" | "post" }>) => {
         </section>
       </>
     );
-
-  return (
-    <div class="flex flex-col min-h-screen items-center px-8 py-16 bg-black text-white">
-      <header class="max-w-xl w-full">
-        <h1 class="pb-1 text-3xl font-bold">
-          {data.form.name}
-        </h1>
-        <div
-          class="-mt-1 -mb-4 markdown markdown-invert markdown-gray italic"
-          dangerouslySetInnerHTML={{
-            __html: (new HtmlRenderer()).render(
-              (new Parser()).parse(data.form.description ?? ""),
-            ),
-          }}
-        />
-      </header>
-      <main class="max-w-xl w-full mt-8">
-        {content}
-      </main>
-    </div>
-  );
-};
+  }
+});
