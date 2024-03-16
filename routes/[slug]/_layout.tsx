@@ -1,4 +1,5 @@
 import { defineLayout } from "$fresh/server.ts";
+// @deno-types="https://esm.sh/v135/@types/commonmark@0.27.9/index.d.ts"
 import { HtmlRenderer, Parser } from "commonmark";
 
 import type { FormState } from "./_middleware.ts";

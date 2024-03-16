@@ -1,5 +1,6 @@
 import { STATUS_CODE } from "$std/http/status.ts";
 import { defineRoute, Handlers } from "$fresh/server.ts";
+// @deno-types="https://esm.sh/v135/@types/commonmark@0.27.9/index.d.ts"
 import { HtmlRenderer, Parser } from "commonmark";
 
 import { getResponse } from "../../utils/form.ts";

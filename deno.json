@@ -21,7 +21,7 @@
     "**/_fresh/*"
   ],
   "imports": {
-    "commonmark": "https://esm.sh/gh/commonmark/commonmark.js@6f94a997e9",
+    "commonmark": "https://esm.sh/gh/commonmark/commonmark.js@6f94a997e9?no-dts",
     "discord_api_types/": "https://deno.land/x/discord_api_types@0.37.71/",
     "$fresh/": "https://deno.land/x/fresh@1.6.5/",
     "oauth2_client/": "https://deno.land/x/oauth2_client@v1.0.2/",
