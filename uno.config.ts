@@ -2,11 +2,7 @@ import type { UserConfig } from "@unocss/core";
 import presetTypography from "@unocss/preset-typography";
 import presetUno from "@unocss/preset-uno";
 
-import { presetStyling } from "./utils/styling.ts";
-
-const PREFLIGHT = await (await fetch(
-  "https://esm.sh/@unocss/reset@0.58.5/tailwind.css",
-)).text();
+import { presetStyling } from "./utils/styling/mod.ts";
 
 export default {
   content: {
@@ -17,7 +13,6 @@ export default {
     presetUno(),
     presetTypography({ selectorName: "markdown" }),
   ],
-  preflights: [{ getCSS: () => PREFLIGHT }],
   theme: {
     colors: {
       "browser-blue": "blue",

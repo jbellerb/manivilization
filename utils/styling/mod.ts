@@ -1,6 +1,8 @@
+import { dirname, fromFileUrl, join } from "$std/path/mod.ts";
+
 import { Preflight, Preset, Rule } from "@unocss/core";
 
-export function buildPreflight(
+function buildPreflight(
   rules: Record<string, Record<string, string>>,
   extra?: Omit<Preflight, "getCSS">,
 ): Preflight {
@@ -16,7 +18,7 @@ export function buildPreflight(
   };
 }
 
-export function formPreflight(): Preflight {
+function formPreflight(): Preflight {
   return buildPreflight({
     "input:focus-visible, textarea:focus-visible, button:focus-visible, select:focus-visible":
       { outline: "none" },
@@ -83,7 +85,18 @@ export function formPreflight(): Preflight {
   }, { layer: "forms" });
 }
 
-export function iconRules(): Rule[] {
+function tailwindPreflight(): Preflight {
+  const rootDir = dirname(fromFileUrl(Deno.mainModule));
+
+  return {
+    getCSS: async () =>
+      await Deno.readTextFile(
+        join(rootDir, "utils", "styling", "preflight.css"),
+      ),
+  };
+}
+
+function iconRules(): Rule[] {
   // All paths based on Google's Material Design Icons
   const icons = {
     "arrow-down":
@@ -108,6 +121,7 @@ export function presetStyling(): Preset {
     // name: "preset-styling",
     name: "unocss-preset-forms",
     preflights: [
+      tailwindPreflight(),
       formPreflight(),
     ],
     layers: { forms: -50, icons: -30 },
