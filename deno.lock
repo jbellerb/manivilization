@@ -470,7 +470,10 @@
     "https://esm.sh/@unocss/core@0.58.5": "9bb29a10637b2615af272ad36482b7f905e4ab82651cea5b368a48c22007d1ec",
     "https://esm.sh/@unocss/preset-typography@0.58.5": "b846ba1d877216ee683b30694d9854ad4781420aec47e58654b199561a2d03e9",
     "https://esm.sh/@unocss/preset-uno@0.58.5": "2bff409b59aadb01fb337f7707367bbdde23aab15a6a0271554c464a1b428dba",
+    "https://esm.sh/browserslist@4.23.0": "4f7cbce73daa523e292c2b6bf791b32deb521000343b234a51092b92d7bc8d69",
     "https://esm.sh/gh/commonmark/commonmark.js@6f94a997e9?no-dts": "ab3fb22ec7915bf832945b6ad61052738efaa5a86b070f6b696cc18458208a78",
+    "https://esm.sh/lightningcss-wasm@1.24.1": "7b9f62e004f80dec09cd1e84f6b67bd679b00e149afa855771c8e747d9d2c588",
+    "https://esm.sh/lightningcss-wasm@1.24.1/lightningcss_node.wasm": "173c741d07bfd9434a7910190464306b9102808cc6d5dc92ed38aa7d560730db",
     "https://esm.sh/preact@10.19.2": "41f31ba8eecf666f08289f2205f57c45f74baba5be815a55c15c4cc61086143c",
     "https://esm.sh/preact@10.19.2/debug": "e1434406abe1f663b8992a77100a3491142ef22032405ea96a4a8ee5f58795d1",
     "https://esm.sh/preact@10.19.2/hooks": "725034ea48c9ad8aa8d9919bc3c1afaf469cee10fb815ac372d318043a5688d6",
@@ -501,10 +504,15 @@
     "https://esm.sh/v135/@unocss/preset-uno@0.58.5/denonext/preset-uno.mjs": "202ca825508a2a82d317619539834ef0809c6bd5aca5cadebb8faffabc36eb08",
     "https://esm.sh/v135/@unocss/preset-wind@0.58.5/denonext/preset-wind.mjs": "c9039ca2d041d4aefbe47d8c31057e33c5d99b84e1fa6cf15ced789295712db5",
     "https://esm.sh/v135/@unocss/rule-utils@0.58.5/denonext/rule-utils.mjs": "2555d38f6834a7541f60c449923584f62be3f30a3a101627d3a2cb2f95c0ed87",
+    "https://esm.sh/v135/browserslist@4.23.0/denonext/browserslist.mjs": "7684beb83fe1f3ada4fdd849dcfe7a764ec0e53b9db5402041bbc8058b0d4838",
+    "https://esm.sh/v135/caniuse-lite@1.0.30001588/denonext/dist/unpacker/agents.js": "ea3461c980ba01d0037ad8a761b928c6af58e922fa2db848b1504b5ec17f70b3",
+    "https://esm.sh/v135/electron-to-chromium@1.4.679/denonext/versions.js": "2be4a1744a2e01514ab10f902e78349616f523f7739f969c574fd78f08d56858",
     "https://esm.sh/v135/entities@3.0.1/denonext/entities.mjs": "a7422423c42a892009d3cbbdfe0234fbcfa248dffe25abf60dfb3eb45a61810b",
     "https://esm.sh/v135/gh/commonmark/commonmark.js@6f94a997e9/denonext/commonmark.mjs": "9cfff4f512fa83a2f182de7a01e812e829257c66855ff43f5539520af52e6c3c",
+    "https://esm.sh/v135/lightningcss-wasm@1.24.1/denonext/lightningcss-wasm.mjs": "eb554f4d150b0f0e1e5a450b3ff9908bb10168317a2cb6c8623a08290a632c5e",
     "https://esm.sh/v135/magic-string@0.30.6/denonext/magic-string.mjs": "559ff447b99855bd01ed89dd4dfb5ec27078836915cc89437051d87bce523c81",
     "https://esm.sh/v135/mdurl@1.0.1/denonext/encode.js": "acf3a1416166406ba4b5ac08a9d3ed2d6c8e66c4af01e3f7b295ad8eb8b0f3ba",
+    "https://esm.sh/v135/napi-wasm@1.1.0/denonext/napi-wasm.mjs": "9830428ba654bcb2fb077c0e3e49e3d78e6eb86c808c904f230876e02fa893bd",
     "https://esm.sh/v135/preact-render-to-string@6.3.1/X-ZS8q/denonext/preact-render-to-string.mjs": "bcaceb8c3938310aee3dd4f7b6f2136cf0b2b890988c2e6679485e052e76e920"
   }
 }

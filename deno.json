@@ -21,9 +21,12 @@
     "**/_fresh/*"
   ],
   "imports": {
+    "browserslist": "https://esm.sh/browserslist@4.23.0",
     "commonmark": "https://esm.sh/gh/commonmark/commonmark.js@6f94a997e9?no-dts",
     "discord_api_types/": "https://deno.land/x/discord_api_types@0.37.71/",
     "$fresh/": "https://deno.land/x/fresh@1.6.5/",
+    "lightningcss-wasm": "https://esm.sh/lightningcss-wasm@1.24.1",
+    "lightningcss-wasm/": "https://esm.sh/lightningcss-wasm@1.24.1/",
     "oauth2_client/": "https://deno.land/x/oauth2_client@v1.0.2/",
     "postgres/": "https://deno.land/x/postgres@v0.19.2/",
     "preact": "https://esm.sh/preact@10.19.2",
