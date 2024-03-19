@@ -1,7 +1,13 @@
-{ lib, mkDenoDerivation, deno }:
+{ runCommandLocal, mkDenoDerivation, deno, nix }:
 
 { pname, src, ... }@args:
-  mkDenoDerivation (args // {
+  let
+    computeHash = drv: builtins.readFile
+      (runCommandLocal "compute-derivation-hash" { } ''
+        ${nix}/bin/nix-hash --type sha256 "${drv}" > "$out"
+      '');
+
+  in mkDenoDerivation (args // rec {
     pname = "${args.pname}-check";
 
     denoEnv = args.denoEnv or src;
@@ -13,10 +19,14 @@
     # everything, which I strongly don't want to do, my only option is to abuse
     # fixed-output derivations to grab them during the build. This heavily goes
     # against the spirit of nix, but since the real build is pure and this build
-    # is purely to simplify CI checks, I'm fine with it for now. The hash
-    # corresponds to an empty file, which is only generated during the install
-    # phase if both check commands succeed.
-    outputHash = "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=";
+    # is purely to simplify CI checks, I'm fine with it for now. To make sure
+    # the checks actually happen and aren't just skipped by nix caching, the
+    # output hash needs to bind to the inputs. The easiest way I could come up
+    # with was hashing the NAR of denoEnv in a separate derivation, setting the
+    # output hash of this to the hash of that string, and then writing the hash
+    # string after checks pass so final hash matches our prior hash of a hash.
+    outputHashAlgo = "sha256";
+    outputHash = builtins.hashString "sha256" (computeHash denoEnv);
 
     buildPhaseCommand = ''
       ${deno}/bin/deno check **/*.ts
@@ -24,6 +34,6 @@
     '';
 
     installPhaseCommand = ''
-      touch "$out"
+      printf "${computeHash denoEnv}" > "$out"
     '';
   })

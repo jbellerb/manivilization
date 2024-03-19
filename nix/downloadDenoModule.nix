@@ -1,4 +1,4 @@
-{ lib, deno, fetchurl }:
+{ lib, fetchurl, deno }:
 
 { url, sha256 }:
   let
