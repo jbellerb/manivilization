@@ -59,13 +59,9 @@
             enableFakechroot = true;
 
             config = {
-              Cmd = [
-                "${pkgs.deno}/bin/deno"
-                "run"
-                "-A"
-                "--no-remote"
-                "${pkgs.manivilization}/main.ts"
-              ];
+              Entrypoint = [ "${pkgs.deno}/bin/deno" ];
+              Cmd = [ "run" "-A" "--no-remote" "./main.ts" ];
+              WorkingDir = pkgs.manivilization;
               Env = [ "DENO_DIR=${pkgs.manivilization.cache}" ];
               User = "manivilization";
               ExposedPorts = { "8000/tcp" = {}; };

@@ -36,7 +36,7 @@ export async function handler(req: Request, ctx: FreshContext<AdminState>) {
       if (ctx.state.roles.includes(ADMIN_ROLE)) {
         return await ctx.next();
       } else {
-        return new Response("Forbidden.", { status: STATUS_CODE.Forbidden });
+        return new Response("Forbidden", { status: STATUS_CODE.Forbidden });
       }
     } catch (e) {
       if (!(e instanceof BadSessionError || e instanceof ExpiredSessionError)) {

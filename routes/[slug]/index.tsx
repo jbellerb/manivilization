@@ -16,7 +16,7 @@ import type { Question } from "../../utils/form/types.ts";
 export const handler: Handlers<void, FormState> = {
   async POST(req, ctx) {
     if (!ctx.state.user) {
-      return new Response("Forbidden.", { status: STATUS_CODE.Forbidden });
+      return new Response("Forbidden", { status: STATUS_CODE.Forbidden });
     }
 
     const formData = await req.formData();
@@ -36,7 +36,7 @@ export const handler: Handlers<void, FormState> = {
     } catch (e) {
       if (e instanceof FormParseError) {
         console.log(e);
-        return new Response("Bad Request.", { status: STATUS_CODE.BadRequest });
+        return new Response("Bad Request", { status: STATUS_CODE.BadRequest });
       }
       throw e;
     }
