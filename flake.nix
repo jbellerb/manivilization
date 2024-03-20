@@ -73,6 +73,7 @@
       };
 
       checks."${system}" = {
+        manivilization = pkgs.manivilization;
         manivilization-fmt = denoLib.denoFmt commonArgs;
         manivilization-lint = denoLib.denoLint commonArgs;
         manivilization-check = denoLib.denoCheck commonArgs;
