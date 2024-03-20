@@ -3,6 +3,7 @@ name: Release
 on:
   push:
     branches: [master]
+  workflow_call:
 
 permissions:
   contents: read
@@ -38,10 +39,12 @@ jobs:
           name: docker
           path: result
 
-  release:
+  deploy-prod:
     name: Deploy the Docker image to fly.io
     needs: build-image
     runs-on: ubuntu-latest
+    environment: production
+    concurrency: production
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -56,12 +59,14 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@1.5
 
       - name: Login to fly.io's Container Registry
-        run: skopeo login -u x -p "${{ secrets.FLY_API_TOKEN }}" registry.fly.io
+        run: skopeo login -u x -p "$FLY_API_TOKEN" registry.fly.io
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       - name: Push Docker image
         run: skopeo copy docker-archive:/tmp/result docker://registry.fly.io/manivilization:latest
 
       - name: Deploy updated image
-        run: flyctl deploy --remote-only
+        run: flyctl deploy --remote-only -c "${{ vars.FLY_DEPLOY_CONFIG || './fly.toml' }}"
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
