@@ -2,7 +2,7 @@ import { deleteCookie } from "$std/http/cookie.ts";
 import { FreshContext } from "$fresh/server.ts";
 
 import { getUser } from "../../utils/discord/user.ts";
-import { BadFormError, getFormBySlug } from "../../utils/form.ts";
+import { BadFormError, getFormBySlug } from "../../utils/form/mod.ts";
 import {
   BadSessionError,
   ExpiredSessionError,
@@ -11,7 +11,7 @@ import {
 
 import type { RootState } from "../_middleware.ts";
 import type { User } from "../../utils/discord/user.ts";
-import type { Form } from "../../utils/form.ts";
+import type { Form } from "../../utils/form/types.ts";
 
 export type FormState = RootState & {
   form: Form;

@@ -3,7 +3,8 @@ import { useSignal } from "@preact/signals";
 import Select from "../components/Select.tsx";
 import TextInput from "../components/TextInput.tsx";
 import classnames from "../utils/classnames.ts";
-import { Form, Question } from "../utils/form.ts";
+
+import type { Form, Question } from "../utils/form/types.ts";
 
 type IconButtonProps = {
   label: string;

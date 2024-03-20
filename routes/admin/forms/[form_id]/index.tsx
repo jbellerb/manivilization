@@ -6,7 +6,7 @@ import {
   FormParseError,
   parseEditorFormData,
   updateForm,
-} from "../../../../utils/form.ts";
+} from "../../../../utils/form/mod.ts";
 
 import Button from "../../../../components/Button.tsx";
 import Checkbox from "../../../../components/Checkbox.tsx";

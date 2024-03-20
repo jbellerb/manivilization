@@ -3,7 +3,7 @@ import { defineRoute, Handlers } from "$fresh/server.ts";
 // @deno-types="https://esm.sh/v135/@types/commonmark@0.27.9/index.d.ts"
 import { HtmlRenderer, Parser } from "commonmark";
 
-import { getResponse } from "../../utils/form.ts";
+import { getResponse } from "../../utils/form/response.ts";
 
 import type { FormState } from "./_middleware.ts";
 

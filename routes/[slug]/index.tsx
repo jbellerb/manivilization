@@ -8,10 +8,10 @@ import {
   createResponse,
   FormParseError,
   parseFormData,
-} from "../../utils/form.ts";
+} from "../../utils/form/mod.ts";
 
 import type { FormState } from "./_middleware.ts";
-import type { Question } from "../../utils/form.ts";
+import type { Question } from "../../utils/form/types.ts";
 
 export const handler: Handlers<void, FormState> = {
   async POST(req, ctx) {
@@ -35,6 +35,7 @@ export const handler: Handlers<void, FormState> = {
       return new Response(null, { status: STATUS_CODE.SeeOther, headers });
     } catch (e) {
       if (e instanceof FormParseError) {
+        console.log(e);
         return new Response("Bad Request.", { status: STATUS_CODE.BadRequest });
       }
       throw e;

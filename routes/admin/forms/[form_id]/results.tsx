@@ -1,7 +1,7 @@
 import { defineRoute } from "$fresh/server.ts";
 
 import { AdminFormState } from "./_middleware.ts";
-import { getFormResponses } from "../../../../utils/form.ts";
+import { getFormResponses } from "../../../../utils/form/response.ts";
 
 import ResultsTable from "../../../../islands/ResultsTable.tsx";
 

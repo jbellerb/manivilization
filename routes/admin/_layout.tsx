@@ -2,7 +2,7 @@ import { defineLayout } from "$fresh/server.ts";
 
 import { AdminState } from "./_middleware.ts";
 import classnames from "../../utils/classnames.ts";
-import { listForms } from "../../utils/form.ts";
+import { listForms } from "../../utils/form/form.ts";
 
 export default defineLayout<AdminState>(async (_req, ctx) => {
   const forms = await listForms(ctx.state.client);
