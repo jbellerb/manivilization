@@ -9,6 +9,7 @@ import * as $_slug_success from "./routes/[slug]/success.tsx";
 import * as $_404 from "./routes/_404.tsx";
 import * as $_500 from "./routes/_500.tsx";
 import * as $_app from "./routes/_app.tsx";
+import * as $_layout from "./routes/_layout.tsx";
 import * as $_middleware from "./routes/_middleware.ts";
 import * as $admin_layout from "./routes/admin/_layout.tsx";
 import * as $admin_middleware from "./routes/admin/_middleware.ts";
@@ -18,7 +19,6 @@ import * as $admin_forms_form_id_index from "./routes/admin/forms/[form_id]/inde
 import * as $admin_forms_form_id_results from "./routes/admin/forms/[form_id]/results.tsx";
 import * as $admin_forms_new from "./routes/admin/forms/new.ts";
 import * as $admin_index from "./routes/admin/index.tsx";
-import * as $index from "./routes/index.tsx";
 import * as $oauth_callback from "./routes/oauth/callback.ts";
 import * as $oauth_login from "./routes/oauth/login.ts";
 import * as $oauth_logout from "./routes/oauth/logout.ts";
@@ -36,6 +36,7 @@ const manifest = {
     "./routes/_404.tsx": $_404,
     "./routes/_500.tsx": $_500,
     "./routes/_app.tsx": $_app,
+    "./routes/_layout.tsx": $_layout,
     "./routes/_middleware.ts": $_middleware,
     "./routes/admin/_layout.tsx": $admin_layout,
     "./routes/admin/_middleware.ts": $admin_middleware,
@@ -46,7 +47,6 @@ const manifest = {
     "./routes/admin/forms/[form_id]/results.tsx": $admin_forms_form_id_results,
     "./routes/admin/forms/new.ts": $admin_forms_new,
     "./routes/admin/index.tsx": $admin_index,
-    "./routes/index.tsx": $index,
     "./routes/oauth/callback.ts": $oauth_callback,
     "./routes/oauth/login.ts": $oauth_login,
     "./routes/oauth/logout.ts": $oauth_logout,

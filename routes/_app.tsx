@@ -8,9 +8,7 @@ export default defineApp((_req, { Component }) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Manivilization</title>
       </head>
-      <body>
-        <Component />
-      </body>
+      <Component />
     </html>
   );
 });

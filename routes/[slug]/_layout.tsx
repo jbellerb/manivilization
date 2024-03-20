@@ -6,7 +6,7 @@ import type { FormState } from "./_middleware.ts";
 
 export default defineLayout<FormState>((_req, { Component, state }) => {
   return (
-    <div class="flex flex-col min-h-screen items-center px-8 py-16 bg-black text-white">
+    <>
       <header class="max-w-xl w-full">
         <h1 class="pb-1 text-3xl font-bold">
           {state.form.name}
@@ -23,6 +23,6 @@ export default defineLayout<FormState>((_req, { Component, state }) => {
       <main class="max-w-xl w-full mt-8">
         <Component />
       </main>
-    </div>
+    </>
   );
 });

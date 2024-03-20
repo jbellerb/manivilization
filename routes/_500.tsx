@@ -7,8 +7,12 @@ export default defineRoute(() => {
       <Head>
         <title>500 - Internal server error</title>
       </Head>
-      <h1>500 - Internal server error</h1>
-      <p>Something went wrong while processing your request.</p>
+      <header class="max-w-xl w-full">
+        <h1 class="text-3xl font-bold">500 - Internal server error</h1>
+      </header>
+      <main class="max-w-xl w-full markdown markdown-invert markdown-gray italic">
+        <p>Something went wrong while processing your request.</p>
+      </main>
     </>
   );
 });
