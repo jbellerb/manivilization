@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Run all checks
+    uses: ./.github/workflows/development.yml
+
+  build-image:
+    name: Build the Docker image
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v25
+
+      - name: Setup Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v4
+        with:
+          diagnostic-endpoint:
+          use-flakehub: false
+
+      - name: Build Docker image
+        run: nix build .#manivilization-container
+
+      - name: Upload the built Docker image
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker
+          path: result
+
+  release:
+    name: Deploy the Docker image to fly.io
+    needs: build-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download the built Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: docker
+          path: /tmp
+
+      - name: Install flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@1.5
+
+      - name: Login to fly.io's Container Registry
+        run: skopeo login -u x -p "${{ secrets.FLY_API_TOKEN }}" registry.fly.io
+
+      - name: Push Docker image
+        run: skopeo copy docker-archive:/tmp/result docker://registry.fly.io/manivilization:latest
+
+      - name: Deploy updated image
+        run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
