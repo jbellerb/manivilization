@@ -19,10 +19,12 @@ export type FormResponse = {
 export type Question = {
   type: "text";
   name: string;
+  comment?: string;
   label: string;
 } | {
   type: "checkbox";
   name: string;
+  comment?: string;
   options: string[];
 };
 

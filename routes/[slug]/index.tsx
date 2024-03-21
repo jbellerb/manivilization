@@ -104,34 +104,51 @@ export default defineRoute<FormState>((_req, { state }) => {
         </section>
         <form
           method="post"
-          class="mt-8 mx-auto max-w-lg w-full space-y-8"
+          class="mt-10 mx-auto max-w-lg w-full space-y-8"
         >
-          {state.form.questions && state.form.questions.questions.map((
-            question: Question,
-          ) =>
-            question.type === "text"
-              ? (
-                <TextInput
-                  name={`question-${question.name}`}
-                  label={question.label}
-                />
-              )
-              : question.type === "checkbox"
-              ? (
-                <fieldset class="space-y-2">
-                  <legend class="text-lg">{question.name}</legend>
-                  {question.options.map((option, idx) => (
-                    <Checkbox
+          {state.form.questions &&
+            state.form.questions.questions.map((question: Question) =>
+              question.type === "text"
+                ? (
+                  <div
+                    aria-role="group"
+                    aria-labelledby={question.comment &&
+                      `question-${question.name}-comment`}
+                  >
+                    {question.comment && (
+                      <label
+                        class="block text-lg mb-2"
+                        id={`question-${question.name}-comment`}
+                      >
+                        {question.comment}
+                      </label>
+                    )}
+                    <TextInput
                       name={`question-${question.name}`}
-                      id={`checkbox-${question.name}-${idx}`}
-                      label={option}
-                      value={option}
+                      label={question.label}
+                      aria-describedby={question.comment &&
+                        `question-${question.name}-comment`}
                     />
-                  ))}
-                </fieldset>
-              )
-              : undefined
-          )}
+                  </div>
+                )
+                : question.type === "checkbox"
+                ? (
+                  <fieldset class="space-y-2">
+                    {question.comment && (
+                      <legend class="text-lg">{question.comment}</legend>
+                    )}
+                    {question.options.map((option, idx) => (
+                      <Checkbox
+                        name={`question-${question.name}`}
+                        id={`checkbox-${question.name}-${idx}`}
+                        label={option}
+                        value={option}
+                      />
+                    ))}
+                  </fieldset>
+                )
+                : undefined
+            )}
           <Button name="Submit" class="float-right" />
         </form>
       </>

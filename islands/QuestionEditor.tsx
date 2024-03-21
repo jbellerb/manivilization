@@ -162,13 +162,24 @@ export default function QuestionEditor(props: Props) {
                       { ...question, name: e.currentTarget.value },
                       idx,
                     )}
+                  required
                 />
               </div>
+              <TextInput
+                name={`question-${idx}-comment`}
+                label="Question"
+                value={question.comment}
+                onChange={(e) =>
+                  updateQuestion({
+                    ...question,
+                    comment: e.currentTarget.value,
+                  }, idx)}
+              />
               {(question.type === "text")
                 ? (
                   <TextInput
                     name={`question-${idx}-label`}
-                    label="Question"
+                    label="Label"
                     value={question.label}
                     onChange={(e) =>
                       updateQuestion({
@@ -204,6 +215,7 @@ export default function QuestionEditor(props: Props) {
           onClick={() => (addQuestion({
             type: "text",
             name: `col_${questions.value.length + 1}`,
+            comment: "",
             label: "",
           }))}
         >
