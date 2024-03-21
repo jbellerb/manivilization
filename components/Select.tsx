@@ -1,32 +1,26 @@
-import { ComponentChildren, JSX } from "preact";
+import { JSX } from "preact";
 
 type Props = {
   name: string;
   label: string;
-  onChange?: (event: JSX.TargetedEvent<HTMLSelectElement, Event>) => void;
-  value?: string;
-  children: ComponentChildren;
-};
+} & JSX.HTMLAttributes<HTMLSelectElement>;
 
-export default function Select(props: Props) {
+export default function Select({ name, label, ...props }: Props) {
   return (
     <div class="relative pt-4 text-lg z-0 group">
       <label
-        for={`select-${props.name}`}
+        for={props.id ?? `select-${name}`}
         class="absolute text-sm text-gray-400 group-has-[:focus-visible]:text-gray-600 font-semibold origin-[0] top-0 transition-color -z-10"
       >
-        {props.label}
+        {label}
       </label>
       <div class="select-wrapper border-b-2 border-gray-600 has-[:hover]:border-gray-500 has-[:focus-visible]:border-white transition-border-color">
         <select
-          name={props.name}
-          id={`select-${props.name}`}
+          name={name}
+          id={`select-${name}`}
           class="py-1 !pr-6"
-          onChange={props.onChange}
-          value={props.value}
-        >
-          {props.children}
-        </select>
+          {...props}
+        />
       </div>
     </div>
   );
