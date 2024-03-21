@@ -85,7 +85,7 @@ function mapMaybe<T, R>(
 export function parseEditorFormData(data: FormData): Omit<Form, "id"> {
   const questions: Question[] = [];
   const formData = walkFormData(data);
-  for (let [key, value] of Object.entries(formData.question).sort()) {
+  for (let [key, value] of Object.entries(formData.question ?? {}).sort()) {
     value = isAttrs(`question.${key}`, value);
     const type = isValues(`question.${key}.type`, value.type)[0];
     const name = isValues(`question.${key}.name`, value.name)[0];
