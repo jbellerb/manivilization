@@ -17,7 +17,7 @@ export default function GrowableTextArea(
 
   return (
     <div
-      class="relative z-0 pt-7 growable after:px-3 after:py-2 group"
+      class="relative z-0 pt-7 growable after:px-3 after:py-2 after:border-2 group"
       data-value={value + " "}
     >
       <label
