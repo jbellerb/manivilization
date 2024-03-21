@@ -21,6 +21,14 @@ export default function TextInput(props: Props) {
         props.class ?? "",
       )}
     >
+      {props.label && (
+        <label
+          for={`input-${props.name}`}
+          class="absolute text-sm text-gray-400 peer-focus-visible:text-gray-600 font-semibold origin-[0] top-0 transition-color -z-10"
+        >
+          {props.label}
+        </label>
+      )}
       <input
         type="text"
         name={props.name}
@@ -31,14 +39,6 @@ export default function TextInput(props: Props) {
         placeholder={props.placeholder}
         required={props.required ?? false}
       />
-      {props.label && (
-        <label
-          for={`input-${props.name}`}
-          class="absolute text-sm text-gray-400 peer-focus-visible:text-gray-600 font-semibold origin-[0] top-0 transition-color -z-10"
-        >
-          {props.label}
-        </label>
-      )}
     </div>
   );
 }

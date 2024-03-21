@@ -37,12 +37,12 @@ export const handler: Handlers<void, AdminFormState> = {
 
 export default defineRoute<AdminFormState>((_req, { state }) => {
   return (
-    <form
-      method="post"
-      class="flex justify-center p-8 bg-black text-white flex-1 font-sans"
-      name={state.form.id}
-    >
-      <div class="max-w-xl w-full mt-8">
+    <main class="flex justify-center p-8 bg-black text-white flex-1 font-sans">
+      <form
+        method="post"
+        class="max-w-xl w-full mt-8"
+        name={state.form.id}
+      >
         <div class="flex flex-col space-y-6">
           <TextInput
             name="name"
@@ -77,13 +77,13 @@ export default defineRoute<AdminFormState>((_req, { state }) => {
             <Button name="Save" class="ml-auto" />
           </div>
         </div>
-      </div>
+      </form>
       {/* Reset the form to prevent Firefox from restoring past unsaved values */}
       <script
         dangerouslySetInnerHTML={{
           __html: `document["${state.form.id}"].reset();`,
         }}
       />
-    </form>
+    </main>
   );
 });

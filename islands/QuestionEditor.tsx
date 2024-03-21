@@ -50,7 +50,7 @@ function OptionsEditor(props: OptionsEditorProps) {
         onClick={() => addOption("New Option")}
       />
       <div class="flex flex-col w-full ml-2">
-        <span class="text-sm font-semibold text-gray-400">Options</span>
+        <label class="text-sm font-semibold text-gray-400">Options</label>
         <ul class="-mt-1">
           {props.options.map((option, idx) => (
             <li class="flex">
@@ -109,9 +109,9 @@ export default function QuestionEditor(props: Props) {
 
   return (
     <div>
-      <ul class="space-y-6">
+      <ul class="space-y-6" aria-label="Questions">
         {questions.value.map((question: Question, idx: number) => (
-          <li class="flex" key={question.name}>
+          <li class="flex" key={question.name} aria-label={question.name}>
             <div class="flex flex-col mr-2 space-y-2">
               <IconButton
                 label="Delete question"
@@ -200,6 +200,7 @@ export default function QuestionEditor(props: Props) {
         <button
           type="button"
           class="p-2 border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white rounded-full transition-border-color after:block after:content-empty after:w-6 after:h-6 after:i-mdi-plus"
+          aria-label="Add a question"
           onClick={() => (addQuestion({
             type: "text",
             name: `col_${questions.value.length + 1}`,

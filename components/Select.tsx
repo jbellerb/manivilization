@@ -17,12 +17,10 @@ export default function Select(props: Props) {
       >
         {props.label}
       </label>
-      <div
-        id={`select-${props.name}`}
-        class="select-wrapper border-b-2 border-gray-600 has-[:hover]:border-gray-500 has-[:focus-visible]:border-white transition-border-color"
-      >
+      <div class="select-wrapper border-b-2 border-gray-600 has-[:hover]:border-gray-500 has-[:focus-visible]:border-white transition-border-color">
         <select
           name={props.name}
+          id={`select-${props.name}`}
           class="py-1 !pr-6"
           onChange={props.onChange}
           value={props.value}

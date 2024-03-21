@@ -18,6 +18,12 @@ export default function GrowableTextArea(props: Props) {
       class="relative z-0 pt-7 growable after:px-3 after:py-2"
       data-value={value + " "}
     >
+      <label
+        for={`textarea-${props.name}`}
+        class="absolute text-sm font-semibold text-gray-400 peer-focus-visible:text-gray-600 origin-[0] top-0 transition-color -z-10"
+      >
+        {props.label}
+      </label>
       <textarea
         name={props.name}
         id={`textarea-${props.name}`}
@@ -30,12 +36,6 @@ export default function GrowableTextArea(props: Props) {
         value={value}
         onInput={(e) => value.value = e.currentTarget.value}
       />
-      <label
-        for={`textarea-${props.name}`}
-        class="absolute text-sm font-semibold text-gray-400 peer-focus-visible:text-gray-600 origin-[0] top-0 transition-color -z-10"
-      >
-        {props.label}
-      </label>
     </div>
   );
 }

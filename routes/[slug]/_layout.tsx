@@ -1,3 +1,4 @@
+import { Head } from "$fresh/runtime.ts";
 import { defineLayout } from "$fresh/server.ts";
 // @deno-types="https://esm.sh/v135/@types/commonmark@0.27.9/index.d.ts"
 import { HtmlRenderer, Parser } from "commonmark";
@@ -7,6 +8,9 @@ import type { FormState } from "./_middleware.ts";
 export default defineLayout<FormState>((_req, { Component, state }) => {
   return (
     <>
+      <Head>
+        <title>{state.form.name}</title>
+      </Head>
       <header class="max-w-xl w-full">
         <h1 class="pb-1 text-3xl font-bold">
           {state.form.name}

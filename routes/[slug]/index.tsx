@@ -77,7 +77,10 @@ export default defineRoute<FormState>((_req, { state }) => {
     return (
       <>
         <section class="flex justify-between items-center">
-          <div class="flex items-center">
+          <article
+            aria-label={`Filling out form as ${state.user.username}`}
+            class="flex items-center"
+          >
             <img
               src={state.user.avatar}
               width="48"
@@ -91,7 +94,7 @@ export default defineRoute<FormState>((_req, { state }) => {
                 {state.user.username}
               </span>
             </div>
-          </div>
+          </article>
           <a
             href={`/oauth/logout?redirect=/${state.form.slug}`}
             class="px-4 py-1 font-semibold tracking-wide border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white rounded-full transition-border-color"
@@ -99,40 +102,38 @@ export default defineRoute<FormState>((_req, { state }) => {
             Sign out
           </a>
         </section>
-        <section class="mt-8 mx-auto max-w-lg">
-          <form
-            method="post"
-            class="w-full space-y-8"
-          >
-            {state.form.questions && state.form.questions.questions.map((
-              question: Question,
-            ) =>
-              question.type === "text"
-                ? (
-                  <TextInput
-                    name={`question-${question.name}`}
-                    label={question.label}
-                  />
-                )
-                : question.type === "checkbox"
-                ? (
-                  <fieldset class="space-y-2">
-                    <legend class="text-lg">{question.name}</legend>
-                    {question.options.map((option, idx) => (
-                      <Checkbox
-                        name={`question-${question.name}`}
-                        id={`checkbox-${question.name}-${idx}`}
-                        label={option}
-                        value={option}
-                      />
-                    ))}
-                  </fieldset>
-                )
-                : undefined
-            )}
-            <Button name="Submit" class="float-right" />
-          </form>
-        </section>
+        <form
+          method="post"
+          class="mt-8 mx-auto max-w-lg w-full space-y-8"
+        >
+          {state.form.questions && state.form.questions.questions.map((
+            question: Question,
+          ) =>
+            question.type === "text"
+              ? (
+                <TextInput
+                  name={`question-${question.name}`}
+                  label={question.label}
+                />
+              )
+              : question.type === "checkbox"
+              ? (
+                <fieldset class="space-y-2">
+                  <legend class="text-lg">{question.name}</legend>
+                  {question.options.map((option, idx) => (
+                    <Checkbox
+                      name={`question-${question.name}`}
+                      id={`checkbox-${question.name}-${idx}`}
+                      label={option}
+                      value={option}
+                    />
+                  ))}
+                </fieldset>
+              )
+              : undefined
+          )}
+          <Button name="Submit" class="float-right" />
+        </form>
       </>
     );
   }

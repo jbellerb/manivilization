@@ -29,7 +29,7 @@ export default defineLayout((_req, { Component, params, url }) => {
 
   return (
     <>
-      <div class="ml-auto py-4 px-5 space-x-4">
+      <nav class="ml-auto py-4 px-5 space-x-4">
         <Link
           active={url.pathname === `/admin/forms/${formId}`}
           href={`/admin/forms/${formId}`}
@@ -40,7 +40,7 @@ export default defineLayout((_req, { Component, params, url }) => {
           href={`/admin/forms/${formId}/results`}
           text="Results"
         />
-      </div>
+      </nav>
       <Component />
     </>
   );
