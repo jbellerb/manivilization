@@ -15,7 +15,7 @@ export default function TextInput(
     <div
       role="presentation"
       class={classnames(
-        "grow relative text-lg",
+        "grow relative text-lg group",
         { "pt-4 z-0": Boolean(label) },
         extraClasses ?? "",
       )}
@@ -23,7 +23,7 @@ export default function TextInput(
       {label && (
         <label
           for={props.id ?? `input-${name}`}
-          class="absolute text-sm text-gray-400 peer-focus-visible:text-gray-600 font-semibold origin-[0] top-0 transition-color -z-10"
+          class="absolute text-sm text-gray-400 group-has-[:focus-visible]:text-gray-600 font-semibold origin-[0] top-0 transition-color -z-10"
         >
           {label}
         </label>
@@ -32,7 +32,7 @@ export default function TextInput(
         type="text"
         name={name}
         id={`input-${name}`}
-        class="block w-full py-1 bg-transparent border-b-2 border-gray-600 hover:border-gray-500 focus-visible:border-white transition-border-color peer"
+        class="block w-full py-1 bg-transparent border-b-2 border-gray-600 hover:border-gray-500 focus-visible:border-white transition-border-color"
         {...props}
       />
     </div>

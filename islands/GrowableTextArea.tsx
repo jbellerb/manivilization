@@ -17,12 +17,12 @@ export default function GrowableTextArea(
 
   return (
     <div
-      class="relative z-0 pt-7 growable after:px-3 after:py-2"
+      class="relative z-0 pt-7 growable after:px-3 after:py-2 group"
       data-value={value + " "}
     >
       <label
         for={props.id ?? `textarea-${name}`}
-        class="absolute text-sm font-semibold text-gray-400 peer-focus-visible:text-gray-600 origin-[0] top-0 transition-color -z-10"
+        class="absolute text-sm font-semibold text-gray-400 group-has-[:focus-visible]:text-gray-600 origin-[0] top-0 transition-color -z-10"
       >
         {label}
       </label>
@@ -30,7 +30,7 @@ export default function GrowableTextArea(
         name={name}
         id={`textarea-${name}`}
         class={classnames(
-          "block px-3 py-2 bg-transparent border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white rounded outline-none transition-border-color peer",
+          "block px-3 py-2 bg-transparent border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white rounded outline-none transition-border-color",
           { "resize-none overflow-hidden": IS_BROWSER },
         )}
         placeholder=" "

@@ -1,20 +1,17 @@
 import { JSX } from "preact";
 
-import classnames from "../utils/classnames.ts";
-
 type Props = {
   name: string;
   label?: string;
-  class?: string;
 } & JSX.HTMLAttributes<HTMLInputElement>;
 
 export default function Checkbox(
-  { name, label, class: extraClasses, ...props }: Props,
+  { name, label, ...props }: Props,
 ) {
   return (
     <div
       role="presentation"
-      class={classnames("flex items-center", extraClasses ?? "")}
+      class="flex items-center"
     >
       <input
         type="checkbox"
