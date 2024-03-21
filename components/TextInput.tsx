@@ -24,8 +24,10 @@ export default function TextInput(
         <label
           for={props.id ?? `input-${name}`}
           class="absolute text-sm text-gray-400 group-has-[:focus-visible]:text-gray-600 font-semibold origin-[0] top-0 transition-color -z-10"
+          title={props.required ? "Required" : undefined}
         >
           {label}
+          {props.required && <span class="ml-1">*</span>}
         </label>
       )}
       <input

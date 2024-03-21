@@ -1,5 +1,6 @@
 import { useSignal } from "@preact/signals";
 
+import InlineCheckbox from "../components/InlineCheckbox.tsx";
 import Select from "../components/Select.tsx";
 import TextInput from "../components/TextInput.tsx";
 import classnames from "../utils/classnames.ts";
@@ -50,7 +51,9 @@ function OptionsEditor(props: OptionsEditorProps) {
         onClick={() => addOption("New Option")}
       />
       <div class="flex flex-col w-full ml-2">
-        <label class="text-sm font-semibold text-gray-400">Options</label>
+        <label class="text-sm font-semibold text-gray-400">
+          Options<span class="ml-1">*</span>
+        </label>
         <ul class="-mt-1">
           {props.options.map((option, idx) => (
             <li class="flex">
@@ -149,6 +152,7 @@ export default function QuestionEditor(props: Props) {
                       idx,
                     )}
                   value={question.type}
+                  required
                 >
                   <option value="text">Textbox</option>
                   <option value="checkbox">Checkboxes</option>
@@ -163,6 +167,16 @@ export default function QuestionEditor(props: Props) {
                       idx,
                     )}
                   required
+                />
+                <InlineCheckbox
+                  name={`question-${idx}-required`}
+                  label="Required"
+                  checked={question.required}
+                  onChange={(e) =>
+                    updateQuestion(
+                      { ...question, required: e.currentTarget.checked },
+                      idx,
+                    )}
                 />
               </div>
               <TextInput
@@ -215,6 +229,7 @@ export default function QuestionEditor(props: Props) {
           onClick={() => (addQuestion({
             type: "text",
             name: `col_${questions.value.length + 1}`,
+            required: true,
             comment: "",
             label: "",
           }))}

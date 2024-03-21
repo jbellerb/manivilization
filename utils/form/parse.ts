@@ -89,17 +89,20 @@ export function parseEditorFormData(data: FormData): Omit<Form, "id"> {
     value = isAttrs(`question.${key}`, value);
     const type = isValues(`question.${key}.type`, value.type)[0];
     const name = isValues(`question.${key}.name`, value.name)[0];
+    const required =
+      (mapMaybe(isValues, `question.${key}.required`, value.required) ??
+        ["off"])[0] === "on";
     const comment = isValues(`question.${key}.comment`, value.comment)[0];
 
     if (type === "text") {
       const label = isValues(`question.${key}.label`, value.label)[0];
-      questions.push({ type, name, comment, label });
+      questions.push({ type, name, required, comment, label });
     } else if (type === "checkbox") {
       const options = isAttrs(`question.${key}.options`, value.options);
       const optionsArray = Object.keys(options).sort().map((i) =>
         isValues(`question.${key}.options[${i}]`, options[i])[0]
       );
-      questions.push({ type, name, comment, options: optionsArray });
+      questions.push({ type, name, required, comment, options: optionsArray });
     } else {
       throw new FormParseError(
         `question.${key}.type is unexpected type "${type}"`,
@@ -135,6 +138,10 @@ export function parseFormData(
       } else if (question.type === "checkbox") {
         response[question.name] = (isValues(name, answers[question.name] ?? []))
           .join(", ");
+      }
+
+      if (!response[question.name] && question.required) {
+        throw new FormParseError(`question.${question.name} is required`);
       }
     }
   }

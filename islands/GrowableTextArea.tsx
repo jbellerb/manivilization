@@ -23,8 +23,10 @@ export default function GrowableTextArea(
       <label
         for={props.id ?? `textarea-${name}`}
         class="absolute text-sm font-semibold text-gray-400 group-has-[:focus-visible]:text-gray-600 origin-[0] top-0 transition-color -z-10"
+        title={props.required ? "Required" : undefined}
       >
         {label}
+        {props.required && <span class="ml-1">*</span>}
       </label>
       <textarea
         name={name}

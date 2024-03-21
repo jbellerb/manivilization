@@ -128,6 +128,7 @@ export default defineRoute<FormState>((_req, { state }) => {
                       label={question.label}
                       aria-describedby={question.comment &&
                         `question-${question.name}-comment`}
+                      required={question.required}
                     />
                   </div>
                 )
@@ -143,6 +144,7 @@ export default defineRoute<FormState>((_req, { state }) => {
                         id={`checkbox-${question.name}-${idx}`}
                         label={option}
                         value={option}
+                        required={question.required}
                       />
                     ))}
                   </fieldset>
