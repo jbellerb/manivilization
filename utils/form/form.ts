@@ -1,9 +1,9 @@
-import { Client } from "postgres/client.ts";
+import { QueryClient } from "postgres/client.ts";
 
 import { BadFormError, type Form } from "./types.ts";
 
 export async function listForms(
-  client: Client,
+  client: QueryClient,
 ): Promise<{ id: Form["id"]; name: Form["name"] }[]> {
   const { rows } = await client.queryObject<{ id: string; name: string }>`
     SELECT id, name FROM forms;
@@ -12,7 +12,7 @@ export async function listForms(
   return rows;
 }
 
-export async function createForm(client: Client, form: Form) {
+export async function createForm(client: QueryClient, form: Form) {
   await client.queryArray`
     INSERT INTO forms VALUES (
       ${form.id},
@@ -26,7 +26,7 @@ export async function createForm(client: Client, form: Form) {
   `;
 }
 
-export async function getForm(client: Client, id: string): Promise<Form> {
+export async function getForm(client: QueryClient, id: string): Promise<Form> {
   const { rows } = await client.queryObject<Form>`
     SELECT * FROM forms WHERE id = ${id};
   `;
@@ -37,7 +37,7 @@ export async function getForm(client: Client, id: string): Promise<Form> {
 }
 
 export async function getFormBySlug(
-  client: Client,
+  client: QueryClient,
   slug: string,
 ): Promise<Form> {
   const { rows } = await client.queryObject<Form>`
@@ -49,7 +49,7 @@ export async function getFormBySlug(
   return form;
 }
 
-export async function updateForm(client: Client, form: Form) {
+export async function updateForm(client: QueryClient, form: Form) {
   await client.queryArray`
     UPDATE forms SET
       name = ${form.name},

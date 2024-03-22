@@ -2,14 +2,14 @@ import { getCookies } from "$std/http/cookie.ts";
 import { STATUS_CODE } from "$std/http/status.ts";
 import { FreshContext } from "$fresh/server.ts";
 
-import { Client } from "postgres/client.ts";
+import { PoolClient } from "postgres/client.ts";
 import { db } from "../utils/db.ts";
 
 export const PUBLIC_URL = Deno.env.get("PUBLIC_URL");
 const publicUrl = PUBLIC_URL ? new URL(PUBLIC_URL) : undefined;
 
 export type RootState = {
-  client: Client;
+  client: PoolClient;
   sessionToken?: string;
 };
 
@@ -26,6 +26,6 @@ export async function handler(req: Request, ctx: FreshContext<RootState>) {
   try {
     return await ctx.next();
   } finally {
-    await ctx.state.client.end();
+    ctx.state.client.release();
   }
 }

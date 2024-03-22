@@ -1,4 +1,4 @@
-import { Client } from "postgres/client.ts";
+import { QueryClient } from "postgres/client.ts";
 import { oauthClient } from "./oauth.ts";
 
 export type AuthSession = {
@@ -17,7 +17,10 @@ export type Session = {
   access_expires?: Date;
 };
 
-export async function createAuthSession(client: Client, session: AuthSession) {
+export async function createAuthSession(
+  client: QueryClient,
+  session: AuthSession,
+) {
   await client.queryArray`
     INSERT INTO auth_sessions VALUES (
       ${session.id},
@@ -30,7 +33,7 @@ export async function createAuthSession(client: Client, session: AuthSession) {
 }
 
 export async function popAuthSession(
-  client: Client,
+  client: QueryClient,
   id: string,
 ): Promise<AuthSession> {
   const { rows } = await client.queryObject<AuthSession>`
@@ -46,7 +49,7 @@ export async function popAuthSession(
   return session;
 }
 
-export async function createSession(client: Client, session: Session) {
+export async function createSession(client: QueryClient, session: Session) {
   await client.queryArray`
     INSERT INTO sessions VALUES (
       ${session.id},
@@ -58,7 +61,10 @@ export async function createSession(client: Client, session: Session) {
   `;
 }
 
-export async function getSession(client: Client, id: string): Promise<Session> {
+export async function getSession(
+  client: QueryClient,
+  id: string,
+): Promise<Session> {
   const { rows } = await client.queryObject<Session>`
     SELECT * FROM sessions WHERE id = ${id};
   `;
@@ -77,7 +83,7 @@ export async function getSession(client: Client, id: string): Promise<Session> {
   }
 }
 
-export async function updateSession(client: Client, session: Session) {
+export async function updateSession(client: QueryClient, session: Session) {
   await client.queryArray`
     UPDATE sessions SET (access_token, refresh_token, access_expires) = (
       ${session.access_token},
@@ -87,14 +93,14 @@ export async function updateSession(client: Client, session: Session) {
   `;
 }
 
-export async function deleteSession(client: Client, id: string) {
+export async function deleteSession(client: QueryClient, id: string) {
   await client.queryArray`
     DELETE FROM sessions WHERE id = ${id};
   `;
 }
 
 async function refreshSession(
-  client: Client,
+  client: QueryClient,
   session: Session,
 ): Promise<Session> {
   if (!session.refresh_token) {

@@ -1,12 +1,12 @@
 #!/usr/bin/env -S deno run -A
 
 import { join } from "$std/path/mod.ts";
-import { Client } from "postgres/client.ts";
+import { Client, QueryClient } from "postgres/client.ts";
 
 // lower 64 bits of sha3-256("migrations")
 const LOCK_ID = -6902354483765142115n;
 
-async function init(db: Client) {
+async function init(db: QueryClient) {
   const res = await db.queryArray`
     CREATE TABLE IF NOT EXISTS migration(
         id SERIAL PRIMARY KEY,
@@ -21,7 +21,7 @@ async function init(db: Client) {
   }
 }
 
-async function lock(db: Client) {
+async function lock(db: QueryClient) {
   let attempts = 0;
   while (true) {
     const { rows } = await db.queryArray`
@@ -39,20 +39,20 @@ async function lock(db: Client) {
   }
 }
 
-async function unlock(db: Client) {
+async function unlock(db: QueryClient) {
   await db.queryArray`
     SELECT pg_advisory_unlock(${LOCK_ID});
   `;
 }
 
-async function appliedMigrations(db: Client) {
+async function appliedMigrations(db: QueryClient) {
   const res = await db.queryObject<{ name: string; date: Date }>`
     SELECT name, date FROM migration;
   `;
   return res.rows;
 }
 
-async function migrate(db: Client) {
+async function migrate(db: QueryClient) {
   await lock(db);
   try {
     const applied = new Set(
@@ -91,7 +91,7 @@ async function migrate(db: Client) {
   }
 }
 
-async function status(db: Client) {
+async function status(db: QueryClient) {
   await lock(db);
   try {
     const applied = await appliedMigrations(db);
@@ -127,7 +127,7 @@ function usage() {
   );
 }
 
-const commands: Record<string, (db: Client) => Promise<void>> = {
+const commands: Record<string, (db: QueryClient) => Promise<void>> = {
   init: init,
   migrate: migrate,
   status: status,

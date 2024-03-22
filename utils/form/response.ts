@@ -1,10 +1,10 @@
-import { Client } from "postgres/client.ts";
+import { QueryClient } from "postgres/client.ts";
 
 import type { Form, FormResponse } from "./types.ts";
 import type { User } from "../discord/user.ts";
 
 export async function createResponse(
-  client: Client,
+  client: QueryClient,
   form: Form,
   user: User,
   response: object,
@@ -23,7 +23,7 @@ export async function createResponse(
 }
 
 export async function getResponse(
-  client: Client,
+  client: QueryClient,
   id: string,
 ): Promise<FormResponse | undefined> {
   const { rows } = await client.queryObject<FormResponse>`
@@ -33,7 +33,7 @@ export async function getResponse(
 }
 
 export async function getFormResponses(
-  client: Client,
+  client: QueryClient,
   id: string,
 ): Promise<FormResponse[]> {
   const { rows } = await client.queryObject<FormResponse>`
