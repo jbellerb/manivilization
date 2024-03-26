@@ -22,7 +22,6 @@
             [ ".gitignore" ".helix" "flake.lock" "flake.nix" "nix" ]);
       };
 
-      denoEnv = denoLib.buildDenoEnv { inherit src; };
       commonArgs = {
         pname = "manivilization";
         version = "0.1.0";
@@ -33,8 +32,19 @@
     in {
       packages."${system}" = rec {
         manivilization = denoLib.buildFreshSite (commonArgs // {
-          inherit denoEnv;
-
+          # The uno config is imported at runtime so nix wouldn't know to fetch
+          # its dependencies otherwise
+          entrypoints = [ "uno.config.ts" ];
+          # Make sure the Lightning CSS wasm executable is included in the
+          # when building
+          extraImports = {
+            "lightningcss-wasm/lightningcss_node.wasm" = {
+              url =
+                "https://esm.sh/lightningcss-wasm@1.24.1/lightningcss_node.wasm";
+              sha256 =
+                "173c741d07bfd9434a7910190464306b9102808cc6d5dc92ed38aa7d560730db";
+            };
+          };
           # Build throws errors unless *something* is present for the runtime
           # environment variables.
           postConfigure = ''
@@ -82,15 +92,17 @@
       apps."${system}" = rec {
         manivilization = {
           type = "app";
-          program = "${pkgs.writeShellScriptBin "wrapped" ''
+          program = "${pkgs.writeShellScript "manivilization-wrapped" ''
             export DENO_DIR=${pkgs.manivilization.cache}
             ${pkgs.deno}/bin/deno run -A --no-remote ${pkgs.manivilization}/main.ts
-          ''}/bin/wrapped";
+          ''}";
         };
         default = manivilization;
       };
 
       overlays.default = final: prev: { } // self.packages."${system}";
+
+      lib = denoLib;
 
       devShells."${system}".default = pkgs.mkShell {
         nativeBuildInputs = [

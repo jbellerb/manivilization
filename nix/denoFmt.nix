@@ -1,13 +1,14 @@
-{ mkDenoDerivation, deno }:
+{ lib, mkDenoDerivation }:
 
-{ pname, src ? null, ... }@args:
-  mkDenoDerivation (args // {
-    pname = "${args.pname}-fmt";
+{ pname, ignore ? [ ], ... }@args:
+  let
+    ignoreList = lib.concatStringsSep "," ([ "deno.json" ] ++ ignore);
 
-    denoEnv = args.denoEnv or src;
+  in mkDenoDerivation (args // {
+    pname = "${pname}-fmt";
 
     buildPhaseCommand = ''
-      ${deno}/bin/deno fmt --check --ignore=deno.json,build_info.json
+      deno fmt --config "$denoConfig" --check --ignore=${ignoreList} .
     '';
 
     installPhaseCommand = ''

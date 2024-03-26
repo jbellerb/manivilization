@@ -5,10 +5,15 @@ lib.makeScope newScope (self:
     inherit (self) callPackage;
 
   in {
-    buildDenoEnv = callPackage ./buildDenoEnv.nix { };
-    downloadDenoModule = callPackage ./downloadDenoModule.nix { };
+    buildDenoScript = callPackage ./buildDenoScript.nix { };
+    buildModuleGraph = callPackage ./buildModuleGraph.nix { };
+    downloadRemoteModule = callPackage ./downloadRemoteModule.nix { };
+    downloadModuleFromSpecifier =
+      callPackage ./downloadModuleFromSpecifier.nix { };
     mkDenoDerivation = callPackage ./mkDenoDerivation.nix { };
     vendorDenoDeps = callPackage ./vendorDenoDeps.nix { };
+
+    graphAnalyzer = callPackage ./graphAnalyzer/default.nix { };
 
     buildFreshSite = callPackage ./buildFreshSite.nix { };
     denoCheck = callPackage ./denoCheck.nix { };

@@ -1,13 +1,11 @@
-{ mkDenoDerivation, deno }:
+{ mkDenoDerivation }:
 
 { pname, src ? null, ... }@args:
   mkDenoDerivation (args // {
     pname = "${args.pname}-lint";
 
-    denoEnv = args.denoEnv or src;
-
     buildPhaseCommand = ''
-      ${deno}/bin/deno lint
+      deno lint --config "$denoConfig" .
     '';
 
     installPhaseCommand = ''
