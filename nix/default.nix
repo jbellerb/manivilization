@@ -8,6 +8,7 @@ lib.makeScope newScope (self:
     buildDenoScript = callPackage ./buildDenoScript.nix { };
     buildModuleGraph = callPackage ./buildModuleGraph.nix { };
     downloadRemoteModule = callPackage ./downloadRemoteModule.nix { };
+    downloadJSRPackage = callPackage ./downloadJSRPackage.nix { };
     downloadModuleFromSpecifier =
       callPackage ./downloadModuleFromSpecifier.nix { };
     mkDenoDerivation = callPackage ./mkDenoDerivation.nix { };

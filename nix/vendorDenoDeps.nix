@@ -48,23 +48,41 @@
     pathHasExtension = path: builtins.any (ext: lib.hasSuffix ext path)
       [ ".js" ".ts" ".mjs" ".mts" ".jsx" ".tsx" ".json" ];
 
-    mkVendorFilePath = uri:
+    mkVendorFilePath = { uri, ext ? null }@args:
       let path = mkVendorPath uri;
-      # As Deno lock files don't note the expected file type of modules, it is
-      # impossible to resolve this if the import path doesn't end in one. I
-      # think this is an issue with Deno. Until it's fixed, the best I can do is
-      # assume it's plain .js
+      # As Deno lock files don't note the expected file type of remote modules,
+      # (file types are present in jsr metadata) it is impossible to resolve
+      # this if the import path doesn't end in one. I think this is an issue
+      # with Deno. Until it's fixed, the best I can do is assume it's plain .js
       in path + (lib.optionalString
-        (!(pathIsDir uri.path) && !(pathHasExtension uri.path)) ".js");
+        (!(pathIsDir uri.path) && !(pathHasExtension uri.path))
+        (args.ext or ".js"));
 
     mappings = lib.foldl' (acc: module:
       let uri = splitUri module.specifier;
       in if !(isRemote uri) then acc else
         if module.kind != "esm" then acc else lib.recursiveUpdate acc {
-          mappings = { ${module.specifier} = mkVendorFilePath uri; };
+          mappings = {
+            ${module.specifier} = mkVendorFilePath { inherit uri; };
+          };
           baseSpecifiers = { "${uri.scheme}//${uri.authority}/" = null; };
         }
     ) { mappings = { }; baseSpecifiers = { }; } moduleGraph.modules;
+
+    resolveRedirect = specifier:
+      let resolveLimited = { specifier, seen, i }:
+        if builtins.hasAttr specifier seen then
+          throw "Infinite loop of module redirects detected"
+        else if i >= 10 then
+          throw "Redirect chain exceeded the maximum allowed limit"
+        else if builtins.hasAttr specifier moduleGraph.redirects then
+          resolveLimited {
+            specifier = moduleGraph.redirects.${specifier};
+            seen = seen // { ${specifier} = null; };
+            i = i + 1;
+          }
+        else specifier;
+      in resolveLimited { inherit specifier; seen = { }; i = 0; };
 
     traversePath = from: rel:
       let
@@ -96,9 +114,10 @@
         let
           referrerUri = splitUri referrer.specifier;
           depUri = splitUri dep.specifier;
-          resolvedUri = splitUri dep.code.specifier;
+          resolvedSpecifier = resolveRedirect dep.code.specifier;
+          resolvedUri = splitUri resolvedSpecifier;
           mapping = {
-            ${dep.specifier} = mappings.mappings.${dep.code.specifier};
+            ${dep.specifier} = mappings.mappings.${resolvedSpecifier};
           };
         in if isRemote depUri then
           if resolvedUri.path != (lib.removePrefix
@@ -114,7 +133,7 @@
           # Import should be covered by the base specifier blanked imports
           else acc
         # Import is identity so it's probably a built in module
-        else if dep.specifier == dep.code.specifier then acc
+        else if dep.specifier == resolvedSpecifier then acc
         else if ((lib.hasPrefix "./" dep.specifier)
           || (lib.hasPrefix "../" dep.specifier)) && (
             (traversePath referrer.specifier dep.specifier) ==
@@ -126,8 +145,9 @@
           # Import is an absolute import from a remote referrer so it should be
           # included, but scoped under its base specifier
           lib.recursiveUpdate acc {
-            scopes.${mkVendorFilePath (referrerUri // { path = "/"; })} =
-              mapping;
+            scopes.${mkVendorFilePath {
+              uri = (referrerUri // { path = "/"; });
+            }} = mapping;
           }
         # Import mapping was present in the original import map so it should be
         # included
