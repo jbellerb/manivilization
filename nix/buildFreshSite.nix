@@ -9,14 +9,14 @@
 }@args:
   let
     # esbuild binary version must be compatible with what's used by Fresh. as
-    # of writing, Fresh uses esbuild 0.19.11.
+    # of writing, Fresh uses esbuild 0.20.2.
     esbuild19 = esbuild.overrideAttrs (final: prev: rec {
-      version = "0.19.11";
+      version = "0.20.2";
       src = fetchFromGitHub {
         owner = "evanw";
         repo = "esbuild";
         rev = "v${version}";
-        hash = "sha256-NUwjzOpHA0Ijuh0E69KXx8YVS5GTnKmob9HepqugbIU=";
+        hash = "sha256-h/Vqwax4B4nehRP9TaYbdixAZdb1hx373dNxNHvDrtY=";
       };
     });
 
@@ -31,9 +31,9 @@
       "dev.ts"
       # These get imported dynamically so they aren't included in the static
       # module graph and would be skipped. deno vendor has this issue too.
-      "https://deno.land/x/fresh@1.6.5/src/runtime/entrypoints/deserializer.ts"
-      "https://deno.land/x/fresh@1.6.5/src/runtime/entrypoints/main.ts"
-      "https://deno.land/x/fresh@1.6.5/src/runtime/entrypoints/signals.ts"
+      "https://deno.land/x/fresh@1.6.8/src/runtime/entrypoints/deserializer.ts"
+      "https://deno.land/x/fresh@1.6.8/src/runtime/entrypoints/main.ts"
+      "https://deno.land/x/fresh@1.6.8/src/runtime/entrypoints/signals.ts"
     ];
 
     preBuild = "export ESBUILD_BINARY_PATH=${esbuild19}/bin/esbuild";
