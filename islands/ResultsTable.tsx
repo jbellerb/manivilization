@@ -1,8 +1,48 @@
 import { useSignal } from "@preact/signals";
 
+type UserCardProps = {
+  id: string;
+  name: string;
+};
+
+function UserCard(props: UserCardProps) {
+  const active = useSignal(false);
+
+  const mention = `<@${props.id}>`;
+
+  return (
+    <th
+      scope="row"
+      class="px-4 py-2 border-b border-black"
+    >
+      {active.value
+        ? (
+          <input
+            type="text"
+            // I think this is a valid use of ref? Need to delay calling
+            // .focus() until after the <input> is committed to the DOM.
+            // useSignalEffect fires before commit so that won't work.
+            // See: https://github.com/preactjs/signals/issues/228
+            ref={(refNode) => refNode?.focus()}
+            onBlur={() => active.value = false}
+            onFocus={(e) => e.currentTarget.select()}
+            onInput={(e) => e.currentTarget.value = mention}
+            value={mention}
+          />
+        )
+        : <span onClick={() => active.value = true}>{props.name}</span>}
+    </th>
+  );
+}
+
 type Props = {
   columns: string[];
-  responses: { user: string; date: number; response: string[] }[];
+  responses: {
+    userId: string;
+    userName: string;
+    date: number;
+    response: string[];
+  }[];
 };
 
 export default function ResultsTable(props: Props) {
@@ -12,7 +52,7 @@ export default function ResultsTable(props: Props) {
 
   const responses = props.responses.toSorted((a, b) => {
     const col = sortBy.value === -2
-      ? cmp.compare(a.user, b.user)
+      ? cmp.compare(a.userName, b.userName)
       : sortBy.value === -1
       ? b.date - a.date
       : cmp.compare(a.response[sortBy.value], b.response[sortBy.value]);
@@ -48,9 +88,7 @@ export default function ResultsTable(props: Props) {
       <tbody>
         {responses.map((response) => (
           <tr class="border-b border-black">
-            <th scope="row" class="px-4 py-2 border-b border-black">
-              {response.user}
-            </th>
+            <UserCard id={response.userId} name={response.userName} />
             <td class="px-4 py-2 border-b border-black">
               {new Date(response.date).toLocaleString()}
             </td>

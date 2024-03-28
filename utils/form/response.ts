@@ -16,7 +16,8 @@ export async function createResponse(
       ${form.id},
       ${user.id},
       ${response},
-      ${new Date()}
+      ${new Date()},
+      ${user.username}
     );
   `;
   return id;

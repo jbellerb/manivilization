@@ -14,7 +14,8 @@ export default defineRoute<AdminFormState>(async (_req, { state }) => {
       <ResultsTable
         columns={questions.map((question) => question.name)}
         responses={responses.map((response) => ({
-          user: response.discord_id,
+          userId: response.discord_id,
+          userName: response.discord_name,
           date: response.date?.getTime() ?? 0,
           response: questions.map((question) =>
             response.response?.[question.name] ?? ""

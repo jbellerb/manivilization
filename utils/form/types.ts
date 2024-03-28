@@ -14,6 +14,7 @@ export type FormResponse = {
   discord_id: string;
   response?: Record<string, string>;
   date?: Date;
+  discord_name: string;
 };
 
 export type Question = {
