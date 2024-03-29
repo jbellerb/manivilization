@@ -6,10 +6,11 @@ type Props = {
   name: string;
   label?: string;
   class?: string;
+  disabled?: boolean;
 } & JSX.HTMLAttributes<HTMLInputElement>;
 
 export default function TextInput(
-  { name, label, class: extraClasses, ...props }: Props,
+  { name, label, class: extraClasses, disabled, ...props }: Props,
 ) {
   return (
     <div
@@ -23,7 +24,12 @@ export default function TextInput(
       {label && (
         <label
           for={props.id ?? `input-${name}`}
-          class="absolute text-sm text-gray-400 group-has-[:focus-visible]:text-gray-600 font-semibold origin-[0] top-0 transition-color -z-10"
+          class={classnames(
+            "absolute text-sm font-semibold origin-[0] top-0 transition-color -z-10",
+            disabled
+              ? "text-gray-600"
+              : "text-gray-400 group-has-[:focus-visible]:text-gray-600",
+          )}
           title={props.required ? "Required" : undefined}
         >
           {label}
@@ -34,7 +40,13 @@ export default function TextInput(
         type="text"
         name={name}
         id={`input-${name}`}
-        class="block w-full py-1 bg-transparent border-b-2 border-gray-600 hover:border-gray-500 focus-visible:border-white transition-border-color"
+        class={classnames(
+          "block w-full py-1 bg-transparent border-b-2 border-gray-600 transition-border-color transition-color",
+          disabled
+            ? "text-gray-600 border-gray-700"
+            : "border-gray-600 hover:border-gray-500 focus-visible:border-white",
+        )}
+        disabled={disabled}
         {...props}
       />
     </div>

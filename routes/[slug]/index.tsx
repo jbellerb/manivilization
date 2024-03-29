@@ -11,6 +11,8 @@ import {
 } from "../../utils/form/mod.ts";
 
 import type { FormState } from "./_middleware.ts";
+import { assignRole } from "../../utils/discord/guild.ts";
+import { DiscordHTTPError } from "../../utils/discord/http.ts";
 import type { Question } from "../../utils/form/types.ts";
 
 export const handler: Handlers<void, FormState> = {
@@ -28,6 +30,15 @@ export const handler: Handlers<void, FormState> = {
         ctx.state.user,
         answers,
       );
+
+      if (ctx.state.form.submitter_role) {
+        try {
+          await assignRole(ctx.state.user.id, ctx.state.form.submitter_role);
+        } catch (e) {
+          if (e instanceof DiscordHTTPError) console.log(e);
+          else throw e;
+        }
+      }
 
       const headers = new Headers({
         Location: `/${ctx.state.form.slug}/success?response=${responseId}`,

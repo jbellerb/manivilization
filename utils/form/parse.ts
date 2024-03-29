@@ -121,6 +121,11 @@ export function parseEditorFormData(data: FormData): Omit<Form, "id"> {
       "success_message",
       data.get("success_message"),
     ),
+    submitter_role: mapMaybe(
+      isString,
+      "submitter_role",
+      data.get("submitter_role"),
+    ),
   };
 }
 

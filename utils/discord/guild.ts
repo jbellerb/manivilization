@@ -9,6 +9,20 @@ if (!GUILD_ID) {
   throw new Error("DISCORD_GUILD_ID is not set for the Discord bot");
 }
 
+export async function assignRole(userId: string, role: string): Promise<void> {
+  const res = await fetch(
+    `${BASE_URL}/guilds/${GUILD_ID}/members/${userId}/roles/${role}`,
+    {
+      method: "PUT",
+      headers: new Headers({
+        ...BASE_HEADERS,
+        ...authorizeBot(BOT_TOKEN),
+      }),
+    },
+  );
+  if (!res.ok) throw new DiscordHTTPError(`${res.status} ${res.statusText}`);
+}
+
 export async function getRoles(userId: string): Promise<string[]> {
   const res = await fetch(`${BASE_URL}/guilds/${GUILD_ID}/members/${userId}`, {
     headers: new Headers({

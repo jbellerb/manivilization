@@ -13,6 +13,7 @@ import Checkbox from "../../../../components/Checkbox.tsx";
 import TextInput from "../../../../components/TextInput.tsx";
 import GrowableTextArea from "../../../../islands/GrowableTextArea.tsx";
 import QuestionEditor from "../../../../islands/QuestionEditor.tsx";
+import SubmitterRoleField from "../../../../islands/SubmitterRoleField.tsx";
 
 export const handler: Handlers<void, AdminFormState> = {
   async POST(req, ctx) {
@@ -37,10 +38,10 @@ export const handler: Handlers<void, AdminFormState> = {
 
 export default defineRoute<AdminFormState>((_req, { state }) => {
   return (
-    <main class="flex justify-center p-8 bg-black text-white flex-1 font-sans">
+    <main class="flex justify-center px-8 py-16 bg-black text-white flex-1 font-sans">
       <form
         method="post"
-        class="max-w-xl w-full mt-8"
+        class="max-w-xl w-full"
         name={state.form.id}
       >
         <div class="flex flex-col space-y-6">
@@ -62,19 +63,27 @@ export default defineRoute<AdminFormState>((_req, { state }) => {
             label="Success Message"
             value={state.form.success_message}
           />
-          <div class="flex pt-[0.875rem] items-center">
-            <Checkbox name="active" checked={state.form.active} />
-            <span class="ml-3 mr-1 text-gray-400 tracking-wide">
-              http://../
-            </span>
-            <TextInput
-              name="slug"
-              label="Slug"
-              value={state.form.slug}
-              class="mr-6 max-w-60 -mt-[0.875rem]"
-              required
-            />
-            <Button name="Save" class="ml-auto" />
+          <div class="flex flex-col items-start">
+            <div class="flex pt-[0.875rem] items-center">
+              <Checkbox name="active" checked={state.form.active} />
+              <span class="ml-3 mr-1 text-gray-400 tracking-wide">
+                http://../
+              </span>
+              <TextInput
+                name="slug"
+                label="Slug"
+                value={state.form.slug}
+                class="mr-6 max-w-60 -mt-[0.875rem]"
+                required
+              />
+            </div>
+            <div class="flex mt-4 w-full items-end content-between">
+              <SubmitterRoleField
+                class="mr-4"
+                submitterRole={state.form.submitter_role}
+              />
+              <Button name="Save" class="ml-auto" />
+            </div>
           </div>
         </div>
       </form>

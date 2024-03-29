@@ -6,6 +6,7 @@ export type Form = {
   description?: string;
   questions?: { version: string; questions: Question[] };
   success_message?: string;
+  submitter_role?: string;
 };
 
 export type FormResponse = {

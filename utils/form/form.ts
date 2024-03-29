@@ -21,7 +21,8 @@ export async function createForm(client: QueryClient, form: Form) {
       ${form.active},
       ${form.description},
       ${form.questions},
-      ${form.success_message}
+      ${form.success_message},
+      ${form.submitter_role}
     );
   `;
 }
@@ -57,7 +58,8 @@ export async function updateForm(client: QueryClient, form: Form) {
       active = ${form.active},
       description = ${form.description ?? null},
       questions = ${form.questions ?? null},
-      success_message = ${form.success_message ?? null}
+      success_message = ${form.success_message ?? null},
+      submitter_role = ${form.submitter_role ?? null}
       WHERE id = ${form.id};
   `;
 }
