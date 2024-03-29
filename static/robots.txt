@@ -1,0 +1,15 @@
+# Block everything for now (Google seems to want an explicit block)
+User-agent: *
+Disallow: /
+User-agent: Googlebot
+Disallow: /
+
+# OpenAI
+User-agent: GPTBot
+Disallow: /
+User-agent: ChatGPT-User
+Disallow: /
+
+# Google LLM Crawler
+User-agent: Google-Extended
+Disallow: /
