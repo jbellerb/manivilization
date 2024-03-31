@@ -30,10 +30,8 @@ export default function TextInput(
               ? "text-gray-600"
               : "text-gray-400 group-has-[:focus-visible]:text-gray-600",
           )}
-          title={props.required ? "Required" : undefined}
         >
           {label}
-          {props.required && <span class="ml-1">*</span>}
         </label>
       )}
       <input

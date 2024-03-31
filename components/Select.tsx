@@ -11,10 +11,8 @@ export default function Select({ name, label, ...props }: Props) {
       <label
         for={props.id ?? `select-${name}`}
         class="absolute text-sm text-gray-400 group-has-[:focus-visible]:text-gray-600 font-semibold origin-[0] top-0 transition-color -z-10"
-        title={props.required ? "Required" : undefined}
       >
         {label}
-        {props.required && <span class="ml-1">*</span>}
       </label>
       <div class="select-wrapper border-b-2 border-gray-600 has-[:hover]:border-gray-500 has-[:focus-visible]:border-white transition-border-color">
         <select

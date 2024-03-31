@@ -142,7 +142,7 @@ export default function QuestionEditor(props: Props) {
               <div class="flex items-center space-x-4">
                 <Select
                   name={`question-${idx}-type`}
-                  label="Type"
+                  label="Type *"
                   onChange={(e) =>
                     updateQuestion(
                       changeType(
@@ -159,7 +159,7 @@ export default function QuestionEditor(props: Props) {
                 </Select>
                 <TextInput
                   name={`question-${idx}-name`}
-                  label="Column Name"
+                  label="Column Name *"
                   value={question.name}
                   onChange={(e) =>
                     updateQuestion(
@@ -193,7 +193,7 @@ export default function QuestionEditor(props: Props) {
                 ? (
                   <TextInput
                     name={`question-${idx}-label`}
-                    label="Label"
+                    label="Label *"
                     value={question.label}
                     onChange={(e) =>
                       updateQuestion({

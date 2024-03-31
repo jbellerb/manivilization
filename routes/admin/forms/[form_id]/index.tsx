@@ -47,7 +47,7 @@ export default defineRoute<AdminFormState>((_req, { state }) => {
         <div class="flex flex-col space-y-6">
           <TextInput
             name="name"
-            label="Form Name"
+            label="Form Name *"
             value={state.form.name}
             class="max-w-md !text-3xl font-bold"
             required
@@ -71,7 +71,7 @@ export default defineRoute<AdminFormState>((_req, { state }) => {
               </span>
               <TextInput
                 name="slug"
-                label="Slug"
+                label="Slug *"
                 value={state.form.slug}
                 class="mr-6 max-w-60 -mt-[0.875rem]"
                 required

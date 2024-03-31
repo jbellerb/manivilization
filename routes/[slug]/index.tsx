@@ -149,14 +149,22 @@ function FormTextQuestion(
       aria-role="group"
       aria-labelledby={props.question.comment &&
         `question-${props.question.name}-comment`}
+      class="space-y-2"
     >
       {props.question.comment && (
-        <label
-          class="block text-lg mb-2"
-          id={`question-${props.question.name}-comment`}
-        >
-          {props.question.comment}
-        </label>
+        <div>
+          <label
+            class="block text-lg"
+            id={`question-${props.question.name}-comment`}
+          >
+            {props.question.comment}
+          </label>
+          {props.question.required && (
+            <span class="block text-sm font-semibold text-gray-400">
+              * Required
+            </span>
+          )}
+        </div>
       )}
       <TextInput
         name={`question-${props.question.name}`}
@@ -178,7 +186,14 @@ function FormCheckboxQuestion(
   return (
     <fieldset class="space-y-2">
       {props.question.comment && (
-        <legend class="text-lg">{props.question.comment}</legend>
+        <div>
+          <legend class="text-lg">{props.question.comment}</legend>
+          {props.question.required && (
+            <span class="block text-sm font-semibold text-gray-400">
+              * Required
+            </span>
+          )}
+        </div>
       )}
       {props.question.options.map((option, idx) => (
         <Checkbox
