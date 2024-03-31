@@ -135,22 +135,32 @@ export function parseFormData(
   form: Form,
 ): Record<string, string> {
   const response: Record<string, string> = {};
-  const answers = isAttrs("question", walkFormData(data).question);
+  const issues: FormParseError["issues"] = {};
+
   if (form.questions) {
+    const answers = isAttrs("question", walkFormData(data).question);
     for (const question of form.questions.questions) {
       const name = `question.${question.name}`;
       if (question.type === "text") {
-        response[question.name] = isValues(name, answers[question.name])[0];
+        response[question.name] =
+          (mapMaybe(isValues, name, answers[question.name]) ?? [])[0];
       } else if (question.type === "checkbox") {
-        response[question.name] = (isValues(name, answers[question.name] ?? []))
-          .join(", ");
+        response[question.name] =
+          (mapMaybe(isValues, name, answers[question.name]) ?? [])
+            .join(", ");
       }
 
+      console.log(response[question.name]);
       if (!response[question.name] && question.required) {
-        throw new FormParseError(`question.${question.name} is required`);
+        issues[question.name] ??= [];
+        issues[question.name].push("required");
       }
     }
   }
 
-  return response;
+  if (Object.keys(issues).length !== 0) {
+    throw new FormParseError("Form response validation failed", issues);
+  } else {
+    return response;
+  }
 }

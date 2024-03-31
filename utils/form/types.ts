@@ -36,6 +36,8 @@ export type CheckboxQuestion = {
 
 export type Question = TextQuestion | CheckboxQuestion;
 
+export type ValidationIssue = "required";
+
 export class BadFormError extends Error {
   constructor(message?: string) {
     super(message);
@@ -44,8 +46,11 @@ export class BadFormError extends Error {
 }
 
 export class FormParseError extends Error {
-  constructor(message?: string) {
+  issues?: Record<string, ValidationIssue[]>;
+
+  constructor(message?: string, issues?: Record<string, ValidationIssue[]>) {
     super(message);
     this.name = "FormParseError";
+    this.issues = issues;
   }
 }

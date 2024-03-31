@@ -206,7 +206,9 @@ function FormCheckboxQuestion(
           label={option}
           checked={checked?.includes(option)}
           value={option}
-          required={props.question.required}
+          required={props.question.options.length === 1
+            ? props.question.required
+            : undefined}
         />
       ))}
     </fieldset>
