@@ -193,14 +193,13 @@ export default function QuestionEditor(props: Props) {
                 ? (
                   <TextInput
                     name={`question-${idx}-label`}
-                    label="Label *"
+                    label="Label"
                     value={question.label}
                     onChange={(e) =>
                       updateQuestion({
                         ...question,
                         label: e.currentTarget.value,
                       }, idx)}
-                    required
                   />
                 )
                 : (question.type === "checkbox")

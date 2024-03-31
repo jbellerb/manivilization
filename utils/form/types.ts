@@ -23,7 +23,7 @@ export type TextQuestion = {
   name: string;
   required: boolean;
   comment?: string;
-  label: string;
+  label?: string;
 };
 
 export type CheckboxQuestion = {

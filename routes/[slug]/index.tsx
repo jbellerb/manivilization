@@ -133,7 +133,7 @@ function UserBanner(props: { path: string; user: User }) {
       </article>
       <a
         href={`/oauth/logout?redirect=${props.path}`}
-        class="px-4 py-1 font-semibold tracking-wide border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white rounded-full transition-border-color"
+        class="px-4 py-1 font-semibold tracking-wide outline-none border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white rounded-full transition-border-color"
       >
         Sign out
       </a>
@@ -186,7 +186,7 @@ function FormCheckboxQuestion(
   return (
     <fieldset class="space-y-2">
       {props.question.comment && (
-        <div>
+        <div class="mb-3">
           <legend class="text-lg">{props.question.comment}</legend>
           {props.question.required && (
             <span class="block text-sm font-semibold text-gray-400">

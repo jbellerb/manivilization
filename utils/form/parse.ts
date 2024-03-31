@@ -95,7 +95,8 @@ export function parseEditorFormData(data: FormData): Omit<Form, "id"> {
     const comment = isValues(`question.${key}.comment`, value.comment)[0];
 
     if (type === "text") {
-      const label = isValues(`question.${key}.label`, value.label)[0];
+      const label = mapMaybe(isValues, `question.${key}.label`, value.label)
+        ?.[0];
       questions.push({ type, name, required, comment, label });
     } else if (type === "checkbox") {
       const options = isAttrs(`question.${key}.options`, value.options);
