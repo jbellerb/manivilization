@@ -35,10 +35,22 @@ export async function getResponse(
 
 export async function getFormResponses(
   client: QueryClient,
-  id: string,
+  formId: string,
 ): Promise<FormResponse[]> {
   const { rows } = await client.queryObject<FormResponse>`
-    SELECT * FROM responses WHERE form = ${id};
+    SELECT * FROM responses WHERE form = ${formId};
+  `;
+  return rows;
+}
+
+export async function getUserFormResponses(
+  client: QueryClient,
+  formId: string,
+  userId: string,
+): Promise<FormResponse[]> {
+  const { rows } = await client.queryObject<FormResponse>`
+    SELECT * FROM responses WHERE form = ${formId} AND discord_id = ${userId}
+        ORDER BY date DESC;
   `;
   return rows;
 }

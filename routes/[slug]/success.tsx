@@ -5,9 +5,9 @@ import { HtmlRenderer, Parser } from "commonmark";
 
 import { getResponse } from "../../utils/form/response.ts";
 
-import type { FormState } from "./_middleware.ts";
+import type { FormState as State } from "./_middleware.ts";
 
-export const handler: Handlers<void, FormState> = {
+export const handler: Handlers<void, State> = {
   async GET(req, ctx) {
     const { searchParams } = new URL(req.url);
     const responseId = searchParams.get("response");
@@ -22,7 +22,7 @@ export const handler: Handlers<void, FormState> = {
   },
 };
 
-export default defineRoute<FormState>((_req, { state }) => {
+export default defineRoute<State>((_req, { state }) => {
   return (
     <section
       class="-my-4 markdown markdown-invert markdown-gray"
