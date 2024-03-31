@@ -152,26 +152,30 @@ function FormTextQuestion(
       class="space-y-2"
     >
       {props.question.comment && (
-        <div>
-          <label
-            class="block text-lg"
-            id={`question-${props.question.name}-comment`}
-          >
-            {props.question.comment}
-          </label>
+        <label
+          class="block text-lg"
+          id={`question-${props.question.name}-comment`}
+        >
+          {props.question.comment}
           {props.question.required && (
             <span class="block text-sm font-semibold text-gray-400">
               * Required
             </span>
           )}
-        </div>
+        </label>
       )}
       <TextInput
         name={`question-${props.question.name}`}
         label={props.question.label}
         value={props.response}
-        aria-describedby={props.question.comment &&
-          `question-${props.question.name}-comment`}
+        aria-describedby={!props.question.label
+          ? undefined
+          : props.question.comment &&
+            `question-${props.question.name}-comment`}
+        aria-labelledby={props.question.label
+          ? undefined
+          : props.question.comment &&
+            `question-${props.question.name}-comment`}
         required={props.question.required}
       />
     </div>
@@ -186,14 +190,14 @@ function FormCheckboxQuestion(
   return (
     <fieldset class="space-y-2">
       {props.question.comment && (
-        <div class="mb-3">
-          <legend class="text-lg">{props.question.comment}</legend>
+        <legend class="text-lg">
+          {props.question.comment}
           {props.question.required && (
-            <span class="block text-sm font-semibold text-gray-400">
+            <span class="block mt-0 text-sm font-semibold text-gray-400">
               * Required
             </span>
           )}
-        </div>
+        </legend>
       )}
       {props.question.options.map((option, idx) => (
         <Checkbox
