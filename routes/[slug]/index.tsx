@@ -67,7 +67,7 @@ export const handler: Handlers<Data, State> = {
         ctx.state.form.id,
         ctx.state.user.id,
       ))?.[0];
-      if (response.response && Object.keys(response.response).length > 0) {
+      if (response?.response && Object.keys(response.response).length > 0) {
         completed = true;
         answers = response.response;
       }
