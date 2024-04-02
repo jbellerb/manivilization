@@ -6,11 +6,12 @@ type Props = {
   name: string;
   label?: string;
   class?: string;
+  error?: boolean;
   disabled?: boolean;
 } & JSX.HTMLAttributes<HTMLInputElement>;
 
 export default function TextInput(
-  { name, label, class: extraClasses, disabled, ...props }: Props,
+  { name, label, class: extraClasses, error, disabled, ...props }: Props,
 ) {
   return (
     <div
@@ -42,6 +43,8 @@ export default function TextInput(
           "block w-full py-1 bg-transparent border-b-2 border-gray-600 transition-border-color transition-color",
           disabled
             ? "text-gray-600 border-gray-700"
+            : error
+            ? "border-red-400"
             : "border-gray-600 hover:border-gray-500 focus-visible:border-white",
         )}
         disabled={disabled}

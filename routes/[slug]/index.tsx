@@ -1,9 +1,13 @@
+import { decodeBase64Url, encodeBase64Url } from "$std/encoding/base64url.ts";
 import { STATUS_CODE } from "$std/http/status.ts";
+import { decode, encode } from "cbor-x";
+
 import type { Handlers, PageProps } from "$fresh/server.ts";
 
 import Button from "../../components/Button.tsx";
 import Checkbox from "../../components/Checkbox.tsx";
 import TextInput from "../../components/TextInput.tsx";
+import classnames from "../../utils/classnames.ts";
 import { assignRole } from "../../utils/discord/guild.ts";
 import { DiscordHTTPError } from "../../utils/discord/http.ts";
 import {
@@ -17,29 +21,65 @@ import type { FormState as State } from "./_middleware.ts";
 import type { User } from "../../utils/discord/user.ts";
 import type {
   CheckboxQuestion,
-  FormResponse,
   Question,
   TextQuestion,
 } from "../../utils/form/types.ts";
 
 type Data = {
-  recentResponse?: FormResponse;
+  completed: boolean;
+  answers?: Record<string, unknown>;
+  issues?: Record<string, unknown>;
 };
 
+function maybeObject(
+  input: unknown,
+): Record<string, unknown> | undefined {
+  if (typeof input === "object" && input !== null) {
+    // Cast is safe because Record is a subset of object. I don't know why
+    // TypeScript can't infer this without a type guard which seems
+    // unneccesary...
+    return input as Record<string, unknown>;
+  }
+  return undefined;
+}
+function maybeArray(input: unknown): unknown[] | undefined {
+  if (typeof input === "object" && input !== null && Array.isArray(input)) {
+    return input;
+  }
+  return undefined;
+}
+function maybeString(input: unknown): string | undefined {
+  if (typeof input === "string") return input;
+  return undefined;
+}
+
 export const handler: Handlers<Data, State> = {
-  async GET(_req, ctx) {
-    let responses: FormResponse[] = [];
+  async GET(req, ctx) {
+    const { searchParams } = new URL(req.url);
+    const error = searchParams.get("error");
+
+    let completed = false;
+    let answers: Data["answers"] = {};
+    let issues: Data["issues"] = {};
     if (ctx.state.user) {
-      responses = await getUserFormResponses(
+      const response = (await getUserFormResponses(
         ctx.state.client,
         ctx.state.form.id,
         ctx.state.user.id,
-      );
+      ))?.[0];
+      if (response.response && Object.keys(response.response).length > 0) {
+        completed = true;
+        answers = response.response;
+      }
     }
 
-    return ctx.render({
-      recentResponse: responses[0],
-    });
+    if (error) {
+      const errorRaw = decode(decodeBase64Url(error));
+      answers = maybeObject(errorRaw.answers);
+      issues = maybeObject(errorRaw.issues);
+    }
+
+    return ctx.render({ completed, answers, issues });
   },
   async POST(req, ctx) {
     if (!ctx.state.user) {
@@ -49,11 +89,22 @@ export const handler: Handlers<Data, State> = {
     const formData = await req.formData();
     try {
       const answers = parseFormData(formData, ctx.state.form);
+      if (Object.keys(answers.issues).length > 0) {
+        const errorData = encodeBase64Url(encode(answers));
+        const firstError = ctx.state.form.questions?.questions
+          ?.find((question) => question.name in answers.issues)?.name;
+        const headers = new Headers({
+          Location:
+            `/${ctx.state.form.slug}?error=${errorData}#question-${firstError}`,
+        });
+        return new Response(null, { status: STATUS_CODE.SeeOther, headers });
+      }
+
       const responseId = await createResponse(
         ctx.state.client,
         ctx.state.form,
         ctx.state.user,
-        answers,
+        answers.answers,
       );
 
       if (ctx.state.form.submitter_role) {
@@ -142,10 +193,11 @@ function UserBanner(props: { path: string; user: User }) {
 }
 
 function FormTextQuestion(
-  props: { question: TextQuestion; response?: string },
+  props: { question: TextQuestion; value?: string; issues?: unknown[] },
 ) {
   return (
     <div
+      id={`question-${props.question.name}`}
       aria-role="group"
       aria-labelledby={props.question.comment &&
         `question-${props.question.name}-comment`}
@@ -158,7 +210,14 @@ function FormTextQuestion(
         >
           {props.question.comment}
           {props.question.required && (
-            <span class="block text-sm font-semibold text-gray-400">
+            <span
+              class={classnames(
+                "block text-sm font-semibold",
+                props.issues?.includes("required")
+                  ? "text-red-400"
+                  : "text-gray-400",
+              )}
+            >
               * Required
             </span>
           )}
@@ -167,7 +226,7 @@ function FormTextQuestion(
       <TextInput
         name={`question-${props.question.name}`}
         label={props.question.label}
-        value={props.response}
+        value={props.value}
         aria-describedby={!props.question.label
           ? undefined
           : props.question.comment &&
@@ -176,6 +235,7 @@ function FormTextQuestion(
           ? undefined
           : props.question.comment &&
             `question-${props.question.name}-comment`}
+        error={props.issues?.includes("required")}
         required={props.question.required}
       />
     </div>
@@ -183,17 +243,24 @@ function FormTextQuestion(
 }
 
 function FormCheckboxQuestion(
-  props: { question: CheckboxQuestion; response?: string },
+  props: { question: CheckboxQuestion; value?: string; issues?: unknown[] },
 ) {
-  const checked = props.response?.split(", ");
+  const checked = props.value?.split(", ");
 
   return (
-    <fieldset class="space-y-2">
+    <fieldset id={`question-${props.question.name}`} class="space-y-2">
       {props.question.comment && (
         <legend class="text-lg">
           {props.question.comment}
           {props.question.required && (
-            <span class="block mt-0 text-sm font-semibold text-gray-400">
+            <span
+              class={classnames(
+                "block mt-0 text-sm font-semibold",
+                props.issues?.includes("required")
+                  ? "text-red-400"
+                  : "text-gray-400",
+              )}
+            >
               * Required
             </span>
           )}
@@ -227,7 +294,7 @@ export default function FormPage({ data, state }: PageProps<Data, State>) {
         method="post"
         class="mt-10 mx-auto max-w-lg w-full space-y-8"
       >
-        {data.recentResponse && (
+        {data.completed && (
           <aside class="flex items-center">
             <div class="mr-4 text-3xl" aria-label="Alert">
               !
@@ -244,14 +311,16 @@ export default function FormPage({ data, state }: PageProps<Data, State>) {
               ? (
                 <FormTextQuestion
                   question={question}
-                  response={data.recentResponse?.response?.[question.name]}
+                  value={maybeString(data.answers?.[question.name])}
+                  issues={maybeArray(data.issues?.[question.name])}
                 />
               )
               : question.type === "checkbox"
               ? (
                 <FormCheckboxQuestion
                   question={question}
-                  response={data.recentResponse?.response?.[question.name]}
+                  value={maybeString(data.answers?.[question.name])}
+                  issues={maybeArray(data.issues?.[question.name])}
                 />
               )
               : undefined

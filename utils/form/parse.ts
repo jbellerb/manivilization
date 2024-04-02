@@ -1,4 +1,6 @@
-import { type Form, FormParseError, type Question } from "./types.ts";
+import { FormParseError } from "./types.ts";
+
+import type { Form, Question, ValidationIssue } from "./types.ts";
 
 type NestedFormData = { [property: string]: string[] | NestedFormData };
 
@@ -133,34 +135,31 @@ export function parseEditorFormData(data: FormData): Omit<Form, "id"> {
 export function parseFormData(
   data: FormData,
   form: Form,
-): Record<string, string> {
-  const response: Record<string, string> = {};
-  const issues: FormParseError["issues"] = {};
+): {
+  answers: Record<string, string>;
+  issues: Record<string, ValidationIssue[]>;
+} {
+  const answers: Record<string, string> = {};
+  const issues: Record<string, ValidationIssue[]> = {};
 
   if (form.questions) {
-    const answers = isAttrs("question", walkFormData(data).question);
+    const values = isAttrs("question", walkFormData(data).question);
     for (const question of form.questions.questions) {
       const name = `question.${question.name}`;
       if (question.type === "text") {
-        response[question.name] =
-          (mapMaybe(isValues, name, answers[question.name]) ?? [])[0];
+        answers[question.name] =
+          mapMaybe(isValues, name, values[question.name])?.[0] ?? "";
       } else if (question.type === "checkbox") {
-        response[question.name] =
-          (mapMaybe(isValues, name, answers[question.name]) ?? [])
-            .join(", ");
+        answers[question.name] =
+          mapMaybe(isValues, name, values[question.name])?.join(", ") ?? "";
       }
 
-      console.log(response[question.name]);
-      if (!response[question.name] && question.required) {
+      if (!answers[question.name] && question.required) {
         issues[question.name] ??= [];
         issues[question.name].push("required");
       }
     }
   }
 
-  if (Object.keys(issues).length !== 0) {
-    throw new FormParseError("Form response validation failed", issues);
-  } else {
-    return response;
-  }
+  return { answers, issues };
 }

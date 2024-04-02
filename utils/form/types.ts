@@ -46,11 +46,8 @@ export class BadFormError extends Error {
 }
 
 export class FormParseError extends Error {
-  issues?: Record<string, ValidationIssue[]>;
-
-  constructor(message?: string, issues?: Record<string, ValidationIssue[]>) {
+  constructor(message?: string) {
     super(message);
     this.name = "FormParseError";
-    this.issues = issues;
   }
 }

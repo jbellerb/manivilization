@@ -22,6 +22,7 @@
   ],
   "imports": {
     "browserslist": "https://esm.sh/browserslist@4.23.0",
+    "cbor-x": "https://esm.sh/cbor-x@1.5.9",
     "commonmark": "https://esm.sh/gh/commonmark/commonmark.js@6f94a997e9?no-dts",
     "discord_api_types/": "https://deno.land/x/discord_api_types@0.37.75/",
     "$fresh/": "https://deno.land/x/fresh@1.6.8/",
