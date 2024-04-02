@@ -16,7 +16,7 @@ export default defineLayout<AdminState>(async (_req, ctx) => {
     <body class="flex h-screen font-times">
       <aside
         id="sidebar"
-        class="flex flex-col w-48 h-full px-3 py-4 border-r border-black"
+        class="flex flex-col w-48 shrink-0 h-full px-3 py-4 border-r border-black"
         aria-label="Sidebar"
       >
         <nav class="h-full ml-2 overflow-y-auto">
