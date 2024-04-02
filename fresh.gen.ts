@@ -24,7 +24,7 @@ import * as $oauth_login from "./routes/oauth/login.ts";
 import * as $oauth_logout from "./routes/oauth/logout.ts";
 import * as $GrowableTextArea from "./islands/GrowableTextArea.tsx";
 import * as $QuestionEditor from "./islands/QuestionEditor.tsx";
-import * as $ResultsTable from "./islands/ResultsTable.tsx";
+import * as $admin_forms_form_id_islands_ResultsTable from "./routes/admin/forms/[form_id]/(_islands)/ResultsTable.tsx";
 import * as $admin_forms_form_id_islands_SlugField from "./routes/admin/forms/[form_id]/(_islands)/SlugField.tsx";
 import * as $admin_forms_form_id_islands_SubmitterRoleField from "./routes/admin/forms/[form_id]/(_islands)/SubmitterRoleField.tsx";
 import { type Manifest } from "$fresh/server.ts";
@@ -56,7 +56,8 @@ const manifest = {
   islands: {
     "./islands/GrowableTextArea.tsx": $GrowableTextArea,
     "./islands/QuestionEditor.tsx": $QuestionEditor,
-    "./islands/ResultsTable.tsx": $ResultsTable,
+    "./routes/admin/forms/[form_id]/(_islands)/ResultsTable.tsx":
+      $admin_forms_form_id_islands_ResultsTable,
     "./routes/admin/forms/[form_id]/(_islands)/SlugField.tsx":
       $admin_forms_form_id_islands_SlugField,
     "./routes/admin/forms/[form_id]/(_islands)/SubmitterRoleField.tsx":

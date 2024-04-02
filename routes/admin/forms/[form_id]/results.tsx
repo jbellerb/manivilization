@@ -3,7 +3,7 @@ import { defineRoute } from "$fresh/server.ts";
 import { AdminFormState } from "./_middleware.ts";
 import { getFormResponses } from "../../../../utils/form/response.ts";
 
-import ResultsTable from "../../../../islands/ResultsTable.tsx";
+import ResultsTable from "./(_islands)/ResultsTable.tsx";
 
 export default defineRoute<AdminFormState>(async (_req, { state }) => {
   const questions = state.form.questions?.questions ?? [];
