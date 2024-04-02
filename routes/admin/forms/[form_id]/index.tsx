@@ -8,12 +8,12 @@ import {
   updateForm,
 } from "../../../../utils/form/mod.ts";
 
+import SlugField from "./(_islands)/SlugField.tsx";
+import SubmitterRoleField from "./(_islands)/SubmitterRoleField.tsx";
 import Button from "../../../../components/Button.tsx";
-import Checkbox from "../../../../components/Checkbox.tsx";
 import TextInput from "../../../../components/TextInput.tsx";
 import GrowableTextArea from "../../../../islands/GrowableTextArea.tsx";
 import QuestionEditor from "../../../../islands/QuestionEditor.tsx";
-import SubmitterRoleField from "../../../../islands/SubmitterRoleField.tsx";
 
 export const handler: Handlers<void, AdminFormState> = {
   async POST(req, ctx) {
@@ -64,19 +64,7 @@ export default defineRoute<AdminFormState>((_req, { state }) => {
             value={state.form.success_message}
           />
           <div class="flex flex-col items-start">
-            <div class="flex pt-[0.875rem] items-center">
-              <Checkbox name="active" checked={state.form.active} />
-              <span class="ml-3 mr-1 text-gray-400 tracking-wide">
-                http://../
-              </span>
-              <TextInput
-                name="slug"
-                label="Slug *"
-                value={state.form.slug}
-                class="mr-6 max-w-60 -mt-[0.875rem]"
-                required
-              />
-            </div>
+            <SlugField active={state.form.active} value={state.form.slug} />
             <div class="flex mt-4 w-full items-end content-between">
               <SubmitterRoleField
                 class="mr-4"

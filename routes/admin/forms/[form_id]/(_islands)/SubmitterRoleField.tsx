@@ -1,9 +1,9 @@
 import { useSignal } from "@preact/signals";
 
-import classnames from "../utils/classnames.ts";
+import classnames from "../../../../../utils/classnames.ts";
 
-import Checkbox from "../components/Checkbox.tsx";
-import TextInput from "../components/TextInput.tsx";
+import Checkbox from "../../../../../components/Checkbox.tsx";
+import TextInput from "../../../../../components/TextInput.tsx";
 
 type Props = { class: string; submitterRole?: string };
 

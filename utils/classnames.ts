@@ -1,7 +1,10 @@
+type ClassName = string | string[] | Record<string, boolean>;
+
 export default function classnames(
-  ...classNames: readonly (string | string[] | Record<string, boolean>)[]
+  ...classNames: readonly (ClassName | undefined)[]
 ): string {
   return classNames
+    .filter((className): className is ClassName => className !== undefined)
     .flatMap((className) => {
       if (typeof className === "string") {
         return className;
