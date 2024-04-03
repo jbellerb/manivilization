@@ -1,4 +1,5 @@
-import classnames from "../../../../../utils/classnames.ts";
+import IconButton from "../../../../../components/IconButton.tsx";
+import TextInput from "../../../../../components/TextInput.tsx";
 
 type Props = {
   name: string;

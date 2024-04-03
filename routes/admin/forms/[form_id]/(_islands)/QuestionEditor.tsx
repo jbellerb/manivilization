@@ -1,31 +1,13 @@
 import { useSignal } from "@preact/signals";
 
 import OptionsEditor from "./OptionsEditor.tsx";
+import IconButton from "../../../../../components/IconButton.tsx";
 import InlineCheckbox from "../../../../../components/InlineCheckbox.tsx";
 import Select from "../../../../../components/Select.tsx";
 import TextInput from "../../../../../components/TextInput.tsx";
 import classnames from "../../../../../utils/classnames.ts";
 
 import type { Form, Question } from "../../../../../utils/form/types.ts";
-
-function IconButton(props: {
-  label: string;
-  class: string;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      aria-label={props.label}
-      type="button"
-      class={classnames(
-        "p-1 text-gray-600 hover:text-gray-500 focus-visible:text-gray-400 active:text-white transition-color after:block after:content-empty after:w-6 after:h-6",
-        props.class,
-      )}
-      onClick={props.onClick}
-    >
-    </button>
-  );
-}
 
 export type Props = {
   questions: Form["questions"];

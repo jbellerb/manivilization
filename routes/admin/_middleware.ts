@@ -3,6 +3,7 @@ import { STATUS_CODE } from "$std/http/status.ts";
 
 import type { FreshContext } from "$fresh/server.ts";
 
+import { DISCORD_ADMIN_ROLE } from "../../utils/env.ts";
 import { getRoles } from "../../utils/discord/guild.ts";
 import { getUser } from "../../utils/discord/user.ts";
 import {
@@ -29,7 +30,7 @@ export async function handler(req: Request, ctx: FreshContext<AdminState>) {
       ctx.state.user = await getUser(session.access_token);
       ctx.state.roles = await getRoles(ctx.state.user.id);
 
-      if (ctx.state.roles.includes(ADMIN_ROLE)) {
+      if (ctx.state.roles.includes(DISCORD_ADMIN_ROLE)) {
         return await ctx.next();
       } else {
         return new Response("Forbidden", { status: STATUS_CODE.Forbidden });

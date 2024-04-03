@@ -27,8 +27,8 @@
     outputHash = builtins.hashString "sha256" "${computeHash src}-check";
 
     buildPhaseCommand = ''
-      deno check **/*.ts
-      deno check **/*.tsx
+      deno check ./{*,**/*}.ts
+      deno check ./{*,**/*}.tsx
     '';
 
     installPhaseCommand = ''
