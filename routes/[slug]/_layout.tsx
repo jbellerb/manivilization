@@ -13,7 +13,6 @@ export default defineLayout<State>((_req, { Component, state }) => {
     descriptionLine = state.form.description;
     const split = state.form.description.search(/[\n\r]/);
     if (split !== -1) {
-      console.log(JSON.stringify(state.form.description));
       descriptionLine = state.form.description.slice(0, split) + "...";
     }
   }
