@@ -1,8 +1,9 @@
 import { expandGlob } from "$std/fs/expand_glob.ts";
 import * as path from "$std/path/mod.ts";
-import { Plugin, ResolvedFreshConfig } from "$fresh/server.ts";
+import { createGenerator } from "@unocss/core";
 
-import { createGenerator, UnoGenerator, UserConfig } from "@unocss/core";
+import type { Plugin, ResolvedFreshConfig } from "$fresh/server.ts";
+import type { UnoGenerator, UserConfig } from "@unocss/core";
 
 export type UnoCSSPluginOptions = UserConfig & {
   generatedFile?: string;

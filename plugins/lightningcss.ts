@@ -1,15 +1,12 @@
 import * as colors from "$std/fmt/colors.ts";
-import { walk, type WalkEntry } from "$std/fs/walk.ts";
+import { walk } from "$std/fs/walk.ts";
 import * as path from "$std/path/mod.ts";
-import { Plugin, type ResolvedFreshConfig } from "$fresh/server.ts";
-
 import browserslist from "browserslist";
-import init, {
-  browserslistToTargets,
-  transform,
-  type TransformOptions,
-  type TransformResult,
-} from "lightningcss-wasm";
+import init, { browserslistToTargets, transform } from "lightningcss-wasm";
+
+import type { WalkEntry } from "$std/fs/walk.ts";
+import type { Plugin, ResolvedFreshConfig } from "$fresh/server.ts";
+import type { TransformOptions, TransformResult } from "lightningcss-wasm";
 
 export type LightningCSSPluginOptions = {
   targets?: string | null;

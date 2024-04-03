@@ -1,6 +1,8 @@
-import { QueryClient } from "postgres/client.ts";
+import type { QueryClient } from "postgres/client.ts";
 
-import { BadFormError, type Form } from "./types.ts";
+import { BadFormError } from "./types.ts";
+
+import type { Form } from "./types.ts";
 
 export async function listForms(
   client: QueryClient,

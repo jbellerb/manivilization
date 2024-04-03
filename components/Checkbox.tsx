@@ -1,4 +1,5 @@
 import { JSX } from "preact";
+
 import classnames from "../utils/classnames.ts";
 
 type Props = {

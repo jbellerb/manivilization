@@ -1,14 +1,17 @@
-import { defineLayout, LayoutConfig } from "$fresh/server.ts";
+import { defineLayout } from "$fresh/server.ts";
 
-import { AdminState } from "./_middleware.ts";
+import type { LayoutConfig } from "$fresh/server.ts";
+
 import classnames from "../../utils/classnames.ts";
 import { listForms } from "../../utils/form/form.ts";
 
-export const config: LayoutConfig = {
-  skipInheritedLayouts: true,
-};
+import { AdminState as State } from "./_middleware.ts";
 
-export default defineLayout<AdminState>(async (_req, ctx) => {
+export const config = {
+  skipInheritedLayouts: true,
+} satisfies LayoutConfig;
+
+export default defineLayout<State>(async (_req, ctx) => {
   const forms = await listForms(ctx.state.client);
   const formId = ctx.params.form_id;
 

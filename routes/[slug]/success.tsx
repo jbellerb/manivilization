@@ -1,7 +1,9 @@
 import { STATUS_CODE } from "$std/http/status.ts";
-import { defineRoute, Handlers } from "$fresh/server.ts";
+import { defineRoute } from "$fresh/server.ts";
 // @deno-types="https://esm.sh/v135/@types/commonmark@0.27.9/index.d.ts"
 import { HtmlRenderer, Parser } from "commonmark";
+
+import type { Handlers } from "$fresh/server.ts";
 
 import { getResponse } from "../../utils/form/response.ts";
 
@@ -13,7 +15,7 @@ export const handler: Handlers<void, State> = {
     const responseId = searchParams.get("response");
     if (responseId) {
       if (await getResponse(ctx.state.client, responseId)) {
-        return await ctx.render();
+        return ctx.render();
       }
     }
 

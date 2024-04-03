@@ -1,21 +1,23 @@
 import { STATUS_CODE } from "$std/http/status.ts";
-import { defineRoute, Handlers } from "$fresh/server.ts";
+import { defineRoute } from "$fresh/server.ts";
 
-import { AdminFormState } from "./_middleware.ts";
+import type { Handlers } from "$fresh/server.ts";
+
+import QuestionEditor from "./(_islands)/QuestionEditor.tsx";
+import SlugField from "./(_islands)/SlugField.tsx";
+import SubmitterRoleField from "./(_islands)/SubmitterRoleField.tsx";
+import Button from "../../../../components/Button.tsx";
+import TextInput from "../../../../components/TextInput.tsx";
+import GrowableTextArea from "../../../../islands/GrowableTextArea.tsx";
 import {
   FormParseError,
   parseEditorFormData,
   updateForm,
 } from "../../../../utils/form/mod.ts";
 
-import SlugField from "./(_islands)/SlugField.tsx";
-import SubmitterRoleField from "./(_islands)/SubmitterRoleField.tsx";
-import Button from "../../../../components/Button.tsx";
-import TextInput from "../../../../components/TextInput.tsx";
-import GrowableTextArea from "../../../../islands/GrowableTextArea.tsx";
-import QuestionEditor from "../../../../islands/QuestionEditor.tsx";
+import { AdminFormState as State } from "./_middleware.ts";
 
-export const handler: Handlers<void, AdminFormState> = {
+export const handler: Handlers<void, State> = {
   async POST(req, ctx) {
     const formData = await req.formData();
     try {
@@ -36,7 +38,7 @@ export const handler: Handlers<void, AdminFormState> = {
   },
 };
 
-export default defineRoute<AdminFormState>((_req, { state }) => {
+export default defineRoute<State>((_req, { state }) => {
   return (
     <main class="flex justify-center px-8 py-16 bg-black text-white flex-1 font-sans">
       <form

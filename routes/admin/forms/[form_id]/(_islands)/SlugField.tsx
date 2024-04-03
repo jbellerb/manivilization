@@ -1,9 +1,8 @@
 import { useSignal } from "@preact/signals";
 
-import classnames from "../../../../../utils/classnames.ts";
-
 import Checkbox from "../../../../../components/Checkbox.tsx";
 import TextInput from "../../../../../components/TextInput.tsx";
+import classnames from "../../../../../utils/classnames.ts";
 
 type Props = { class?: string; active?: boolean; value?: string };
 

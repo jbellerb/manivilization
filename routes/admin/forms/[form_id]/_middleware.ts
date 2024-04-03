@@ -1,7 +1,9 @@
-import { FreshContext } from "$fresh/server.ts";
+import type { FreshContext } from "$fresh/server.ts";
 
-import { AdminState } from "../../_middleware.ts";
-import { BadFormError, Form, getForm } from "../../../../utils/form/mod.ts";
+import { BadFormError, getForm } from "../../../../utils/form/mod.ts";
+
+import type { AdminState } from "../../_middleware.ts";
+import type { Form } from "../../../../utils/form/mod.ts";
 
 export type AdminFormState = AdminState & {
   form: Form;

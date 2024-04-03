@@ -1,7 +1,8 @@
 #!/usr/bin/env -S deno run -A
 
 import { join } from "$std/path/mod.ts";
-import { Client, QueryClient } from "postgres/client.ts";
+
+import type { Client, QueryClient } from "postgres/client.ts";
 
 // lower 64 bits of sha3-256("migrations")
 const LOCK_ID = -6902354483765142115n;

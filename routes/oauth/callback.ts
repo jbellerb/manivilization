@@ -1,20 +1,18 @@
-import {
-  Cookie,
-  deleteCookie,
-  getCookies,
-  setCookie,
-} from "$std/http/cookie.ts";
+import { deleteCookie, getCookies, setCookie } from "$std/http/cookie.ts";
 import { STATUS_CODE } from "$std/http/status.ts";
-import { Handlers } from "$fresh/server.ts";
 
-import { RootState } from "../_middleware.ts";
+import type { Cookie } from "$std/http/cookie.ts";
+import type { Handlers } from "$fresh/server.ts";
+
 import { oauthClient } from "../../utils/oauth.ts";
 import { createSession, popAuthSession } from "../../utils/session.ts";
+
+import type { RootState as State } from "../_middleware.ts";
 
 // expire sessions after 90 days
 const SESSION_EXPIRE = 90 * 24 * 60 * 60;
 
-export const handler: Handlers<void, RootState> = {
+export const handler: Handlers<void, State> = {
   async GET(req, ctx) {
     const authSessionId = getCookies(req.headers)["__Host-oauth-session"];
     if (!authSessionId) throw new Error("missing session cookie");
@@ -39,14 +37,14 @@ export const handler: Handlers<void, RootState> = {
 
     const headers = new Headers({ Location: authSession.redirect });
     deleteCookie(headers, "__Host-oauth-session");
-    const sessionCookie: Cookie = {
+    const sessionCookie = {
       name: "__Host-session",
       value: session.id,
       maxAge: SESSION_EXPIRE,
       path: "/",
       httpOnly: true,
       sameSite: "Lax",
-    };
+    } satisfies Cookie;
     setCookie(headers, sessionCookie);
 
     return new Response(null, { status: STATUS_CODE.Found, headers });

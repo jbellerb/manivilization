@@ -1,6 +1,7 @@
-import type { UserConfig } from "@unocss/core";
 import presetTypography from "@unocss/preset-typography";
 import presetUno from "@unocss/preset-uno";
+
+import type { UserConfig } from "@unocss/core";
 
 import { presetStyling } from "./utils/styling/mod.ts";
 

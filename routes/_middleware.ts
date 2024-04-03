@@ -1,11 +1,12 @@
 import { getCookies } from "$std/http/cookie.ts";
 import { STATUS_CODE } from "$std/http/status.ts";
-import { FreshContext } from "$fresh/server.ts";
 
-import { PoolClient } from "postgres/client.ts";
+import type { FreshContext } from "$fresh/server.ts";
+import type { PoolClient } from "postgres/client.ts";
+
+import { PUBLIC_URL } from "../utils/env.ts";
 import { db } from "../utils/db.ts";
 
-export const PUBLIC_URL = Deno.env.get("PUBLIC_URL");
 const publicUrl = PUBLIC_URL ? new URL(PUBLIC_URL) : undefined;
 
 export type RootState = {

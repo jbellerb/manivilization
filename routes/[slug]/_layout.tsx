@@ -3,11 +3,11 @@ import { defineLayout } from "$fresh/server.ts";
 // @deno-types="https://esm.sh/v135/@types/commonmark@0.27.9/index.d.ts"
 import { HtmlRenderer, Parser } from "commonmark";
 
-import { PUBLIC_URL } from "../_middleware.ts";
+import { PUBLIC_URL } from "../../utils/env.ts";
 
-import type { FormState } from "./_middleware.ts";
+import type { FormState as State } from "./_middleware.ts";
 
-export default defineLayout<FormState>((_req, { Component, state }) => {
+export default defineLayout<State>((_req, { Component, state }) => {
   let descriptionLine;
   if (state.form.description) {
     descriptionLine = state.form.description;

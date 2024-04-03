@@ -1,6 +1,6 @@
 import { dirname, fromFileUrl, join } from "$std/path/mod.ts";
 
-import { Preflight, Preset, Rule } from "@unocss/core";
+import type { Preflight, Preset, Rule } from "@unocss/core";
 
 function buildPreflight(
   rules: Record<string, Record<string, string>>,

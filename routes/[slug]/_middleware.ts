@@ -1,5 +1,6 @@
 import { deleteCookie } from "$std/http/cookie.ts";
-import { FreshContext } from "$fresh/server.ts";
+
+import type { FreshContext } from "$fresh/server.ts";
 
 import { getUser } from "../../utils/discord/user.ts";
 import { BadFormError, getFormBySlug } from "../../utils/form/mod.ts";

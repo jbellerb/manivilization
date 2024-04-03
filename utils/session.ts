@@ -1,4 +1,5 @@
-import { QueryClient } from "postgres/client.ts";
+import type { QueryClient } from "postgres/client.ts";
+
 import { oauthClient } from "./oauth.ts";
 
 export type AuthSession = {

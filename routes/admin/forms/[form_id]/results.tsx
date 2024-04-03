@@ -1,11 +1,11 @@
 import { defineRoute } from "$fresh/server.ts";
 
-import { AdminFormState } from "./_middleware.ts";
-import { getFormResponses } from "../../../../utils/form/response.ts";
+import { AdminFormState as State } from "./_middleware.ts";
 
 import ResultsTable from "./(_islands)/ResultsTable.tsx";
+import { getFormResponses } from "../../../../utils/form/response.ts";
 
-export default defineRoute<AdminFormState>(async (_req, { state }) => {
+export default defineRoute<State>(async (_req, { state }) => {
   const questions = state.form.questions?.questions ?? [];
   const responses = await getFormResponses(state.client, state.form.id);
 
