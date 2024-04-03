@@ -1,8 +1,10 @@
+import { DENO_MOD_VERSION } from "../env.ts";
+
 export const BASE_URL = "https://discord.com/api/v10";
 export const BASE_IMAGE_URL = "https://cdn.discordapp.com";
 
 export const BASE_HEADERS = {
-  UserAgent: "Manivilization (v0.1.0)",
+  UserAgent: `Manivilization (v${DENO_MOD_VERSION ?? "dev"})`,
 };
 
 export function authorizeBot(botToken: string): HeadersInit {

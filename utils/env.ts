@@ -1,3 +1,5 @@
+export const DENO_MOD_VERSION = Deno.env.get("DENO_MOD_VERSION");
+
 export const DISCORD_ADMIN_ROLE = Deno.env.get("DISCORD_ADMIN_ROLE") as string;
 if (!DISCORD_ADMIN_ROLE) {
   throw new Error("DISCORD_ADMIN_ROLE is not set for Discord authentication");
