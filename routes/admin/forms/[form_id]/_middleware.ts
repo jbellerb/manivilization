@@ -14,7 +14,7 @@ export async function handler(
   ctx: FreshContext<AdminFormState>,
 ) {
   try {
-    ctx.state.form = await getForm(ctx.state.client, ctx.params.form_id);
+    ctx.state.form = await getForm(ctx.params.form_id);
     return await ctx.next();
   } catch (e) {
     if (e instanceof BadFormError) return ctx.renderNotFound();

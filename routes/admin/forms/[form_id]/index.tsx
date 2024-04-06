@@ -22,7 +22,7 @@ export const handler: Handlers<void, State> = {
     const formData = await req.formData();
     try {
       const form = { id: ctx.state.form.id, ...parseEditorFormData(formData) };
-      await updateForm(ctx.state.client, form);
+      await updateForm(form);
 
       const headers = new Headers({
         Location: `/admin/forms/${ctx.state.form.id}`,

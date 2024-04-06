@@ -1,21 +1,18 @@
-import type { QueryClient } from "postgres/client.ts";
-
+import sql from "../db.ts";
 import { BadFormError } from "./types.ts";
 
 import type { Form } from "./types.ts";
 
-export async function listForms(
-  client: QueryClient,
-): Promise<{ id: Form["id"]; name: Form["name"] }[]> {
-  const { rows } = await client.queryObject<{ id: string; name: string }>`
-    SELECT id, name FROM forms;
+export async function listForms(): Promise<
+  { id: Form["id"]; name: Form["name"] }[]
+> {
+  return await sql`
+    SELECT id, name FROM forms
   `;
-
-  return rows;
 }
 
-export async function createForm(client: QueryClient, form: Form) {
-  await client.queryArray`
+export async function createForm(form: Form) {
+  await sql`
     INSERT INTO forms VALUES (
       ${form.id},
       ${form.name},
@@ -25,35 +22,32 @@ export async function createForm(client: QueryClient, form: Form) {
       ${form.questions},
       ${form.success_message},
       ${form.submitter_role}
-    );
+    )
   `;
 }
 
-export async function getForm(client: QueryClient, id: string): Promise<Form> {
-  const { rows } = await client.queryObject<Form>`
-    SELECT * FROM forms WHERE id = ${id};
+export async function getForm(id: string): Promise<Form> {
+  const [form]: [Form?] = await sql`
+    SELECT * FROM forms WHERE id = ${id}
   `;
-  const form = rows[0];
 
   if (!form) throw new BadFormError("unknown form");
   return form;
 }
 
 export async function getFormBySlug(
-  client: QueryClient,
   slug: string,
 ): Promise<Form> {
-  const { rows } = await client.queryObject<Form>`
-    SELECT * FROM forms WHERE slug = ${slug};
+  const [form]: [Form?] = await sql`
+    SELECT * FROM forms WHERE slug = ${slug}
   `;
-  const form = rows[0];
 
   if (!form) throw new BadFormError("unknown form");
   return form;
 }
 
-export async function updateForm(client: QueryClient, form: Form) {
-  await client.queryArray`
+export async function updateForm(form: Form) {
+  await sql`
     UPDATE forms SET
       name = ${form.name},
       slug = ${form.slug},
@@ -62,6 +56,6 @@ export async function updateForm(client: QueryClient, form: Form) {
       questions = ${form.questions ?? null},
       success_message = ${form.success_message ?? null},
       submitter_role = ${form.submitter_role ?? null}
-      WHERE id = ${form.id};
+      WHERE id = ${form.id}
   `;
 }

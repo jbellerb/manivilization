@@ -13,7 +13,7 @@ import type { RootState as State } from "../_middleware.ts";
 const AUTH_EXPIRE = 10 * 60;
 
 export const handler: Handlers<void, State> = {
-  async GET(req, ctx) {
+  async GET(req, _ctx) {
     const { searchParams } = new URL(req.url);
 
     const state = crypto.randomUUID();
@@ -28,7 +28,7 @@ export const handler: Handlers<void, State> = {
       redirect: searchParams.get("redirect") ?? "/",
       expires: new Date(Date.now() + AUTH_EXPIRE * 1000),
     };
-    await createAuthSession(ctx.state.client, authSession);
+    await createAuthSession(authSession);
 
     const headers = new Headers({ Location: uri.toString() });
     const authSessionCookie = {

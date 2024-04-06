@@ -17,7 +17,7 @@ export const handler: Handlers<void, State> = {
 
     if (!ctx.state.sessionToken) return response;
 
-    await deleteSession(ctx.state.client, ctx.state.sessionToken);
+    await deleteSession(ctx.state.sessionToken);
     deleteCookie(response.headers, "__Host-session");
 
     return response;

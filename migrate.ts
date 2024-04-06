@@ -1,35 +1,48 @@
 #!/usr/bin/env -S deno run -A
 
 import { join } from "$std/path/mod.ts";
-import { Client } from "postgres/client.ts";
+import postgres from "postgresjs/mod.js";
 
-import type { QueryClient } from "postgres/client.ts";
+import type { Notice, Options } from "postgresjs/types/index.d.ts";
 
 // lower 64 bits of sha3-256("migrations")
 const LOCK_ID = -6902354483765142115n;
 
-async function init(db: QueryClient) {
-  const res = await db.queryArray`
-    CREATE TABLE IF NOT EXISTS migration(
+const DATABASE_URL = Deno.env.get("DATABASE_URL");
+
+let notice: Notice | undefined = undefined;
+const pg_opts: Options<Record<string, never>> = {
+  max: 1,
+  onnotice: (n) => notice = n,
+};
+const sql = DATABASE_URL ? postgres(DATABASE_URL, pg_opts) : postgres(pg_opts);
+
+async function init() {
+  await sql`
+    CREATE TABLE IF NOT EXISTS migrations(
         id SERIAL PRIMARY KEY,
         name character varying,
         date timestamp with time zone NOT NULL DEFAULT now()
-    );
+    )
   `;
-  if (res.warnings.length != 0) {
-    console.log("migrations table already exists");
+  if (notice) {
+    if (notice.code && notice.code === "42P07") {
+      console.warn("migrations table already exists");
+    } else {
+      console.warn(`unexpected: ${notice.message}`);
+    }
   } else {
     console.log("sucessfully initialized migrations table");
   }
 }
 
-async function lock(db: QueryClient) {
+async function lock() {
   let attempts = 0;
   while (true) {
-    const { rows } = await db.queryArray`
-      SELECT pg_try_advisory_lock(${LOCK_ID});
+    const [lock] = await sql`
+      SELECT pg_try_advisory_lock(${LOCK_ID})
     `;
-    if (rows[0][0]) {
+    if (lock && lock.pg_try_advisory_lock) {
       break;
     } else {
       attempts += 1;
@@ -41,24 +54,23 @@ async function lock(db: QueryClient) {
   }
 }
 
-async function unlock(db: QueryClient) {
-  await db.queryArray`
-    SELECT pg_advisory_unlock(${LOCK_ID});
+async function unlock() {
+  await sql`
+    SELECT pg_advisory_unlock(${LOCK_ID})
   `;
 }
 
-async function appliedMigrations(db: QueryClient) {
-  const res = await db.queryObject<{ name: string; date: Date }>`
-    SELECT name, date FROM migration;
+async function appliedMigrations(): Promise<{ name: string; date: Date }[]> {
+  return await sql`
+    SELECT name, date FROM migrations
   `;
-  return res.rows;
 }
 
-async function migrate(db: QueryClient) {
-  await lock(db);
+async function migrate() {
+  await lock();
   try {
     const applied = new Set(
-      (await appliedMigrations(db)).map(({ name }) => name),
+      (await appliedMigrations()).map(({ name }) => name),
     );
     const unapplied = [];
     const migrations_dir = Deno.args[1] ?? "migrations";
@@ -78,25 +90,24 @@ async function migrate(db: QueryClient) {
       console.log("all migrations up to date");
     } else {
       for (const migration of unapplied) {
-        const tx = db.createTransaction(migration.name);
-        await tx.begin();
-        await tx.queryArray`
-          INSERT INTO migration (name) VALUES (${migration.name});
-        `;
-        await tx.queryArray(migration.migration);
-        await tx.commit();
+        sql.begin(async (sql) => {
+          await sql`
+            INSERT INTO migrations (name) VALUES (${migration.name})
+          `;
+          await sql.unsafe(migration.migration);
+        });
         console.log(`successfully applied ${migration.name}`);
       }
     }
   } finally {
-    await unlock(db);
+    await unlock();
   }
 }
 
-async function status(db: QueryClient) {
-  await lock(db);
+async function status() {
+  await lock();
   try {
-    const applied = await appliedMigrations(db);
+    const applied = await appliedMigrations();
     const local = new Set();
     const migrations_dir = Deno.args[1] ?? "migrations";
     for await (const file of Deno.readDir(migrations_dir)) {
@@ -119,7 +130,7 @@ async function status(db: QueryClient) {
     applied.sort(({ date: a }, { date: b }) => (a < b) ? 1 : (a > b) ? -1 : 0);
     console.log(`Most recent: ${applied[0].name} at ${applied[0].date}`);
   } finally {
-    await unlock(db);
+    await unlock();
   }
 }
 
@@ -129,7 +140,7 @@ function usage() {
   );
 }
 
-const commands: Record<string, (db: QueryClient) => Promise<void>> = {
+const commands: Record<string, () => Promise<void>> = {
   init: init,
   migrate: migrate,
   status: status,
@@ -142,15 +153,8 @@ if (
     (args[0] !== "init" && args.length <= 2))
 ) {
   try {
-    const DATABASE_URL = Deno.env.get("DATABASE_URL");
-    if (!DATABASE_URL) {
-      throw new Error("DATABASE_URL is not set for connecting to Postgresql");
-    }
-
-    const db = new Client(DATABASE_URL);
-    await db.connect();
-    await commands[Deno.args[0]](db);
-    await db.end();
+    await commands[Deno.args[0]]();
+    await sql.end();
   } catch (e) {
     console.log(`./migrate.ts: ${e.message}`);
     Deno.exit(1);

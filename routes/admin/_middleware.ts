@@ -23,10 +23,7 @@ export type AdminState = RootState & {
 export async function handler(req: Request, ctx: FreshContext<AdminState>) {
   if (ctx.state.sessionToken) {
     try {
-      const session = await getSession(
-        ctx.state.client,
-        ctx.state.sessionToken,
-      );
+      const session = await getSession(ctx.state.sessionToken);
       ctx.state.user = await getUser(session.access_token);
       ctx.state.roles = await getRoles(ctx.state.user.id);
 

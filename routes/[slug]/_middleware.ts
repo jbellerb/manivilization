@@ -21,15 +21,12 @@ export type FormState = RootState & {
 
 export async function handler(_req: Request, ctx: FreshContext<FormState>) {
   try {
-    ctx.state.form = await getFormBySlug(ctx.state.client, ctx.params.slug);
+    ctx.state.form = await getFormBySlug(ctx.params.slug);
     if (!ctx.state.form.active) return ctx.renderNotFound();
 
     if (ctx.state.sessionToken) {
       try {
-        const session = await getSession(
-          ctx.state.client,
-          ctx.state.sessionToken,
-        );
+        const session = await getSession(ctx.state.sessionToken);
         ctx.state.user = await getUser(session.access_token);
       } catch (e) {
         if (

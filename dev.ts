@@ -6,3 +6,7 @@ import config from "./fresh.config.ts";
 import "$std/dotenv/load.ts";
 
 await dev(import.meta.url, "./main.ts", config);
+
+// Force Deno to stop as we've replaced the default signal handler and now the
+// watcher no longer terminates itself
+Deno.exit();

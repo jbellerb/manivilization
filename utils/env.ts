@@ -23,6 +23,4 @@ if (!DISCORD_GUILD_ID) {
   throw new Error("DISCORD_GUILD_ID is not set for the Discord bot");
 }
 
-export const DATABASE_URL = Deno.env.get("DATABASE_URL");
-
 export const PUBLIC_URL = Deno.env.get("PUBLIC_URL");

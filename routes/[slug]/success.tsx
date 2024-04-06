@@ -14,7 +14,7 @@ export const handler: Handlers<void, State> = {
     const { searchParams } = new URL(req.url);
     const responseId = searchParams.get("response");
     if (responseId) {
-      if (await getResponse(ctx.state.client, responseId)) {
+      if (await getResponse(responseId)) {
         return ctx.render();
       }
     }

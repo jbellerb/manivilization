@@ -1,5 +1,4 @@
-import type { QueryClient } from "postgres/client.ts";
-
+import sql from "./db.ts";
 import { oauthClient } from "./oauth.ts";
 
 export type AuthSession = {
@@ -18,29 +17,22 @@ export type Session = {
   access_expires?: Date;
 };
 
-export async function createAuthSession(
-  client: QueryClient,
-  session: AuthSession,
-) {
-  await client.queryArray`
+export async function createAuthSession(session: AuthSession) {
+  await sql`
     INSERT INTO auth_sessions VALUES (
       ${session.id},
       ${session.state},
       ${session.verifier},
       ${session.redirect},
       ${session.expires}
-    );
+    )
   `;
 }
 
-export async function popAuthSession(
-  client: QueryClient,
-  id: string,
-): Promise<AuthSession> {
-  const { rows } = await client.queryObject<AuthSession>`
-    DELETE FROM auth_sessions WHERE id = ${id} RETURNING *;
+export async function popAuthSession(id: string): Promise<AuthSession> {
+  const [session]: [AuthSession?] = await sql`
+    DELETE FROM auth_sessions WHERE id = ${id} RETURNING *
   `;
-  const session = rows[0];
 
   if (!session) throw new BadSessionError("unknown auth session");
   if (session.expires < new Date()) {
@@ -50,58 +42,53 @@ export async function popAuthSession(
   return session;
 }
 
-export async function createSession(client: QueryClient, session: Session) {
-  await client.queryArray`
+export async function createSession(session: Session) {
+  await sql`
     INSERT INTO sessions VALUES (
       ${session.id},
       ${session.access_token},
       ${session.refresh_token ?? null},
       ${session.expires},
       ${session.access_expires ?? null}
-    );
+    )
   `;
 }
 
-export async function getSession(
-  client: QueryClient,
-  id: string,
-): Promise<Session> {
-  const { rows } = await client.queryObject<Session>`
-    SELECT * FROM sessions WHERE id = ${id};
+export async function getSession(id: string): Promise<Session> {
+  const [session]: [Session?] = await sql`
+    SELECT * FROM sessions WHERE id = ${id}
   `;
-  const session = rows[0];
 
   if (!session) throw new BadSessionError("unknown session");
   if (session.expires < new Date()) {
-    deleteSession(client, id);
+    deleteSession(id);
     throw new ExpiredSessionError("session has expired");
   }
 
   if (session.access_expires && session.access_expires < new Date()) {
-    return refreshSession(client, session);
+    return refreshSession(session);
   } else {
     return session;
   }
 }
 
-export async function updateSession(client: QueryClient, session: Session) {
-  await client.queryArray`
+export async function updateSession(session: Session) {
+  await sql`
     UPDATE sessions SET (access_token, refresh_token, access_expires) = (
       ${session.access_token},
       ${session.refresh_token ?? null},
       ${session.access_expires ?? null}
-    ) WHERE id = ${session.id};
+    ) WHERE id = ${session.id}
   `;
 }
 
-export async function deleteSession(client: QueryClient, id: string) {
-  await client.queryArray`
-    DELETE FROM sessions WHERE id = ${id};
+export async function deleteSession(id: string) {
+  await sql`
+    DELETE FROM sessions WHERE id = ${id}
   `;
 }
 
 async function refreshSession(
-  client: QueryClient,
   session: Session,
 ): Promise<Session> {
   if (!session.refresh_token) {
@@ -121,7 +108,7 @@ async function refreshSession(
     throw new ExpiredSessionError("failed to refresh expired session");
   }
 
-  await updateSession(client, session);
+  await updateSession(session);
 
   return session;
 }

@@ -12,7 +12,7 @@ export const config = {
 } satisfies LayoutConfig;
 
 export default defineLayout<State>(async (_req, ctx) => {
-  const forms = await listForms(ctx.state.client);
+  const forms = await listForms();
   const formId = ctx.params.form_id;
 
   return (

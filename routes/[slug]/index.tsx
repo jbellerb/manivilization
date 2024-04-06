@@ -63,7 +63,6 @@ export const handler: Handlers<Data, State> = {
     let issues: Data["issues"] = {};
     if (ctx.state.user) {
       const response = (await getUserFormResponses(
-        ctx.state.client,
         ctx.state.form.id,
         ctx.state.user.id,
       ))?.[0];
@@ -101,7 +100,6 @@ export const handler: Handlers<Data, State> = {
       }
 
       const responseId = await createResponse(
-        ctx.state.client,
         ctx.state.form,
         ctx.state.user,
         answers.answers,
