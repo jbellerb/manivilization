@@ -4,6 +4,7 @@ import { STATUS_CODE } from "$std/http/status.ts";
 import type { Cookie } from "$std/http/cookie.ts";
 import type { Handlers } from "$fresh/server.ts";
 
+import { Session } from "../../utils/db/schema.ts";
 import { oauthClient } from "../../utils/oauth.ts";
 import { createSession, popAuthSession } from "../../utils/session.ts";
 
@@ -24,15 +25,14 @@ export const handler: Handlers<void, State> = {
       codeVerifier: authSession.verifier,
     });
 
-    const session = {
-      id: crypto.randomUUID(),
-      access_token: tokens.accessToken,
-      refresh_token: tokens.refreshToken,
-      expires: new Date(Date.now() + SESSION_EXPIRE * 1000),
-      access_expires: tokens.expiresIn
+    const session = new Session(
+      new Date(Date.now() + SESSION_EXPIRE * 1000),
+      tokens.accessToken,
+      tokens.expiresIn
         ? new Date(Date.now() + tokens.expiresIn * 1000)
         : undefined,
-    };
+      tokens.refreshToken,
+    );
     await createSession(session);
 
     const headers = new Headers({ Location: authSession.redirect });

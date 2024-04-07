@@ -4,6 +4,7 @@ import { STATUS_CODE } from "$std/http/status.ts";
 import type { Cookie } from "$std/http/cookie.ts";
 import type { Handlers } from "$fresh/server.ts";
 
+import { AuthSession } from "../../utils/db/schema.ts";
 import { oauthClient } from "../../utils/oauth.ts";
 import { createAuthSession } from "../../utils/session.ts";
 
@@ -21,13 +22,12 @@ export const handler: Handlers<void, State> = {
       state,
     });
 
-    const authSession = {
-      id: crypto.randomUUID(),
+    const authSession = new AuthSession(
       state,
-      verifier: codeVerifier,
-      redirect: searchParams.get("redirect") ?? "/",
-      expires: new Date(Date.now() + AUTH_EXPIRE * 1000),
-    };
+      new Date(Date.now() + AUTH_EXPIRE * 1000),
+      codeVerifier,
+      searchParams.get("redirect") ?? "/",
+    );
     await createAuthSession(authSession);
 
     const headers = new Headers({ Location: uri.toString() });

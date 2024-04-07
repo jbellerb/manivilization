@@ -5,7 +5,7 @@ import { HtmlRenderer, Parser } from "commonmark";
 
 import type { Handlers } from "$fresh/server.ts";
 
-import { getResponse } from "../../utils/form/response.ts";
+import db from "../../utils/db/mod.ts";
 
 import type { FormState as State } from "./_middleware.ts";
 
@@ -14,9 +14,10 @@ export const handler: Handlers<void, State> = {
     const { searchParams } = new URL(req.url);
     const responseId = searchParams.get("response");
     if (responseId) {
-      if (await getResponse(responseId)) {
-        return ctx.render();
-      }
+      const response = await db.responses.findOne({ id: true }, {
+        where: (response, { eq }) => eq(response.id, responseId),
+      });
+      if (response) return ctx.render();
     }
 
     const headers = new Headers({ Location: `/${ctx.state.form.slug}` });
@@ -30,7 +31,7 @@ export default defineRoute<State>((_req, { state }) => {
       class="-my-4 markdown markdown-invert markdown-gray"
       dangerouslySetInnerHTML={{
         __html: (new HtmlRenderer()).render(
-          (new Parser()).parse(state.form.success_message ?? ""),
+          (new Parser()).parse(state.form.successMessage ?? ""),
         ),
       }}
     />

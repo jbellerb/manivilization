@@ -2,7 +2,7 @@ import { defineConfig } from "$fresh/server.ts";
 
 import lightningcss from "./plugins/lightningcss.ts";
 import unocss from "./plugins/unocss.ts";
-import sql from "./utils/db.ts";
+import { sql } from "./utils/db/mod.ts";
 
 const abort = new AbortController();
 

@@ -24,7 +24,7 @@ export async function handler(req: Request, ctx: FreshContext<AdminState>) {
   if (ctx.state.sessionToken) {
     try {
       const session = await getSession(ctx.state.sessionToken);
-      ctx.state.user = await getUser(session.access_token);
+      ctx.state.user = await getUser(session.accessToken);
       ctx.state.roles = await getRoles(ctx.state.user.id);
 
       if (ctx.state.roles.includes(DISCORD_ADMIN_ROLE)) {

@@ -2,8 +2,8 @@ import { defineLayout } from "$fresh/server.ts";
 
 import type { LayoutConfig } from "$fresh/server.ts";
 
+import db from "../../utils/db/mod.ts";
 import classnames from "../../utils/classnames.ts";
-import { listForms } from "../../utils/form/form.ts";
 
 import { AdminState as State } from "./_middleware.ts";
 
@@ -12,7 +12,7 @@ export const config = {
 } satisfies LayoutConfig;
 
 export default defineLayout<State>(async (_req, ctx) => {
-  const forms = await listForms();
+  const forms = await db.forms.find({ id: true, name: true });
   const formId = ctx.params.form_id;
 
   return (

@@ -63,14 +63,14 @@ export default defineRoute<State>((_req, { state }) => {
           <GrowableTextArea
             name="success_message"
             label="Success Message"
-            value={state.form.success_message}
+            value={state.form.successMessage}
           />
           <div class="flex flex-col items-start">
             <SlugField active={state.form.active} value={state.form.slug} />
             <div class="flex mt-4 w-full items-end content-between">
               <SubmitterRoleField
                 class="mr-4"
-                submitterRole={state.form.submitter_role}
+                submitterRole={state.form.submitterRole}
               />
               <Button name="Save" class="ml-auto" />
             </div>

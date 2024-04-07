@@ -8,13 +8,13 @@ import UserBanner from "./(_components)/UserBanner.tsx";
 import Button from "../../components/Button.tsx";
 import Checkbox from "../../components/Checkbox.tsx";
 import TextInput from "../../components/TextInput.tsx";
+import db from "../../utils/db/mod.ts";
 import classnames from "../../utils/classnames.ts";
 import { assignRole } from "../../utils/discord/guild.ts";
 import { DiscordHTTPError } from "../../utils/discord/http.ts";
 import {
   createResponse,
   FormParseError,
-  getUserFormResponses,
   parseFormData,
 } from "../../utils/form/mod.ts";
 
@@ -62,10 +62,15 @@ export const handler: Handlers<Data, State> = {
     let answers: Data["answers"] = {};
     let issues: Data["issues"] = {};
     if (ctx.state.user) {
-      const response = (await getUserFormResponses(
-        ctx.state.form.id,
-        ctx.state.user.id,
-      ))?.[0];
+      const user = ctx.state.user;
+      const response = await db.responses.findOne({ response: true }, {
+        where: (response, { and, eq }) =>
+          and(
+            eq(response.form, ctx.state.form.id),
+            eq(response.discordId, user.id),
+          ),
+        orderBy: (response, { desc }) => desc(response.date),
+      });
       if (response?.response && Object.keys(response.response).length > 0) {
         completed = true;
         answers = response.response;
@@ -105,9 +110,9 @@ export const handler: Handlers<Data, State> = {
         answers.answers,
       );
 
-      if (ctx.state.form.submitter_role) {
+      if (ctx.state.form.submitterRole) {
         try {
-          await assignRole(ctx.state.user.id, ctx.state.form.submitter_role);
+          await assignRole(ctx.state.user.id, ctx.state.form.submitterRole);
         } catch (e) {
           if (e instanceof DiscordHTTPError) console.log(e);
           else throw e;

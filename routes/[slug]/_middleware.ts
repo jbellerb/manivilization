@@ -11,11 +11,12 @@ import {
 } from "../../utils/session.ts";
 
 import type { RootState } from "../_middleware.ts";
+import type { Form } from "../../utils/db/schema.ts";
 import type { User } from "../../utils/discord/user.ts";
-import type { Form } from "../../utils/form/types.ts";
+import type { FormSpec } from "../../utils/form/types.ts";
 
 export type FormState = RootState & {
-  form: Form;
+  form: Form<FormSpec>;
   user?: User;
 };
 
@@ -27,7 +28,7 @@ export async function handler(_req: Request, ctx: FreshContext<FormState>) {
     if (ctx.state.sessionToken) {
       try {
         const session = await getSession(ctx.state.sessionToken);
-        ctx.state.user = await getUser(session.access_token);
+        ctx.state.user = await getUser(session.accessToken);
       } catch (e) {
         if (
           !(e instanceof BadSessionError || e instanceof ExpiredSessionError)

@@ -1,6 +1,7 @@
 import { FormParseError } from "./types.ts";
 
-import type { Form, Question, ValidationIssue } from "./types.ts";
+import type { FormSpec, Question, ValidationIssue } from "./types.ts";
+import type { Form } from "../db/schema.ts";
 
 type NestedFormData = { [property: string]: string[] | NestedFormData };
 
@@ -119,12 +120,12 @@ export function parseEditorFormData(data: FormData): Omit<Form, "id"> {
     active: isString("active", data.get("active") ?? "off") === "on",
     description: mapMaybe(isString, "description", data.get("description")),
     questions: { version: "v1", questions },
-    success_message: mapMaybe(
+    successMessage: mapMaybe(
       isString,
       "success_message",
       data.get("success_message"),
     ),
-    submitter_role: mapMaybe(
+    submitterRole: mapMaybe(
       isString,
       "submitter_role",
       data.get("submitter_role"),
@@ -134,7 +135,7 @@ export function parseEditorFormData(data: FormData): Omit<Form, "id"> {
 
 export function parseFormData(
   data: FormData,
-  form: Form,
+  form: Form<FormSpec>,
 ): {
   answers: Record<string, string>;
   issues: Record<string, ValidationIssue[]>;

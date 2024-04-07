@@ -1,21 +1,6 @@
-import sql from "./db.ts";
+import db, { sql } from "./db/mod.ts";
+import { AuthSession, Session } from "./db/schema.ts";
 import { oauthClient } from "./oauth.ts";
-
-export type AuthSession = {
-  id: string;
-  state: string;
-  verifier: string;
-  redirect: string;
-  expires: Date;
-};
-
-export type Session = {
-  id: string;
-  access_token: string;
-  refresh_token?: string;
-  expires: Date;
-  access_expires?: Date;
-};
 
 export async function createAuthSession(session: AuthSession) {
   await sql`
@@ -46,18 +31,18 @@ export async function createSession(session: Session) {
   await sql`
     INSERT INTO sessions VALUES (
       ${session.id},
-      ${session.access_token},
-      ${session.refresh_token ?? null},
+      ${session.accessToken},
+      ${session.refreshToken ?? null},
       ${session.expires},
-      ${session.access_expires ?? null}
+      ${session.accessExpires ?? null}
     )
   `;
 }
 
 export async function getSession(id: string): Promise<Session> {
-  const [session]: [Session?] = await sql`
-    SELECT * FROM sessions WHERE id = ${id}
-  `;
+  const session = await db.sessions.findOne({}, {
+    where: (session, { eq }) => eq(session.id, id),
+  });
 
   if (!session) throw new BadSessionError("unknown session");
   if (session.expires < new Date()) {
@@ -65,7 +50,7 @@ export async function getSession(id: string): Promise<Session> {
     throw new ExpiredSessionError("session has expired");
   }
 
-  if (session.access_expires && session.access_expires < new Date()) {
+  if (session.accessExpires && session.accessExpires < new Date()) {
     return refreshSession(session);
   } else {
     return session;
@@ -75,9 +60,9 @@ export async function getSession(id: string): Promise<Session> {
 export async function updateSession(session: Session) {
   await sql`
     UPDATE sessions SET (access_token, refresh_token, access_expires) = (
-      ${session.access_token},
-      ${session.refresh_token ?? null},
-      ${session.access_expires ?? null}
+      ${session.accessToken},
+      ${session.refreshToken ?? null},
+      ${session.accessExpires ?? null}
     ) WHERE id = ${session.id}
   `;
 }
@@ -91,17 +76,17 @@ export async function deleteSession(id: string) {
 async function refreshSession(
   session: Session,
 ): Promise<Session> {
-  if (!session.refresh_token) {
+  if (!session.refreshToken) {
     throw new ExpiredSessionError("expired session can't be refreshed");
   }
 
   try {
     const tokens = await oauthClient.refreshToken.refresh(
-      session.refresh_token,
+      session.refreshToken,
     );
-    session.access_token = tokens.accessToken;
-    session.refresh_token = tokens.refreshToken ?? session.refresh_token;
-    session.access_expires = tokens.expiresIn
+    session.accessToken = tokens.accessToken;
+    session.refreshToken = tokens.refreshToken ?? session.refreshToken;
+    session.accessExpires = tokens.expiresIn
       ? new Date(Date.now() + tokens.expiresIn * 1000)
       : undefined;
   } catch {

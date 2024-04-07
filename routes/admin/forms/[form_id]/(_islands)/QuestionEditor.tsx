@@ -7,10 +7,10 @@ import Select from "../../../../../components/Select.tsx";
 import TextInput from "../../../../../components/TextInput.tsx";
 import classnames from "../../../../../utils/classnames.ts";
 
-import type { Form, Question } from "../../../../../utils/form/types.ts";
+import type { FormSpec, Question } from "../../../../../utils/form/types.ts";
 
 export type Props = {
-  questions: Form["questions"];
+  questions?: FormSpec;
 };
 
 export default function QuestionEditor(props: Props) {

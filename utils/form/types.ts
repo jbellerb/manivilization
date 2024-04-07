@@ -1,23 +1,3 @@
-export type Form = {
-  id: string;
-  name: string;
-  slug: string;
-  active: boolean;
-  description?: string;
-  questions?: { version: string; questions: Question[] };
-  success_message?: string;
-  submitter_role?: string;
-};
-
-export type FormResponse = {
-  id: string;
-  form: string;
-  discord_id: string;
-  response?: Record<string, string>;
-  date?: Date;
-  discord_name: string;
-};
-
 export type TextQuestion = {
   type: "text";
   name: string;
@@ -35,6 +15,11 @@ export type CheckboxQuestion = {
 };
 
 export type Question = TextQuestion | CheckboxQuestion;
+
+export type FormSpec = {
+  version: string;
+  questions: Question[];
+};
 
 export type ValidationIssue = "required";
 
