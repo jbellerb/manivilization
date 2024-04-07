@@ -21,4 +21,4 @@ export async function handler(req: Request, ctx: FreshContext<RootState>) {
   ctx.state.sessionToken = getCookies(req.headers)["__Host-session"];
 
   return await ctx.next();
-};
+}
