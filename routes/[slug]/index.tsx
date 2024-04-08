@@ -104,7 +104,7 @@ export const handler: Handlers<Data, State> = {
       const response = new FormResponse(
         ctx.state.form.id,
         ctx.state.user.id,
-        ctx.state.user.name,
+        ctx.state.user.username,
         answers.answers,
       );
       await db.responses.insert(response);

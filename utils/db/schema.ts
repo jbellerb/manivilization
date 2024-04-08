@@ -100,6 +100,8 @@ export class Form<T = Record<string, unknown>> extends Entity {
 export class FormResponse extends Entity {
   @column("id")
   id: string;
+  @column("date")
+  date: Date;
   @column("form")
   form: string;
   @column("discord_id")
@@ -108,22 +110,19 @@ export class FormResponse extends Entity {
   discordName: string;
   @column("response")
   response?: Record<string, string> | null;
-  @column("date")
-  date?: Date | null;
 
   constructor(
     form: string,
     discordId: string,
     discordName: string,
     response?: Record<string, string>,
-    date?: Date,
   ) {
     super();
     this.id = crypto.randomUUID();
+    this.date = new Date();
     this.form = form;
     this.discordId = discordId;
     this.discordName = discordName;
     this.response = response;
-    this.date = date;
   }
 }

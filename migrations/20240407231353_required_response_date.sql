@@ -1,0 +1,1 @@
+ALTER TABLE responses ALTER COLUMN date SET NOT NULL;
