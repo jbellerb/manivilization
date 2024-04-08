@@ -4,9 +4,10 @@ import { STATUS_CODE } from "$std/http/status.ts";
 import type { Cookie } from "$std/http/cookie.ts";
 import type { Handlers } from "$fresh/server.ts";
 
+import db from "../../utils/db/mod.ts";
 import { Session } from "../../utils/db/schema.ts";
 import { oauthClient } from "../../utils/oauth.ts";
-import { createSession, popAuthSession } from "../../utils/session.ts";
+import { popAuthSession } from "../../utils/session.ts";
 
 import type { RootState as State } from "../_middleware.ts";
 
@@ -33,7 +34,7 @@ export const handler: Handlers<void, State> = {
         : undefined,
       tokens.refreshToken,
     );
-    await createSession(session);
+    await db.sessions.insert(session);
 
     const headers = new Headers({ Location: authSession.redirect });
     deleteCookie(headers, "__Host-oauth-session");

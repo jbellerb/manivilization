@@ -21,8 +21,8 @@ export const handler: Handlers<void, State> = {
   async POST(req, ctx) {
     const formData = await req.formData();
     try {
-      const form = { id: ctx.state.form.id, ...parseEditorFormData(formData) };
-      await updateForm(form);
+      Object.assign(ctx.state.form, parseEditorFormData(formData));
+      await updateForm(ctx.state.form);
 
       const headers = new Headers({
         Location: `/admin/forms/${ctx.state.form.id}`,
@@ -57,20 +57,20 @@ export default defineRoute<State>((_req, { state }) => {
           <GrowableTextArea
             name="description"
             label="Description"
-            value={state.form.description}
+            value={state.form.description ?? undefined}
           />
-          <QuestionEditor questions={state.form.questions} />
+          <QuestionEditor questions={state.form.questions ?? undefined} />
           <GrowableTextArea
             name="success_message"
             label="Success Message"
-            value={state.form.successMessage}
+            value={state.form.successMessage ?? undefined}
           />
           <div class="flex flex-col items-start">
             <SlugField active={state.form.active} value={state.form.slug} />
             <div class="flex mt-4 w-full items-end content-between">
               <SubmitterRoleField
                 class="mr-4"
-                submitterRole={state.form.submitterRole}
+                submitterRole={state.form.submitterRole ?? undefined}
               />
               <Button name="Save" class="ml-auto" />
             </div>

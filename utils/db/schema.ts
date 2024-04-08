@@ -37,9 +37,9 @@ export class Session extends Entity {
   @column("access_token")
   accessToken: string;
   @column("access_expires")
-  accessExpires?: Date;
+  accessExpires?: Date | null;
   @column("refresh_token")
-  refreshToken?: string;
+  refreshToken?: string | null;
 
   constructor(
     expires: Date,
@@ -67,13 +67,13 @@ export class Form<T = Record<string, unknown>> extends Entity {
   @column("active")
   active: boolean;
   @column("description")
-  description?: string;
+  description?: string | null;
   @column("questions")
-  questions?: T;
+  questions?: T | null;
   @column("success_message")
-  successMessage?: string;
+  successMessage?: string | null;
   @column("submitter_role")
-  submitterRole?: string;
+  submitterRole?: string | null;
 
   constructor(
     name: string,
@@ -107,9 +107,9 @@ export class FormResponse extends Entity {
   @column("discord_name")
   discordName: string;
   @column("response")
-  response?: Record<string, string>;
+  response?: Record<string, string> | null;
   @column("date")
-  date?: Date;
+  date?: Date | null;
 
   constructor(
     form: string,

@@ -1,18 +1,7 @@
-import db, { sql } from "./db/mod.ts";
+import db from "./db/mod.ts";
+import sql from "./db/sql.ts";
 import { AuthSession, Session } from "./db/schema.ts";
 import { oauthClient } from "./oauth.ts";
-
-export async function createAuthSession(session: AuthSession) {
-  await sql`
-    INSERT INTO auth_sessions VALUES (
-      ${session.id},
-      ${session.state},
-      ${session.verifier},
-      ${session.redirect},
-      ${session.expires}
-    )
-  `;
-}
 
 export async function popAuthSession(id: string): Promise<AuthSession> {
   const [session]: [AuthSession?] = await sql`
@@ -25,18 +14,6 @@ export async function popAuthSession(id: string): Promise<AuthSession> {
   }
 
   return session;
-}
-
-export async function createSession(session: Session) {
-  await sql`
-    INSERT INTO sessions VALUES (
-      ${session.id},
-      ${session.accessToken},
-      ${session.refreshToken ?? null},
-      ${session.expires},
-      ${session.accessExpires ?? null}
-    )
-  `;
 }
 
 export async function getSession(id: string): Promise<Session> {
@@ -88,7 +65,7 @@ async function refreshSession(
     session.refreshToken = tokens.refreshToken ?? session.refreshToken;
     session.accessExpires = tokens.expiresIn
       ? new Date(Date.now() + tokens.expiresIn * 1000)
-      : undefined;
+      : null;
   } catch {
     throw new ExpiredSessionError("failed to refresh expired session");
   }

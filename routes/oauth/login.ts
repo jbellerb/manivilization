@@ -4,9 +4,9 @@ import { STATUS_CODE } from "$std/http/status.ts";
 import type { Cookie } from "$std/http/cookie.ts";
 import type { Handlers } from "$fresh/server.ts";
 
+import db from "../../utils/db/mod.ts";
 import { AuthSession } from "../../utils/db/schema.ts";
 import { oauthClient } from "../../utils/oauth.ts";
-import { createAuthSession } from "../../utils/session.ts";
 
 import type { RootState as State } from "../_middleware.ts";
 
@@ -28,7 +28,7 @@ export const handler: Handlers<void, State> = {
       codeVerifier,
       searchParams.get("redirect") ?? "/",
     );
-    await createAuthSession(authSession);
+    await db.authSessions.insert(authSession);
 
     const headers = new Headers({ Location: uri.toString() });
     const authSessionCookie = {

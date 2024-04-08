@@ -8,15 +8,12 @@ import UserBanner from "./(_components)/UserBanner.tsx";
 import Button from "../../components/Button.tsx";
 import Checkbox from "../../components/Checkbox.tsx";
 import TextInput from "../../components/TextInput.tsx";
-import db from "../../utils/db/mod.ts";
 import classnames from "../../utils/classnames.ts";
+import db from "../../utils/db/mod.ts";
+import { FormResponse } from "../../utils/db/schema.ts";
 import { assignRole } from "../../utils/discord/guild.ts";
 import { DiscordHTTPError } from "../../utils/discord/http.ts";
-import {
-  createResponse,
-  FormParseError,
-  parseFormData,
-} from "../../utils/form/mod.ts";
+import { FormParseError, parseFormData } from "../../utils/form/mod.ts";
 
 import type { FormState as State } from "./_middleware.ts";
 import type {
@@ -104,11 +101,13 @@ export const handler: Handlers<Data, State> = {
         return new Response(null, { status: STATUS_CODE.SeeOther, headers });
       }
 
-      const responseId = await createResponse(
-        ctx.state.form,
-        ctx.state.user,
+      const response = new FormResponse(
+        ctx.state.form.id,
+        ctx.state.user.id,
+        ctx.state.user.name,
         answers.answers,
       );
+      await db.responses.insert(response);
 
       if (ctx.state.form.submitterRole) {
         try {
@@ -120,7 +119,7 @@ export const handler: Handlers<Data, State> = {
       }
 
       const headers = new Headers({
-        Location: `/${ctx.state.form.slug}/success?response=${responseId}`,
+        Location: `/${ctx.state.form.slug}/success?response=${response.id}`,
       });
       return new Response(null, { status: STATUS_CODE.SeeOther, headers });
     } catch (e) {

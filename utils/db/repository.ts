@@ -1,8 +1,14 @@
-import type { PendingQuery, Row, Sql } from "postgresjs/types/index.d.ts";
+import type { PendingQuery, Row } from "postgresjs/types/index.d.ts";
 
 import { columns, properties, tableName } from "./decorators.ts";
+import sql from "./sql.ts";
 
-import type { Constructor, Entity, OmitConstructor } from "./decorators.ts";
+import type {
+  ClassExtends,
+  Entity,
+  EntityProps,
+  FullyNullable,
+} from "./decorators.ts";
 
 const selectCols = <P extends string | symbol>(
   props: { [K in P]?: boolean } | undefined,
@@ -48,7 +54,6 @@ type WhereOperators<T> = {
 };
 
 const whereOperators = <T>(
-  sql: Sql<Record<string, unknown>>,
   properties: Record<string | symbol, string>,
 ): WhereOperators<T> => {
   const buildBoolean =
@@ -91,7 +96,6 @@ type OrderByOperators<T> = {
 };
 
 const orderByOperators = <T>(
-  sql: Sql<Record<string, unknown>>,
   properties: Record<string | symbol, string>,
 ): OrderByOperators<T> => {
   const buildUnary =
@@ -109,50 +113,46 @@ const orderByOperators = <T>(
   };
 };
 
+type PropsMirror<T> = { [K in keyof Required<T>]: K };
+
 // WHERE and ORDER BY callback syntax inspired by Drizzle ORM
-type FindOptions<T extends typeof Entity> = {
+type FindOptions<T extends Entity> = {
   where?: (
-    columns: { [K in keyof Required<T["prototype"]>]: K },
-    opts: WhereOperators<T["prototype"]>,
+    columns: PropsMirror<EntityProps<T>>,
+    opts: WhereOperators<EntityProps<T>>,
   ) => PendingQuery<Row[]>;
   orderBy?: (
-    columns: { [K in keyof Required<T["prototype"]>]: K },
-    opts: OrderByOperators<T["prototype"]>,
+    columns: PropsMirror<EntityProps<T>>,
+    opts: OrderByOperators<EntityProps<T>>,
   ) => PendingQuery<Row[]> | PendingQuery<Row[]>[];
   limit?: number;
   offset?: number;
 };
 
 export const setupRepository = <
-  T extends OmitConstructor<typeof Entity> & { prototype: P } & Constructor,
-  P,
->(sql: Sql<Record<string, unknown>>, table: T) => {
-  // Key mirrors are inherently iffy and building one must be done with care.
-  // Using a mirror, functions can refer to object properties in a way the type
-  // system can understand. This allows creating functions generic over
-  // individual keys of a type, where it is possible to use this generic key
-  // type to index back into the original type. Some operators such as WHERE's
-  // eq operator use this to type their argument to the actual column type.
-  function buildMirror<T>(
-    properties: Record<string | symbol, unknown>,
-  ): { [K in keyof Required<T>]: K } {
-    const mirror: Record<string | symbol, string | symbol> = {};
-    Object.getOwnPropertyNames(properties).forEach((p) => mirror[p] = p);
-    Object.getOwnPropertySymbols(properties).forEach((p) => mirror[p] = p);
-    return mirror as { [K in keyof Required<T>]: K };
-  }
+  T extends ClassExtends<typeof Entity>,
+>(table: T) => {
+  // This is valid as long as every field in the entity was annotated with a
+  // column decorator since the properties map contains every property on the
+  // entity that isn't a part of the base entity class. I don't belive it's
+  // possible to either require every field be annotated or create a type
+  // representing only the fields that were annotated. With that, assuming all
+  // fields seems like the most sensible approach.
+  const mirror = {} as PropsMirror<EntityProps<T["prototype"]>>;
+  Reflect.ownKeys(table[properties]).forEach((p) =>
+    (mirror as Record<string | symbol, string | symbol>)[p] = p
+  );
 
   async function findImpl<P extends keyof T["prototype"]>(
     props?: { [K in P]?: boolean },
-    options?: FindOptions<T>,
-  ): Promise<Pick<T["prototype"], P>[] | T["prototype"][]> {
+    options?: FindOptions<T["prototype"]>,
+  ): Promise<Partial<FullyNullable<T["prototype"]>>[]> {
     const cols = selectCols(props, table[columns]);
 
-    const mirror = buildMirror<T["prototype"]>(table[properties]);
     const whereClause = options
-      ?.where?.(mirror, whereOperators(sql, table[properties]));
+      ?.where?.(mirror, whereOperators(table[properties]));
     const orderByMaybeList = options
-      ?.orderBy?.(mirror, orderByOperators(sql, table[properties]));
+      ?.orderBy?.(mirror, orderByOperators(table[properties]));
     const orderByClause = orderByMaybeList && Array.isArray(orderByMaybeList)
       ? orderByMaybeList.reduce?.((acc, sort) => sql`${acc}, ${sort}`)
       : orderByMaybeList;
@@ -167,64 +167,82 @@ ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
 `;
 
     return (await query).map((row) => {
-      const _this = cols.length === 0 ? Object.create(table.prototype) : {};
-      for (const [col, val] of Object.entries(row)) {
-        _this[table[columns][col]] = val;
+      if (cols.length === 0) return table.fromSql(row);
+      else {
+        const obj: Record<string | symbol, unknown> = {};
+        Object.entries(row)
+          .forEach(([col, val]) => obj[table[columns][col]] = val);
+        return obj as Partial<T["prototype"]>;
       }
-      return _this;
     });
   }
 
   async function find(
     props?: Record<string, never>,
-    options?: FindOptions<T>,
-  ): Promise<T["prototype"][]>;
+    options?: FindOptions<T["prototype"]>,
+  ): Promise<FullyNullable<T["prototype"]>[]>;
   async function find<P extends keyof T["prototype"]>(
     props: { [K in P]?: true },
-    options?: FindOptions<T>,
-  ): Promise<{ [K in P]: T["prototype"][K] }[]>;
+    options?: FindOptions<T["prototype"]>,
+  ): Promise<Pick<FullyNullable<T["prototype"]>, P>[]>;
   async function find<P extends keyof T["prototype"]>(
     props: { [K in P]?: false },
-    options?: FindOptions<T>,
-  ): Promise<{ [K in Exclude<keyof T["prototype"], P>]: T["prototype"][K] }[]>;
+    options?: FindOptions<T["prototype"]>,
+  ): Promise<Omit<FullyNullable<T["prototype"]>, P>[]>;
   async function find<P extends keyof T["prototype"]>(
     props: { [K in P]?: boolean },
-    options?: FindOptions<T>,
-  ): Promise<{ [K in keyof T["prototype"]]?: T["prototype"][K] }[]>;
+    options?: FindOptions<T["prototype"]>,
+  ): Promise<Partial<FullyNullable<T["prototype"]>>[]>;
   async function find<P extends keyof T["prototype"]>(
     props?: { [K in P]?: boolean },
-    options?: FindOptions<T>,
-  ): Promise<Pick<T["prototype"], P>[] | T["prototype"][]> {
+    options?: FindOptions<T["prototype"]>,
+  ): Promise<
+    | Partial<FullyNullable<T["prototype"]>>[]
+    // Typescript doesn't understand that Omit<T, P> is assignable to
+    // Partial<T> because it can't reason that Exclude<keyof T, P> is a subset
+    // of keyof T.
+    // This is a known bug: https://github.com/microsoft/TypeScript/issues/37768
+    | Omit<FullyNullable<T["prototype"]>, P>[]
+  > {
     return await findImpl(props, options);
   }
 
   async function findOne(
     props?: Record<string, never>,
-    options?: Omit<FindOptions<T>, "limit">,
-  ): Promise<T["prototype"] | undefined>;
+    options?: Omit<FindOptions<T["prototype"]>, "limit">,
+  ): Promise<FullyNullable<T["prototype"]> | undefined>;
   async function findOne<P extends keyof T["prototype"]>(
     props: { [K in P]?: true },
-    options?: Omit<FindOptions<T>, "limit">,
-  ): Promise<{ [K in P]: T["prototype"][K] } | undefined>;
+    options?: Omit<FindOptions<T["prototype"]>, "limit">,
+  ): Promise<Pick<FullyNullable<T["prototype"]>, P> | undefined>;
   async function findOne<P extends keyof T["prototype"]>(
     props: { [K in P]?: false },
-    options?: Omit<FindOptions<T>, "limit">,
-  ): Promise<
-    { [K in Exclude<keyof T["prototype"], P>]: T["prototype"][K] } | undefined
-  >;
+    options?: Omit<FindOptions<T["prototype"]>, "limit">,
+  ): Promise<Omit<FullyNullable<T["prototype"]>, P> | undefined>;
   async function findOne<P extends keyof T["prototype"]>(
     props: { [K in P]?: boolean },
-    options?: Omit<FindOptions<T>, "limit">,
-  ): Promise<{ [K in keyof T["prototype"]]?: T["prototype"][K] } | undefined>;
+    options?: Omit<FindOptions<T["prototype"]>, "limit">,
+  ): Promise<Partial<FullyNullable<T["prototype"]>> | undefined>;
   async function findOne<P extends keyof T["prototype"]>(
     props?: { [K in P]?: boolean },
-    options?: Omit<FindOptions<T>, "limit">,
-  ): Promise<Pick<T["prototype"], P> | T["prototype"] | undefined> {
+    options?: Omit<FindOptions<T["prototype"]>, "limit">,
+  ): Promise<
+    | Partial<FullyNullable<T["prototype"]>>
+    | Omit<FullyNullable<T["prototype"]>, P>
+    | undefined
+  > {
     return (await findImpl(props, { ...options, limit: 1 }))[0];
+  }
+
+  async function insert(entity: T["prototype"]): Promise<void> {
+    const row = entity.toSql();
+    await sql`INSERT INTO ${sql(table[tableName])}
+    ${sql(row)}`;
   }
 
   return {
     find,
     findOne,
+    insert,
   };
 };

@@ -1,6 +1,7 @@
 import { FormParseError } from "./types.ts";
 
 import type { FormSpec, Question, ValidationIssue } from "./types.ts";
+import type { EntityProps } from "../db/decorators.ts";
 import type { Form } from "../db/schema.ts";
 
 type NestedFormData = { [property: string]: string[] | NestedFormData };
@@ -85,7 +86,9 @@ function mapMaybe<T, R>(
   return value == null ? undefined : fn(name, value);
 }
 
-export function parseEditorFormData(data: FormData): Omit<Form, "id"> {
+export function parseEditorFormData(
+  data: FormData,
+): Omit<EntityProps<Form>, "id"> {
   const questions: Question[] = [];
   const formData = walkFormData(data);
   for (let [key, value] of Object.entries(formData.question ?? {}).sort()) {
