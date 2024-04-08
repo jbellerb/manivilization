@@ -34,16 +34,6 @@ export async function getSession(id: string): Promise<Session> {
   }
 }
 
-export async function updateSession(session: Session) {
-  await sql`
-    UPDATE sessions SET (access_token, refresh_token, access_expires) = (
-      ${session.accessToken},
-      ${session.refreshToken ?? null},
-      ${session.accessExpires ?? null}
-    ) WHERE id = ${session.id}
-  `;
-}
-
 export async function deleteSession(id: string) {
   await sql`
     DELETE FROM sessions WHERE id = ${id}
@@ -70,7 +60,7 @@ async function refreshSession(
     throw new ExpiredSessionError("failed to refresh expired session");
   }
 
-  await updateSession(session);
+  await db.sessions.update(session);
 
   return session;
 }

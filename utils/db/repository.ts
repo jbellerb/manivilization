@@ -1,6 +1,12 @@
 import type { PendingQuery, Row } from "postgresjs/types/index.d.ts";
 
-import { columns, properties, tableName } from "./decorators.ts";
+import {
+  columns,
+  primaryKey,
+  properties,
+  sqlRow,
+  tableName,
+} from "./decorators.ts";
 import sql from "./sql.ts";
 
 import type {
@@ -132,6 +138,15 @@ type FindOptions<T extends Entity> = {
 export const setupRepository = <
   T extends ClassExtends<typeof Entity>,
 >(table: T) => {
+  async function insert(entity: T["prototype"]): Promise<void> {
+    const row = entity.toSql();
+
+    Object.defineProperty(entity, sqlRow, { value: row, writable: true });
+
+    await sql`INSERT INTO ${sql(table[tableName])}
+    ${sql(row)}`;
+  }
+
   // This is valid as long as every field in the entity was annotated with a
   // column decorator since the properties map contains every property on the
   // entity that isn't a part of the base entity class. I don't belive it's
@@ -234,15 +249,31 @@ ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
     return (await findImpl(props, { ...options, limit: 1 }))[0];
   }
 
-  async function insert(entity: T["prototype"]): Promise<void> {
+  async function update(entity: T["prototype"]): Promise<void> {
     const row = entity.toSql();
-    await sql`INSERT INTO ${sql(table[tableName])}
-    ${sql(row)}`;
+
+    const changes: Record<string, unknown> = {};
+    for (const [col, val] of Object.entries(row)) {
+      if (val !== entity[sqlRow][col]) changes[col] = val;
+    }
+    if (changes.length === 0) return;
+
+    if (table[primaryKey] in changes) {
+      throw new Error(
+        `Illegal attempt to change primary key of row in ${table[tableName]}`,
+      );
+    }
+    Object.defineProperty(entity, sqlRow, { value: row, writable: true });
+
+    await sql`UPDATE ${sql(table[tableName])}
+    SET ${sql(changes)}
+    WHERE ${sql(table[primaryKey])} = ${row[table[primaryKey]]}`;
   }
 
   return {
+    insert,
     find,
     findOne,
-    insert,
+    update,
   };
 };

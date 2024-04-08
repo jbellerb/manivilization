@@ -9,10 +9,10 @@ import SubmitterRoleField from "./(_islands)/SubmitterRoleField.tsx";
 import Button from "../../../../components/Button.tsx";
 import TextInput from "../../../../components/TextInput.tsx";
 import GrowableTextArea from "../../../../islands/GrowableTextArea.tsx";
+import db from "../../../../utils/db/mod.ts";
 import {
   FormParseError,
   parseEditorFormData,
-  updateForm,
 } from "../../../../utils/form/mod.ts";
 
 import { AdminFormState as State } from "./_middleware.ts";
@@ -22,7 +22,7 @@ export const handler: Handlers<void, State> = {
     const formData = await req.formData();
     try {
       Object.assign(ctx.state.form, parseEditorFormData(formData));
-      await updateForm(ctx.state.form);
+      await db.forms.update(ctx.state.form);
 
       const headers = new Headers({
         Location: `/admin/forms/${ctx.state.form.id}`,
