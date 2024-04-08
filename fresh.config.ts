@@ -2,12 +2,12 @@ import { defineConfig } from "$fresh/server.ts";
 
 import lightningcss from "./plugins/lightningcss.ts";
 import unocss from "./plugins/unocss.ts";
-import sql from "./utils/db/sql.ts";
+import db from "./utils/db/mod.ts";
 
 const abort = new AbortController();
 
 Deno.addSignalListener("SIGINT", async () => {
-  await sql.end();
+  await db.sql.end();
   abort.abort("SIGINT");
 });
 

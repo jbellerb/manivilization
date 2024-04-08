@@ -3,7 +3,7 @@ import { STATUS_CODE } from "$std/http/status.ts";
 
 import type { Handlers } from "$fresh/server.ts";
 
-import { deleteSession } from "../../utils/session.ts";
+import db from "../../utils/db/mod.ts";
 
 import type { RootState as State } from "../_middleware.ts";
 
@@ -15,10 +15,12 @@ export const handler: Handlers<void, State> = {
     const headers = new Headers({ Location: redirectUrl });
     const response = new Response(null, { status: STATUS_CODE.Found, headers });
 
-    if (!ctx.state.sessionToken) return response;
-
-    await deleteSession(ctx.state.sessionToken);
-    deleteCookie(response.headers, "__Host-session");
+    if (ctx.state.sessionToken) {
+      const tokenId = ctx.state.sessionToken;
+      await db.authSessions
+        .delete((authSession, { eq }) => eq(authSession.id, tokenId));
+      deleteCookie(response.headers, "__Host-session");
+    }
 
     return response;
   },

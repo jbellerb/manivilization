@@ -7,7 +7,6 @@ import type { Handlers } from "$fresh/server.ts";
 import db from "../../utils/db/mod.ts";
 import { Session } from "../../utils/db/schema.ts";
 import { oauthClient } from "../../utils/oauth.ts";
-import { popAuthSession } from "../../utils/session.ts";
 
 import type { RootState as State } from "../_middleware.ts";
 
@@ -19,7 +18,13 @@ export const handler: Handlers<void, State> = {
     const authSessionId = getCookies(req.headers)["__Host-oauth-session"];
     if (!authSessionId) throw new Error("missing session cookie");
 
-    const authSession = await popAuthSession(authSessionId);
+    const [authSession] = await db.authSessions.delete(
+      (authSession, { eq }) => eq(authSession.id, authSessionId),
+      { id: false },
+    );
+    if (!authSession || authSession.expires < new Date()) {
+      return new Response("Bad Request", { status: STATUS_CODE.BadRequest });
+    }
 
     const tokens = await oauthClient.code.getToken(req.url, {
       state: authSession.state,

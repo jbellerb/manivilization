@@ -19,7 +19,7 @@ import type {
 const selectCols = <P extends string | symbol>(
   props: { [K in P]?: boolean } | undefined,
   columns: Record<string, P>,
-) => {
+): string[] => {
   const included = new Set<string | symbol>();
   const excluded = new Set<string | symbol>();
   for (const [prop, status] of Object.entries(props ?? {})) {
@@ -119,6 +119,19 @@ const orderByOperators = <T>(
   };
 };
 
+const buildRows = <T extends ClassExtends<typeof Entity>>(
+  table: T,
+  rows: Row[],
+  construct: boolean,
+): Partial<T["prototype"]>[] =>
+  rows.map((row) => {
+    if (construct) return table.fromSql(row);
+    const obj: Record<string | symbol, unknown> = {};
+    Object.entries(row)
+      .forEach(([col, val]) => obj[table[columns][col]] = val);
+    return obj as Partial<T["prototype"]>;
+  });
+
 type PropsMirror<T> = { [K in keyof Required<T>]: K };
 
 // WHERE and ORDER BY callback syntax inspired by Drizzle ORM
@@ -158,12 +171,13 @@ export const setupRepository = <
     (mirror as Record<string | symbol, string | symbol>)[p] = p
   );
 
-  async function findImpl<P extends keyof T["prototype"]>(
+  async function findImpl<P extends keyof EntityProps<T["prototype"]>>(
     props?: { [K in P]?: boolean },
     options?: FindOptions<T["prototype"]>,
   ): Promise<Partial<FullyNullable<T["prototype"]>>[]> {
     const cols = selectCols(props, table[columns]);
 
+    const selectClause = cols.length === 0 ? sql`*` : sql(cols);
     const whereClause = options
       ?.where?.(mirror, whereOperators(table[properties]));
     const orderByMaybeList = options
@@ -173,7 +187,7 @@ export const setupRepository = <
       : orderByMaybeList;
 
     const query = sql`SELECT
-    ${cols.length === 0 ? sql`*` : sql(cols)}
+    ${selectClause}
     FROM ${sql(table[tableName])}\
 ${whereClause ? sql`\n    WHERE ${whereClause}` : sql``}\
 ${orderByClause ? (sql`\n    ORDER BY ${orderByClause}`) : sql``}\
@@ -181,34 +195,26 @@ ${options?.limit ? sql`\n    LIMIT ${options?.limit}` : sql``}\
 ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
 `;
 
-    return (await query).map((row) => {
-      if (cols.length === 0) return table.fromSql(row);
-      else {
-        const obj: Record<string | symbol, unknown> = {};
-        Object.entries(row)
-          .forEach(([col, val]) => obj[table[columns][col]] = val);
-        return obj as Partial<T["prototype"]>;
-      }
-    });
+    return buildRows(table, await query, cols.length === 0);
   }
 
   async function find(
     props?: Record<string, never>,
     options?: FindOptions<T["prototype"]>,
   ): Promise<FullyNullable<T["prototype"]>[]>;
-  async function find<P extends keyof T["prototype"]>(
+  async function find<P extends keyof EntityProps<T["prototype"]>>(
     props: { [K in P]?: true },
     options?: FindOptions<T["prototype"]>,
   ): Promise<Pick<FullyNullable<T["prototype"]>, P>[]>;
-  async function find<P extends keyof T["prototype"]>(
+  async function find<P extends keyof EntityProps<T["prototype"]>>(
     props: { [K in P]?: false },
     options?: FindOptions<T["prototype"]>,
   ): Promise<Omit<FullyNullable<T["prototype"]>, P>[]>;
-  async function find<P extends keyof T["prototype"]>(
+  async function find<P extends keyof EntityProps<T["prototype"]>>(
     props: { [K in P]?: boolean },
     options?: FindOptions<T["prototype"]>,
   ): Promise<Partial<FullyNullable<T["prototype"]>>[]>;
-  async function find<P extends keyof T["prototype"]>(
+  async function find<P extends keyof EntityProps<T["prototype"]>>(
     props?: { [K in P]?: boolean },
     options?: FindOptions<T["prototype"]>,
   ): Promise<
@@ -226,19 +232,19 @@ ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
     props?: Record<string, never>,
     options?: Omit<FindOptions<T["prototype"]>, "limit">,
   ): Promise<FullyNullable<T["prototype"]> | undefined>;
-  async function findOne<P extends keyof T["prototype"]>(
+  async function findOne<P extends keyof EntityProps<T["prototype"]>>(
     props: { [K in P]?: true },
     options?: Omit<FindOptions<T["prototype"]>, "limit">,
   ): Promise<Pick<FullyNullable<T["prototype"]>, P> | undefined>;
-  async function findOne<P extends keyof T["prototype"]>(
+  async function findOne<P extends keyof EntityProps<T["prototype"]>>(
     props: { [K in P]?: false },
     options?: Omit<FindOptions<T["prototype"]>, "limit">,
   ): Promise<Omit<FullyNullable<T["prototype"]>, P> | undefined>;
-  async function findOne<P extends keyof T["prototype"]>(
+  async function findOne<P extends keyof EntityProps<T["prototype"]>>(
     props: { [K in P]?: boolean },
     options?: Omit<FindOptions<T["prototype"]>, "limit">,
   ): Promise<Partial<FullyNullable<T["prototype"]>> | undefined>;
-  async function findOne<P extends keyof T["prototype"]>(
+  async function findOne<P extends keyof EntityProps<T["prototype"]>>(
     props?: { [K in P]?: boolean },
     options?: Omit<FindOptions<T["prototype"]>, "limit">,
   ): Promise<
@@ -270,10 +276,55 @@ ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
     WHERE ${sql(table[primaryKey])} = ${row[table[primaryKey]]}`;
   }
 
+  async function deleteImpl(
+    where: Required<FindOptions<T["prototype"]>>["where"],
+    props?: undefined,
+  ): Promise<number>;
+  async function deleteImpl(
+    where: Required<FindOptions<T["prototype"]>>["where"],
+    props: Record<string, never>,
+  ): Promise<FullyNullable<T["prototype"]>[]>;
+  async function deleteImpl<P extends keyof EntityProps<T["prototype"]>>(
+    where: Required<FindOptions<T["prototype"]>>["where"],
+    props: { [K in P]?: true },
+  ): Promise<Pick<FullyNullable<T["prototype"]>, P>[]>;
+  async function deleteImpl<P extends keyof EntityProps<T["prototype"]>>(
+    where: Required<FindOptions<T["prototype"]>>["where"],
+    props: { [K in P]?: false },
+  ): Promise<Omit<FullyNullable<T["prototype"]>, P>[]>;
+  async function deleteImpl<P extends keyof EntityProps<T["prototype"]>>(
+    where: Required<FindOptions<T["prototype"]>>["where"],
+    props: { [K in P]?: boolean },
+  ): Promise<Partial<FullyNullable<T["prototype"]>>[]>;
+  async function deleteImpl<P extends keyof EntityProps<T["prototype"]>>(
+    where: Required<FindOptions<T["prototype"]>>["where"],
+    props?: { [K in P]?: boolean },
+  ): Promise<
+    | number
+    | Partial<FullyNullable<T["prototype"]>>[]
+    | Pick<FullyNullable<T["prototype"]>, P>[]
+  > {
+    const cols = selectCols(props, table[columns]);
+
+    const whereClause = where(mirror, whereOperators(table[properties]));
+    const returningClause = cols.length === 0 ? sql`*` : sql(cols);
+
+    const query = sql`DELETE FROM ${sql(table[tableName])}
+    WHERE ${whereClause}\
+${props !== undefined ? sql`\n    RETURNING ${returningClause}` : sql``}\
+`;
+
+    return props === undefined
+      ? (await query).count
+      : buildRows(table, await query, cols.length === 0);
+  }
+
   return {
     insert,
     find,
     findOne,
     update,
+    // "delete" is a reserved keyword
+    delete: deleteImpl,
   };
 };
