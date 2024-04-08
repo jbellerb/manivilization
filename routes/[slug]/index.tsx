@@ -13,7 +13,7 @@ import db from "../../utils/db/mod.ts";
 import { FormResponse } from "../../utils/db/schema.ts";
 import { assignRole } from "../../utils/discord/guild.ts";
 import { DiscordHTTPError } from "../../utils/discord/http.ts";
-import { FormParseError, parseFormData } from "../../utils/form/mod.ts";
+import { FormParseError, parseFormData } from "../../utils/form/parse.ts";
 
 import type { FormState as State } from "./_middleware.ts";
 import type {

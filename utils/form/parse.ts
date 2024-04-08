@@ -1,5 +1,3 @@
-import { FormParseError } from "./types.ts";
-
 import type { FormSpec, Question, ValidationIssue } from "./types.ts";
 import type { EntityProps } from "../db/decorators.ts";
 import type { Form } from "../db/schema.ts";
@@ -166,4 +164,11 @@ export function parseFormData(
   }
 
   return { answers, issues };
+}
+
+export class FormParseError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = "FormParseError";
+  }
 }

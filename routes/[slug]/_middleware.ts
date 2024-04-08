@@ -1,14 +1,6 @@
-import { deleteCookie } from "$std/http/cookie.ts";
+import type { MiddlewareHandler } from "$fresh/server.ts";
 
-import type { FreshContext } from "$fresh/server.ts";
-
-import { getUser } from "../../utils/discord/user.ts";
-import { BadFormError, getFormBySlug } from "../../utils/form/mod.ts";
-import {
-  BadSessionError,
-  ExpiredSessionError,
-  getSession,
-} from "../../utils/session.ts";
+import db from "../../utils/db/mod.ts";
 
 import type { RootState } from "../_middleware.ts";
 import type { Form } from "../../utils/db/schema.ts";
@@ -20,31 +12,23 @@ export type FormState = RootState & {
   user?: User;
 };
 
-export async function handler(_req: Request, ctx: FreshContext<FormState>) {
-  try {
-    ctx.state.form = await getFormBySlug(ctx.params.slug);
-    if (!ctx.state.form.active) return ctx.renderNotFound();
+const form: MiddlewareHandler<FormState> = async (_req, ctx) => {
+  const form = await db.forms.findOne({}, {
+    where: (form, { eq }) => eq(form.slug, ctx.params.slug),
+  });
+  if (!form || !form.active) return ctx.renderNotFound();
+  ctx.state.form = form;
+  return await ctx.next();
+};
 
-    if (ctx.state.sessionToken) {
-      try {
-        const session = await getSession(ctx.state.sessionToken);
-        ctx.state.user = await getUser(session.accessToken);
-      } catch (e) {
-        if (
-          !(e instanceof BadSessionError || e instanceof ExpiredSessionError)
-        ) {
-          throw e;
-        }
-      }
-    }
-
-    const res = await ctx.next();
-    if (ctx.state.sessionToken && !ctx.state.user) {
-      deleteCookie(res.headers, "__Host-session");
-    }
-    return res;
-  } catch (e) {
-    if (e instanceof BadFormError) return ctx.renderNotFound();
-    throw e;
+const user: MiddlewareHandler<FormState> = async (_req, ctx) => {
+  if (ctx.state.userPromise) {
+    const user = await ctx.state.userPromise();
+    if (user instanceof Response) return user;
+    ctx.state.user = user;
   }
-}
+
+  return await ctx.next();
+};
+
+export const handler: MiddlewareHandler<FormState>[] = [form, user];

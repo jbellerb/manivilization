@@ -219,7 +219,7 @@ ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
     options?: FindOptions<T["prototype"]>,
   ): Promise<
     | Partial<FullyNullable<T["prototype"]>>[]
-    // Typescript doesn't understand that Omit<T, P> is assignable to
+    // TypeScript doesn't understand that Omit<T, P> is assignable to
     // Partial<T> because it can't reason that Exclude<keyof T, P> is a subset
     // of keyof T.
     // This is a known bug: https://github.com/microsoft/TypeScript/issues/37768
@@ -277,27 +277,27 @@ ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
   }
 
   async function deleteImpl(
-    where: Required<FindOptions<T["prototype"]>>["where"],
+    where: T["prototype"] | Required<FindOptions<T["prototype"]>>["where"],
     props?: undefined,
   ): Promise<number>;
   async function deleteImpl(
-    where: Required<FindOptions<T["prototype"]>>["where"],
+    where: T["prototype"] | Required<FindOptions<T["prototype"]>>["where"],
     props: Record<string, never>,
   ): Promise<FullyNullable<T["prototype"]>[]>;
   async function deleteImpl<P extends keyof EntityProps<T["prototype"]>>(
-    where: Required<FindOptions<T["prototype"]>>["where"],
+    where: T["prototype"] | Required<FindOptions<T["prototype"]>>["where"],
     props: { [K in P]?: true },
   ): Promise<Pick<FullyNullable<T["prototype"]>, P>[]>;
   async function deleteImpl<P extends keyof EntityProps<T["prototype"]>>(
-    where: Required<FindOptions<T["prototype"]>>["where"],
+    where: T["prototype"] | Required<FindOptions<T["prototype"]>>["where"],
     props: { [K in P]?: false },
   ): Promise<Omit<FullyNullable<T["prototype"]>, P>[]>;
   async function deleteImpl<P extends keyof EntityProps<T["prototype"]>>(
-    where: Required<FindOptions<T["prototype"]>>["where"],
+    where: T["prototype"] | Required<FindOptions<T["prototype"]>>["where"],
     props: { [K in P]?: boolean },
   ): Promise<Partial<FullyNullable<T["prototype"]>>[]>;
   async function deleteImpl<P extends keyof EntityProps<T["prototype"]>>(
-    where: Required<FindOptions<T["prototype"]>>["where"],
+    where: T["prototype"] | Required<FindOptions<T["prototype"]>>["where"],
     props?: { [K in P]?: boolean },
   ): Promise<
     | number
@@ -306,7 +306,15 @@ ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
   > {
     const cols = selectCols(props, table[columns]);
 
-    const whereClause = where(mirror, whereOperators(table[properties]));
+    const whereClause = typeof where !== "function"
+      ? sql`${sql(table[primaryKey])} = ${where[table[primaryKey]]}`
+      // Even if you explicitly Exclude<T["prototype"], Function>, TypeScript
+      // is still unsure whether T["prototype"] could have a typeof "function"
+      // and then throws an error because it thinks you're trying to call
+      // T["prototype"] as a function. where would only ever be called if it
+      // is actually a function so this cast is safe.
+      // deno-lint-ignore ban-types
+      : (where as Function)(mirror, whereOperators(table[properties]));
     const returningClause = cols.length === 0 ? sql`*` : sql(cols);
 
     const query = sql`DELETE FROM ${sql(table[tableName])}

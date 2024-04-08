@@ -22,17 +22,3 @@ export type FormSpec = {
 };
 
 export type ValidationIssue = "required";
-
-export class BadFormError extends Error {
-  constructor(message?: string) {
-    super(message);
-    this.name = "BadFormError";
-  }
-}
-
-export class FormParseError extends Error {
-  constructor(message?: string) {
-    super(message);
-    this.name = "FormParseError";
-  }
-}

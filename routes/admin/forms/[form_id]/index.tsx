@@ -13,7 +13,7 @@ import db from "../../../../utils/db/mod.ts";
 import {
   FormParseError,
   parseEditorFormData,
-} from "../../../../utils/form/mod.ts";
+} from "../../../../utils/form/parse.ts";
 
 import { AdminFormState as State } from "./_middleware.ts";
 

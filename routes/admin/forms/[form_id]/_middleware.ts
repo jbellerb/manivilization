@@ -1,6 +1,6 @@
-import type { FreshContext } from "$fresh/server.ts";
+import type { MiddlewareHandler } from "$fresh/server.ts";
 
-import { BadFormError, getForm } from "../../../../utils/form/mod.ts";
+import db from "../../../../utils/db/mod.ts";
 
 import type { AdminState } from "../../_middleware.ts";
 import type { Form } from "../../../../utils/db/schema.ts";
@@ -10,15 +10,13 @@ export type AdminFormState = AdminState & {
   form: Form<FormSpec>;
 };
 
-export async function handler(
-  _req: Request,
-  ctx: FreshContext<AdminFormState>,
-) {
-  try {
-    ctx.state.form = await getForm(ctx.params.form_id);
-    return await ctx.next();
-  } catch (e) {
-    if (e instanceof BadFormError) return ctx.renderNotFound();
-    throw e;
-  }
-}
+const form: MiddlewareHandler<AdminFormState> = async (_req, ctx) => {
+  const form = await db.forms.findOne({}, {
+    where: (form, { eq }) => eq(form.id, ctx.params.form_id),
+  });
+  if (!form) return ctx.renderNotFound();
+  ctx.state.form = form;
+  return await ctx.next();
+};
+
+export const handler: MiddlewareHandler<AdminFormState>[] = [form];
