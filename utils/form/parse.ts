@@ -88,7 +88,7 @@ function mapMaybe<T, R>(
 
 export function parseEditorFormData(
   data: FormData,
-): Omit<EntityProps<Form>, "id"> {
+): Omit<EntityProps<Form<FormSpec>>, "id" | "instance"> {
   const questions: Question[] = [];
   const formData = walkFormData(data);
   for (let [key, value] of Object.entries(formData.question ?? {}).sort()) {

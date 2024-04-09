@@ -13,16 +13,16 @@ import type { RootState as State } from "../_middleware.ts";
 const AUTH_EXPIRE = 10 * 60;
 
 export const handler: Handlers<void, State> = {
-  async GET(req, _ctx) {
+  async GET(req, { state }) {
     const { searchParams } = new URL(req.url);
 
-    const state = crypto.randomUUID();
-    const { uri, codeVerifier } = await oauthClient.code.getAuthorizationUri({
-      state,
-    });
+    const oauthState = crypto.randomUUID();
+    const { uri, codeVerifier } = await oauthClient(state.instance.url).code
+      .getAuthorizationUri({ state: oauthState });
 
     const authSession = new AuthSession(
-      state,
+      state.instance.id,
+      oauthState,
       new Date(Date.now() + AUTH_EXPIRE * 1000),
       codeVerifier,
       searchParams.get("redirect") ?? "/",

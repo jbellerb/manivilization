@@ -7,23 +7,28 @@ import db from "../utils/db/mod.ts";
 import { DiscordHTTPError } from "../utils/discord/http.ts";
 import { getUser } from "../utils/discord/user.ts";
 import { refreshSession } from "../utils/session.ts";
-import { PUBLIC_URL } from "../utils/env.ts";
 
+import type { Instance } from "../utils/db/mod.ts";
 import type { User } from "../utils/discord/user.ts";
 
-const publicUrl = PUBLIC_URL ? new URL(PUBLIC_URL) : undefined;
-
 export type RootState = {
+  instance: Instance;
   sessionToken?: string;
   userPromise?: () => Promise<User | Response>;
 };
 
 const instance: MiddlewareHandler<RootState> = async (req, ctx) => {
-  const { host } = new URL(req.url);
-  if (publicUrl && host !== publicUrl.host) {
-    return new Response("Forbidden", { status: STATUS_CODE.Forbidden });
+  const { origin } = new URL(req.url);
+  const instance = await db.instances.findOne({}, {
+    where: (instance, { eq }) => eq(instance.url, origin),
+  });
+
+  if (instance) {
+    ctx.state.instance = instance;
+    return await ctx.next();
   }
-  return await ctx.next();
+
+  return new Response("Forbidden", { status: STATUS_CODE.Forbidden });
 };
 
 const auth: MiddlewareHandler<RootState> = async (req, ctx) => {
@@ -34,7 +39,11 @@ const auth: MiddlewareHandler<RootState> = async (req, ctx) => {
     ctx.state.sessionToken = token;
     ctx.state.userPromise = async () => {
       const session = await db.sessions.findOne({}, {
-        where: (session, { eq }) => eq(session.id, token),
+        where: (session, { and, eq }) =>
+          and(
+            eq(session.id, token),
+            eq(session.instance, ctx.state.instance.id),
+          ),
       });
 
       if (session && session.expires > new Date()) {

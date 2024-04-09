@@ -1,5 +1,7 @@
-import db, { Session } from "./db/mod.ts";
+import db from "./db/mod.ts";
 import { oauthClient } from "./oauth.ts";
+
+import type { Session } from "./db/mod.ts";
 
 export async function refreshSession(
   session: Session,
@@ -7,7 +9,7 @@ export async function refreshSession(
   if (!session.refreshToken) return false;
 
   try {
-    const tokens = await oauthClient.refreshToken
+    const tokens = await oauthClient().refreshToken
       .refresh(session.refreshToken);
     session.accessToken = tokens.accessToken;
     session.refreshToken = tokens.refreshToken ?? session.refreshToken;

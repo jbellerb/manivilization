@@ -20,7 +20,12 @@ export const handler: Handlers<void, State> = {
     if (ctx.state.sessionToken) {
       const tokenId = ctx.state.sessionToken;
       await db.authSessions
-        .delete((authSession, { eq }) => eq(authSession.id, tokenId));
+        .delete((authSession, { and, eq }) =>
+          and(
+            eq(authSession.id, tokenId),
+            eq(authSession.instance, ctx.state.instance.id),
+          )
+        );
       deleteCookie(response.headers, "__Host-session");
     }
 

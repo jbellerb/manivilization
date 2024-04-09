@@ -13,7 +13,9 @@ export const config = {
 } satisfies LayoutConfig;
 
 export default defineLayout<State>(async (_req, ctx) => {
-  const forms = await db.forms.find({ id: true, name: true });
+  const forms = await db.forms.find({ id: true, name: true }, {
+    where: (form, { eq }) => eq(form.instance, ctx.state.instance.id),
+  });
   const formId = ctx.params.form_id;
 
   return (

@@ -7,8 +7,9 @@ import db, { Form } from "../../../utils/db/mod.ts";
 import type { AdminState as State } from "../_middleware.ts";
 
 export const handler: Handlers<void, State> = {
-  async POST(_req, _ctx) {
+  async POST(_req, { state }) {
     const form = new Form(
+      state.instance.id,
       "Untitled form",
       "",
       false,

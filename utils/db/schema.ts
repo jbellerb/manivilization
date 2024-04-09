@@ -2,10 +2,40 @@ import { column, Entity, table } from "./decorators.ts";
 
 import type { SerializableValue } from "./decorators.ts";
 
+@table("instances")
+export class Instance extends Entity {
+  @column("id")
+  id: string;
+  @column("url")
+  url: string;
+  @column("name")
+  name: string;
+  @column("guild_id")
+  guildId: bigint;
+  @column("admin_role")
+  adminRole: bigint;
+
+  constructor(
+    url: string,
+    name: string,
+    guildId: bigint,
+    adminRole: bigint,
+  ) {
+    super();
+    this.id = crypto.randomUUID();
+    this.url = url;
+    this.name = name;
+    this.guildId = guildId;
+    this.adminRole = adminRole;
+  }
+}
+
 @table("auth_sessions")
 export class AuthSession extends Entity {
   @column("id")
   id: string;
+  @column("instance")
+  instance: string;
   @column("expires")
   expires: Date;
   @column("state")
@@ -16,6 +46,7 @@ export class AuthSession extends Entity {
   redirect: string;
 
   constructor(
+    instance: string,
     state: string,
     expires: Date,
     verifier: string,
@@ -23,6 +54,7 @@ export class AuthSession extends Entity {
   ) {
     super();
     this.id = crypto.randomUUID();
+    this.instance = instance;
     this.state = state;
     this.expires = expires;
     this.verifier = verifier;
@@ -34,6 +66,8 @@ export class AuthSession extends Entity {
 export class Session extends Entity {
   @column("id")
   id: string;
+  @column("instance")
+  instance: string;
   @column("expires")
   expires: Date;
   @column("access_token")
@@ -44,6 +78,7 @@ export class Session extends Entity {
   refreshToken?: string | null;
 
   constructor(
+    instance: string,
     expires: Date,
     accessToken: string,
     accessExpires?: Date,
@@ -51,6 +86,7 @@ export class Session extends Entity {
   ) {
     super();
     this.id = crypto.randomUUID();
+    this.instance = instance;
     this.expires = expires;
     this.accessToken = accessToken;
     this.accessExpires = accessExpires;
@@ -59,9 +95,11 @@ export class Session extends Entity {
 }
 
 @table("forms")
-export class Form<T = Record<string, SerializableValue>> extends Entity {
+export class Form<T extends SerializableValue> extends Entity {
   @column("id")
   id: string;
+  @column("instance")
+  instance: string;
   @column("name")
   name: string;
   @column("slug")
@@ -78,6 +116,7 @@ export class Form<T = Record<string, SerializableValue>> extends Entity {
   submitterRole?: bigint | null;
 
   constructor(
+    instance: string,
     name: string,
     slug: string,
     active: boolean,
@@ -88,6 +127,7 @@ export class Form<T = Record<string, SerializableValue>> extends Entity {
   ) {
     super();
     this.id = crypto.randomUUID();
+    this.instance = instance;
     this.name = name;
     this.slug = slug;
     this.active = active;

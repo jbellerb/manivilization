@@ -14,7 +14,11 @@ export type FormState = RootState & {
 
 const form: MiddlewareHandler<FormState> = async (_req, ctx) => {
   const form = await db.forms.findOne({}, {
-    where: (form, { eq }) => eq(form.slug, ctx.params.slug),
+    where: (form, { and, eq }) =>
+      and(
+        eq(form.instance, ctx.state.instance.id),
+        eq(form.slug, ctx.params.slug),
+      ),
   });
   if (!form || !form.active) return ctx.renderNotFound();
   ctx.state.form = form;

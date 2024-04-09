@@ -57,8 +57,6 @@
             export DISCORD_CLIENT_ID=0
             export DISCORD_CLIENT_SECRET=0
             export DISCORD_BOT_TOKEN=0
-            export DISCORD_GUILD_ID=0
-            export DISCORD_ADMIN_ROLE=0
           '';
         });
 

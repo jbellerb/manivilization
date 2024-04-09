@@ -13,24 +13,32 @@ import type { RootState as State } from "../_middleware.ts";
 const SESSION_EXPIRE = 90 * 24 * 60 * 60;
 
 export const handler: Handlers<void, State> = {
-  async GET(req, _ctx) {
+  async GET(req, { state }) {
     const authSessionId = getCookies(req.headers)["__Host-oauth-session"];
     if (!authSessionId) throw new Error("missing session cookie");
 
     const [authSession] = await db.authSessions.delete(
-      (authSession, { eq }) => eq(authSession.id, authSessionId),
+      (authSession, { and, eq }) =>
+        and(
+          eq(authSession.id, authSessionId),
+          eq(authSession.instance, state.instance.id),
+        ),
       { id: false },
     );
     if (!authSession || authSession.expires < new Date()) {
       return new Response("Bad Request", { status: STATUS_CODE.BadRequest });
     }
 
-    const tokens = await oauthClient.code.getToken(req.url, {
-      state: authSession.state,
-      codeVerifier: authSession.verifier,
-    });
+    const tokens = await oauthClient(state.instance.url).code.getToken(
+      req.url,
+      {
+        state: authSession.state,
+        codeVerifier: authSession.verifier,
+      },
+    );
 
     const session = new Session(
+      state.instance.id,
       new Date(Date.now() + SESSION_EXPIRE * 1000),
       tokens.accessToken,
       tokens.expiresIn

@@ -12,7 +12,11 @@ export type AdminFormState = AdminState & {
 
 const form: MiddlewareHandler<AdminFormState> = async (_req, ctx) => {
   const form = await db.forms.findOne({}, {
-    where: (form, { eq }) => eq(form.id, ctx.params.form_id),
+    where: (form, { and, eq }) =>
+      and(
+        eq(form.id, ctx.params.form_id),
+        eq(form.instance, ctx.state.instance.id),
+      ),
   });
   if (!form) return ctx.renderNotFound();
   ctx.state.form = form;

@@ -7,14 +7,19 @@ import {
   DiscordHTTPError,
 } from "./http.ts";
 import { fromSnowflake, toSnowflake } from "./snowflake.ts";
-import { DISCORD_BOT_TOKEN, DISCORD_GUILD_ID } from "../env.ts";
+import { DISCORD_BOT_TOKEN } from "../env.ts";
 
-export async function assignRole(userId: bigint, role: bigint): Promise<void> {
+export async function assignRole(
+  guild: bigint,
+  userId: bigint,
+  role: bigint,
+): Promise<void> {
+  const guildString = fromSnowflake(guild);
   const userIdString = fromSnowflake(userId);
   const roleString = fromSnowflake(role);
 
   const res = await fetch(
-    `${BASE_URL}/guilds/${DISCORD_GUILD_ID}/members/${userIdString}/roles/${roleString}`,
+    `${BASE_URL}/guilds/${guildString}/members/${userIdString}/roles/${roleString}`,
     {
       method: "PUT",
       headers: new Headers({
@@ -26,11 +31,15 @@ export async function assignRole(userId: bigint, role: bigint): Promise<void> {
   if (!res.ok) throw new DiscordHTTPError(`${res.status} ${res.statusText}`);
 }
 
-export async function getRoles(userId: bigint): Promise<bigint[]> {
+export async function getRoles(
+  guild: bigint,
+  userId: bigint,
+): Promise<bigint[]> {
+  const guildString = fromSnowflake(guild);
   const userIdString = fromSnowflake(userId);
 
   const res = await fetch(
-    `${BASE_URL}/guilds/${DISCORD_GUILD_ID}/members/${userIdString}`,
+    `${BASE_URL}/guilds/${guildString}/members/${userIdString}`,
     {
       headers: new Headers({
         ...BASE_HEADERS,

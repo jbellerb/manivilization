@@ -110,7 +110,11 @@ export const handler: Handlers<Data, State> = {
 
       if (ctx.state.form.submitterRole) {
         try {
-          await assignRole(ctx.state.user.id, ctx.state.form.submitterRole);
+          await assignRole(
+            ctx.state.instance.guildId,
+            ctx.state.user.id,
+            ctx.state.form.submitterRole,
+          );
         } catch (e) {
           if (e instanceof DiscordHTTPError) console.log(e);
           else throw e;

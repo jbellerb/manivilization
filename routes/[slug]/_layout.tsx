@@ -3,8 +3,6 @@ import { defineLayout } from "$fresh/server.ts";
 // @deno-types="https://esm.sh/v135/@types/commonmark@0.27.9/index.d.ts"
 import { HtmlRenderer, Parser } from "commonmark";
 
-import { PUBLIC_URL } from "../../utils/env.ts";
-
 import type { FormState as State } from "./_middleware.ts";
 
 export default defineLayout<State>((_req, { Component, state }) => {
@@ -23,7 +21,10 @@ export default defineLayout<State>((_req, { Component, state }) => {
         <title>{state.form.name}</title>
         <meta property="og:title" content={state.form.name} />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${PUBLIC_URL}/${state.form.slug}`} />
+        <meta
+          property="og:url"
+          content={`${state.instance.url}/${state.form.slug}`}
+        />
         {descriptionLine && (
           <meta property="og:description" content={descriptionLine} />
         )}

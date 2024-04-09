@@ -7,6 +7,7 @@ import type { FormSpec } from "../form/types.ts";
 export * from "./schema.ts";
 
 export default {
+  instances: setupRepository(schema.Instance),
   authSessions: setupRepository(schema.AuthSession),
   sessions: setupRepository(schema.Session),
   forms: setupRepository(schema.Form<FormSpec>),
