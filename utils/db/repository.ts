@@ -1,4 +1,8 @@
-import type { PendingQuery, Row } from "postgresjs/types/index.d.ts";
+import type {
+  PendingQuery,
+  Row,
+  SerializableParameter as PgSerializableValue,
+} from "postgresjs/types/index.d.ts";
 
 import {
   columns,
@@ -14,6 +18,7 @@ import type {
   Entity,
   EntityProps,
   FullyNullable,
+  Serializable,
 } from "./decorators.ts";
 
 const selectCols = <P extends string | symbol>(
@@ -45,7 +50,7 @@ type WhereBooleanOperator = (
 type WhereUnaryOperator = (cond: PendingQuery<Row[]>) => PendingQuery<Row[]>;
 type WhereComparisonOperator<T> = <C extends keyof T>(
   col: C,
-  value: T[C],
+  value: T[C] extends PgSerializableValue<bigint> ? T[C] : never,
 ) => PendingQuery<Row[]>;
 type WhereOperators<T> = {
   and: WhereBooleanOperator;
@@ -58,6 +63,11 @@ type WhereOperators<T> = {
   lte: WhereComparisonOperator<T>;
   gte: WhereComparisonOperator<T>;
 };
+
+type WhereClause<T extends Entity> = (
+  columns: PropsMirror<EntityProps<T>>,
+  opts: WhereOperators<EntityProps<T>>,
+) => PendingQuery<Row[]>;
 
 const whereOperators = <T>(
   properties: Record<string | symbol, string>,
@@ -101,6 +111,11 @@ type OrderByOperators<T> = {
   desc: OrderByUnaryOperator<T>;
 };
 
+type OrderByClause<T extends Entity> = (
+  columns: PropsMirror<EntityProps<T>>,
+  opts: OrderByOperators<EntityProps<T>>,
+) => PendingQuery<Row[]> | PendingQuery<Row[]>[];
+
 const orderByOperators = <T>(
   properties: Record<string | symbol, string>,
 ): OrderByOperators<T> => {
@@ -136,22 +151,18 @@ type PropsMirror<T> = { [K in keyof Required<T>]: K };
 
 // WHERE and ORDER BY callback syntax inspired by Drizzle ORM
 type FindOptions<T extends Entity> = {
-  where?: (
-    columns: PropsMirror<EntityProps<T>>,
-    opts: WhereOperators<EntityProps<T>>,
-  ) => PendingQuery<Row[]>;
-  orderBy?: (
-    columns: PropsMirror<EntityProps<T>>,
-    opts: OrderByOperators<EntityProps<T>>,
-  ) => PendingQuery<Row[]> | PendingQuery<Row[]>[];
+  where?: WhereClause<T>;
+  orderBy?: OrderByClause<T>;
   limit?: number;
   offset?: number;
 };
 
 export const setupRepository = <
   T extends ClassExtends<typeof Entity>,
->(table: T) => {
-  async function insert(entity: T["prototype"]): Promise<void> {
+>(table: T & { prototype: Serializable<EntityProps<T["prototype"]>> }) => {
+  async function insert(
+    entity: Serializable<EntityProps<T["prototype"]>>,
+  ): Promise<void> {
     const row = entity.toSql();
 
     Object.defineProperty(entity, sqlRow, { value: row, writable: true });
@@ -255,7 +266,9 @@ ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
     return (await findImpl(props, { ...options, limit: 1 }))[0];
   }
 
-  async function update(entity: T["prototype"]): Promise<void> {
+  async function update(
+    entity: Serializable<EntityProps<T["prototype"]>>,
+  ): Promise<void> {
     const row = entity.toSql();
 
     const changes: Record<string, unknown> = {};
@@ -277,27 +290,27 @@ ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
   }
 
   async function deleteImpl(
-    where: T["prototype"] | Required<FindOptions<T["prototype"]>>["where"],
+    where: T["prototype"] | WhereClause<T["prototype"]>,
     props?: undefined,
   ): Promise<number>;
   async function deleteImpl(
-    where: T["prototype"] | Required<FindOptions<T["prototype"]>>["where"],
+    where: T["prototype"] | WhereClause<T["prototype"]>,
     props: Record<string, never>,
   ): Promise<FullyNullable<T["prototype"]>[]>;
   async function deleteImpl<P extends keyof EntityProps<T["prototype"]>>(
-    where: T["prototype"] | Required<FindOptions<T["prototype"]>>["where"],
+    where: T["prototype"] | WhereClause<T["prototype"]>,
     props: { [K in P]?: true },
   ): Promise<Pick<FullyNullable<T["prototype"]>, P>[]>;
   async function deleteImpl<P extends keyof EntityProps<T["prototype"]>>(
-    where: T["prototype"] | Required<FindOptions<T["prototype"]>>["where"],
+    where: T["prototype"] | WhereClause<T["prototype"]>,
     props: { [K in P]?: false },
   ): Promise<Omit<FullyNullable<T["prototype"]>, P>[]>;
   async function deleteImpl<P extends keyof EntityProps<T["prototype"]>>(
-    where: T["prototype"] | Required<FindOptions<T["prototype"]>>["where"],
+    where: T["prototype"] | WhereClause<T["prototype"]>,
     props: { [K in P]?: boolean },
   ): Promise<Partial<FullyNullable<T["prototype"]>>[]>;
   async function deleteImpl<P extends keyof EntityProps<T["prototype"]>>(
-    where: T["prototype"] | Required<FindOptions<T["prototype"]>>["where"],
+    where: T["prototype"] | WhereClause<T["prototype"]>,
     props?: { [K in P]?: boolean },
   ): Promise<
     | number

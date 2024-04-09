@@ -1,5 +1,7 @@
 import { column, Entity, table } from "./decorators.ts";
 
+import type { SerializableValue } from "./decorators.ts";
+
 @table("auth_sessions")
 export class AuthSession extends Entity {
   @column("id")
@@ -57,7 +59,7 @@ export class Session extends Entity {
 }
 
 @table("forms")
-export class Form<T = Record<string, unknown>> extends Entity {
+export class Form<T = Record<string, SerializableValue>> extends Entity {
   @column("id")
   id: string;
   @column("name")
@@ -73,7 +75,7 @@ export class Form<T = Record<string, unknown>> extends Entity {
   @column("success_message")
   successMessage?: string | null;
   @column("submitter_role")
-  submitterRole?: string | null;
+  submitterRole?: bigint | null;
 
   constructor(
     name: string,
@@ -82,7 +84,7 @@ export class Form<T = Record<string, unknown>> extends Entity {
     description?: string,
     questions?: T,
     successMessage?: string,
-    submitterRole?: string,
+    submitterRole?: bigint,
   ) {
     super();
     this.id = crypto.randomUUID();
@@ -105,7 +107,7 @@ export class FormResponse extends Entity {
   @column("form")
   form: string;
   @column("discord_id")
-  discordId: string;
+  discordId: bigint;
   @column("discord_name")
   discordName: string;
   @column("response")
@@ -113,7 +115,7 @@ export class FormResponse extends Entity {
 
   constructor(
     form: string,
-    discordId: string,
+    discordId: bigint,
     discordName: string,
     response?: Record<string, string>,
   ) {

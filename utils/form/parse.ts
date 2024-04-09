@@ -1,3 +1,5 @@
+import { toSnowflake } from "../discord/snowflake.ts";
+
 import type { FormSpec, Question, ValidationIssue } from "./types.ts";
 import type { EntityProps } from "../db/decorators.ts";
 import type { Form } from "../db/mod.ts";
@@ -127,7 +129,7 @@ export function parseEditorFormData(
       data.get("success_message"),
     ),
     submitterRole: mapMaybe(
-      isString,
+      (n, v) => toSnowflake(isString(n, v)),
       "submitter_role",
       data.get("submitter_role"),
     ),

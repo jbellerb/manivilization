@@ -15,6 +15,23 @@ export type ClassExtends<T extends Constructor> =
   & OmitConstructor<T>
   & Constructor;
 
+export type SerializableValue =
+  | null
+  | boolean
+  | number
+  | bigint
+  | string
+  | Date
+  | Uint8Array
+  | Array<SerializableValue>
+  | SerializableObject;
+interface SerializableObject {
+  [x: string]: SerializableValue;
+}
+export type Serializable<T> = {
+  [K in keyof T]: T[K] extends SerializableValue | undefined ? T[K] : never;
+};
+
 export const tableName = Symbol("tableName");
 export const primaryKey = Symbol("primaryKey");
 export const columns = Symbol("columns");
@@ -77,7 +94,7 @@ export const column = (name: string, primary?: boolean) =>
 
 export const table = (name: string) =>
 <T extends ClassExtends<typeof Entity>>(
-  _target: T,
+  _target: T & { prototype: Serializable<EntityProps<T["prototype"]>> },
   context: ClassDecoratorContext<T>,
 ) => {
   const discovered = Array.from(knownCols);

@@ -10,6 +10,7 @@ import Button from "../../../../components/Button.tsx";
 import TextInput from "../../../../components/TextInput.tsx";
 import GrowableTextArea from "../../../../islands/GrowableTextArea.tsx";
 import db from "../../../../utils/db/mod.ts";
+import { fromSnowflake } from "../../../../utils/discord/snowflake.ts";
 import {
   FormParseError,
   parseEditorFormData,
@@ -70,7 +71,9 @@ export default defineRoute<State>((_req, { state }) => {
             <div class="flex mt-4 w-full items-end content-between">
               <SubmitterRoleField
                 class="mr-4"
-                submitterRole={state.form.submitterRole ?? undefined}
+                submitterRole={state.form.submitterRole == null
+                  ? undefined
+                  : fromSnowflake(state.form.submitterRole)}
               />
               <Button name="Save" class="ml-auto" />
             </div>

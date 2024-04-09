@@ -7,9 +7,10 @@ import {
   BASE_URL,
   DiscordHTTPError,
 } from "./http.ts";
+import { toSnowflake } from "./snowflake.ts";
 
 export type User = {
-  id: string;
+  id: bigint;
   name: string;
   username: string;
   avatar: string;
@@ -26,7 +27,7 @@ export async function getUser(accessToken: string): Promise<User> {
   const user: APIUser = await res.json();
 
   return {
-    id: user.id,
+    id: toSnowflake(user.id),
     name: user.global_name ?? user.username,
     username: user.discriminator === "0"
       ? `@${user.username}`

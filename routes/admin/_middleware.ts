@@ -4,6 +4,7 @@ import type { MiddlewareHandler } from "$fresh/server.ts";
 
 import { DISCORD_ADMIN_ROLE } from "../../utils/env.ts";
 import { getRoles } from "../../utils/discord/guild.ts";
+import { toSnowflake } from "../../utils/discord/snowflake.ts";
 import { DiscordHTTPError } from "../../utils/discord/http.ts";
 
 import type { RootState } from "../_middleware.ts";
@@ -11,7 +12,7 @@ import type { User } from "../../utils/discord/user.ts";
 
 export type AdminState = RootState & {
   user: User;
-  roles: string[];
+  roles: bigint[];
 };
 
 const user: MiddlewareHandler<AdminState> = async (req, ctx) => {
@@ -33,7 +34,7 @@ const user: MiddlewareHandler<AdminState> = async (req, ctx) => {
 const roles: MiddlewareHandler<AdminState> = async (_req, ctx) => {
   try {
     ctx.state.roles = await getRoles(ctx.state.user.id);
-    if (ctx.state.roles.includes(DISCORD_ADMIN_ROLE)) {
+    if (ctx.state.roles.includes(toSnowflake(DISCORD_ADMIN_ROLE))) {
       return await ctx.next();
     }
   } catch (e) {
