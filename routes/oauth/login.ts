@@ -14,11 +14,13 @@ const AUTH_EXPIRE = 10 * 60;
 
 export const handler: Handlers<void, State> = {
   async GET(req, { state }) {
-    const { searchParams } = new URL(req.url);
+    const { searchParams, hostname } = new URL(req.url);
 
     const oauthState = crypto.randomUUID();
-    const { uri, codeVerifier } = await oauthClient(state.instance.url).code
-      .getAuthorizationUri({ state: oauthState });
+    const { uri, codeVerifier } = await oauthClient(
+      state.instance.host,
+      hostname === "localhost",
+    ).code.getAuthorizationUri({ state: oauthState });
 
     const authSession = new AuthSession(
       state.instance.id,

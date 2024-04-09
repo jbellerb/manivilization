@@ -23,7 +23,7 @@ export default defineLayout<State>((_req, { Component, state }) => {
         <meta property="og:type" content="website" />
         <meta
           property="og:url"
-          content={`${state.instance.url}/${state.form.slug}`}
+          content={`https://${state.instance.host}/${state.form.slug}`}
         />
         {descriptionLine && (
           <meta property="og:description" content={descriptionLine} />

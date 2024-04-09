@@ -6,8 +6,8 @@ import type { SerializableValue } from "./decorators.ts";
 export class Instance extends Entity {
   @column("id")
   id: string;
-  @column("url")
-  url: string;
+  @column("host")
+  host: string;
   @column("name")
   name: string;
   @column("guild_id")
@@ -16,14 +16,14 @@ export class Instance extends Entity {
   adminRole: bigint;
 
   constructor(
-    url: string,
+    host: string,
     name: string,
     guildId: bigint,
     adminRole: bigint,
   ) {
     super();
     this.id = crypto.randomUUID();
-    this.url = url;
+    this.host = host;
     this.name = name;
     this.guildId = guildId;
     this.adminRole = adminRole;

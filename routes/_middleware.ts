@@ -18,9 +18,9 @@ export type RootState = {
 };
 
 const instance: MiddlewareHandler<RootState> = async (req, ctx) => {
-  const { origin } = new URL(req.url);
+  const { host } = new URL(req.url);
   const instance = await db.instances.findOne({}, {
-    where: (instance, { eq }) => eq(instance.url, origin),
+    where: (instance, { eq }) => eq(instance.host, host),
   });
 
   if (instance) {

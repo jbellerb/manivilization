@@ -29,13 +29,14 @@ export const handler: Handlers<void, State> = {
       return new Response("Bad Request", { status: STATUS_CODE.BadRequest });
     }
 
-    const tokens = await oauthClient(state.instance.url).code.getToken(
-      req.url,
-      {
-        state: authSession.state,
-        codeVerifier: authSession.verifier,
-      },
-    );
+    const { hostname } = new URL(req.url);
+    const tokens = await oauthClient(
+      state.instance.host,
+      hostname === "localhost",
+    ).code.getToken(req.url, {
+      state: authSession.state,
+      codeVerifier: authSession.verifier,
+    });
 
     const session = new Session(
       state.instance.id,
