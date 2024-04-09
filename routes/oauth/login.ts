@@ -4,8 +4,7 @@ import { STATUS_CODE } from "$std/http/status.ts";
 import type { Cookie } from "$std/http/cookie.ts";
 import type { Handlers } from "$fresh/server.ts";
 
-import db from "../../utils/db/mod.ts";
-import { AuthSession } from "../../utils/db/schema.ts";
+import db, { AuthSession } from "../../utils/db/mod.ts";
 import { oauthClient } from "../../utils/oauth.ts";
 
 import type { RootState as State } from "../_middleware.ts";
@@ -30,7 +29,10 @@ export const handler: Handlers<void, State> = {
     );
     await db.authSessions.insert(authSession);
 
-    const headers = new Headers({ Location: uri.toString() });
+    const response = new Response(null, {
+      status: STATUS_CODE.Found,
+      headers: { Location: uri.toString() },
+    });
     const authSessionCookie = {
       name: "__Host-oauth-session",
       value: authSession.id,
@@ -38,8 +40,8 @@ export const handler: Handlers<void, State> = {
       httpOnly: true,
       sameSite: "Lax",
     } satisfies Cookie;
-    setCookie(headers, authSessionCookie);
+    setCookie(response.headers, authSessionCookie);
 
-    return new Response(null, { status: STATUS_CODE.Found, headers });
+    return response;
   },
 };

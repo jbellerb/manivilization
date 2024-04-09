@@ -1,5 +1,4 @@
-import db from "./db/mod.ts";
-import { Session } from "./db/schema.ts";
+import db, { Session } from "./db/mod.ts";
 import { oauthClient } from "./oauth.ts";
 
 export async function refreshSession(

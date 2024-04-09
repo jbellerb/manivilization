@@ -3,7 +3,7 @@ import presetUno from "@unocss/preset-uno";
 
 import type { UserConfig } from "@unocss/core";
 
-import { presetStyling } from "./utils/styling/mod.ts";
+import { presetStyling } from "./utils/styling.ts";
 
 export default {
   content: {

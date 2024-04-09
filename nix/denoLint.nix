@@ -5,7 +5,7 @@
     pname = "${args.pname}-lint";
 
     buildPhaseCommand = ''
-      deno lint --config "$denoConfig" .
+      deno lint --config "$denoConfigVendored" .
     '';
 
     installPhaseCommand = ''

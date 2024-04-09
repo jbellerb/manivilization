@@ -1,12 +1,6 @@
 { fetchFromGitHub, mkDenoDerivation, esbuild }:
 
-{ src
-, entrypoints ? [ ]
-, extraImports ? null
-, denoConfig ? null
-, denoLock ? null
-, ...
-}@args:
+{ entrypoints ? [ ], extraImports ? null, ... }@args:
   let
     # esbuild binary version must be compatible with what's used by Fresh. as
     # of writing, Fresh uses esbuild 0.20.2.
@@ -24,8 +18,6 @@
     outputs = [ "out" "cache" ];
     denoCacheDir = "$cache";
 
-    denoConfig = args.denoConfig or "${src}/deno.json";
-    denoLock = args.denoLock or "${src}/deno.lock";
     entrypoints = args.entrypoints ++ [
       "main.ts"
       "dev.ts"
@@ -40,7 +32,7 @@
     buildPhaseCommand = ''
       # esbuild_deno_loader doesn't respect the --config argument so I have
       # to copy the config here
-      cp "$denoConfig" deno.json
+      cp "$denoConfigVendored" deno.json
       deno run -A --no-remote dev.ts build
     '';
 
@@ -48,7 +40,7 @@
       cp -r . "$out"
       # Copy the config to the out directory for convenience when running the
       # output derivation
-      cp "$denoConfig" "$out/deno.json"
+      cp "$denoConfigVendored" "$out/deno.json"
 
       # TODO: report Fresh bug where built static files are ignored if there is
       # no static directory in the base directory.

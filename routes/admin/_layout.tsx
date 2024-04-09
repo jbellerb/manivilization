@@ -2,8 +2,9 @@ import { defineLayout } from "$fresh/server.ts";
 
 import type { LayoutConfig } from "$fresh/server.ts";
 
+import AdminButton from "./(_components)/AdminButton.tsx";
+import NavItem from "./(_components)/NavItem.tsx";
 import db from "../../utils/db/mod.ts";
-import classnames from "../../utils/classnames.ts";
 
 import { AdminState as State } from "./_middleware.ts";
 
@@ -26,30 +27,19 @@ export default defineLayout<State>(async (_req, ctx) => {
           <ul class="space-y-4 flex flex-col items-start">
             {forms.map(({ id, name }) => (
               <li>
-                <a
+                <NavItem
                   href={`/admin/forms/${id}`}
-                  class={classnames(
-                    "border-b border-transparent italic",
-                    id === formId
-                      ? "text-browser-purple hover:border-browser-purple"
-                      : "text-browser-blue hover:border-browser-blue",
-                  )}
-                >
-                  {name}
-                </a>
+                  text={name}
+                  highlight={id === formId}
+                />
               </li>
             ))}
           </ul>
         </nav>
         <hr class="my-4 border-black" />
-        <div role="presentation" class="ml-2">
-          <a
-            href="/admin/forms/new"
-            class="text-browser-blue border-b border-transparent hover:border-browser-blue italic"
-          >
-            Create new form
-          </a>
-        </div>
+        <form class="ml-2" method="post" action="/admin/forms/new">
+          <AdminButton name="Create new form" />
+        </form>
       </aside>
       <div class="flex flex-col grow h-full overflow-y-auto">
         <ctx.Component />

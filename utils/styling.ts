@@ -1,5 +1,3 @@
-import { dirname, fromFileUrl, join } from "$std/path/mod.ts";
-
 import type { Preflight, Preset, Rule } from "@unocss/core";
 
 function buildPreflight(
@@ -86,13 +84,11 @@ function formPreflight(): Preflight {
 }
 
 function tailwindPreflight(): Preflight {
-  const rootDir = dirname(fromFileUrl(Deno.mainModule));
-
   return {
     getCSS: async () =>
-      await Deno.readTextFile(
-        join(rootDir, "utils", "styling", "preflight.css"),
-      ),
+      await (await fetch(
+        import.meta.resolve("@unocss/reset/tailwind.css"),
+      )).text(),
   };
 }
 

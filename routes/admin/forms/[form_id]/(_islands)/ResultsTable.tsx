@@ -1,6 +1,8 @@
 import { IS_BROWSER } from "$fresh/runtime.ts";
 import { useSignal } from "@preact/signals";
 
+import AdminButton from "../../../(_components)/AdminButton.tsx";
+
 type UserCardProps = {
   id: string;
   name: string;
@@ -90,13 +92,11 @@ export default function ResultsTable(props: Props) {
 
   return (
     <>
-      <button
-        type="button"
-        class="block px-4 text-browser-blue active:text-browser-purple"
+      <AdminButton
+        name="Download CSV"
+        class="ml-4"
         onClick={() => exportCsv({ columns: props.columns, responses })}
-      >
-        Download CSV
-      </button>
+      />
       <table class="w-full text-left border-separate border-spacing-0">
         <thead class="text-sm">
           <tr class="sticky top-0 bg-white">

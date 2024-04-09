@@ -8,7 +8,7 @@
     pname = "${pname}-fmt";
 
     buildPhaseCommand = ''
-      deno fmt --config "$denoConfig" --check --ignore=${ignoreList} .
+      deno fmt --config "$denoConfigVendored" --check --ignore="${ignoreList}" .
     '';
 
     installPhaseCommand = ''

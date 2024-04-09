@@ -1,41 +1,23 @@
-{ lib, runtimeShell, mkDenoDerivation, vendorDenoDeps, deno }:
+{ lib, runtimeShell, mkDenoDerivation, deno }:
 
 { pname
 , src
 , entrypoint ? "main.ts"
-, denoConfig ? null
-, denoConfigParsed ? null
-, denoLock ? null
-, denoLockParsed ? null
-, denoVendorDir ? null
+, denoCacheDir ? null
 , ...
 }@args:
-  let
-    denoConfigParsed = lib.importJSON (args.denoConfig or (src + "/deno.json"));
-    denoLockParsed = lib.importJSON (args.denoLock or (src + "/deno.lock"));
-
-    denoVendorDir = args.denoVendorDir or (vendorDenoDeps {
-      denoConfig = denoConfigParsed;
-      denoLock = denoLockParsed;
-    });
-
-    vendoredDenoConfig =
-      (builtins.removeAttrs denoConfigParsed [ "imports" "scopes" ]) // {
-        importMap = "${denoVendorDir}/import_map.json";
-      };
-
-  in mkDenoDerivation (args // {
+  mkDenoDerivation (args // {
     pname = "${pname}-wrapper";
 
-    outputs = [ "out" "cache" ];
-    denoCacheDir = "$cache";
+    outputs = [ "out" ] ++ (lib.optional (!(args ? denoCacheDir)) "cache");
+    denoCacheDir = args.denoCacheDir or "$cache";
 
     # Empty eval is needed because sometimes deno cache doesn't initialize the
     # cache databases for node modules, which need to exist for the script to
     # start even if node modules aren't used.
-    buildPhaseCommand = ''
-      deno cache --config "$denoConfig" "${entrypoint}"
-      deno eval --config "$denoConfig" ""
+    buildPhaseCommand = lib.optionalString (!(args ? denoCacheDir)) ''
+      deno cache --config "$denoConfigVendored" "${entrypoint}"
+      deno eval --config "$denoConfigVendored" ""
     '';
 
     installPhaseCommand = ''
@@ -44,9 +26,9 @@
       #!${runtimeShell}
 
       export PATH="${lib.makeBinPath [ deno ]}:\$PATH"
-      export DENO_DIR=$cache
+      export DENO_DIR="$DENO_DIR"
 
-      deno run -A --no-remote --config $denoConfig ${src}/${entrypoint} "\$@"
+      deno run -A --no-remote --config "$denoConfigVendored" ${src}/${entrypoint} "\$@"
       EOF
 
       chmod +x $out/bin/${pname}

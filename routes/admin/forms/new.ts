@@ -2,13 +2,12 @@ import { STATUS_CODE } from "$std/http/status.ts";
 
 import type { Handlers } from "$fresh/server.ts";
 
-import db from "../../../utils/db/mod.ts";
-import { Form } from "../../../utils/db/schema.ts";
+import db, { Form } from "../../../utils/db/mod.ts";
 
 import type { AdminState as State } from "../_middleware.ts";
 
 export const handler: Handlers<void, State> = {
-  async GET(_req, _ctx) {
+  async POST(_req, _ctx) {
     const form = new Form(
       "Untitled form",
       "",

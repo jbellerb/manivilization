@@ -2,7 +2,7 @@ import postgres from "postgresjs/mod.js";
 
 import type { Notice, Options } from "postgresjs/types/index.d.ts";
 
-const DATABASE_URL = Deno.env.get("DATABASE_URL");
+import { DATABASE_URL } from "../env.ts";
 
 export let notice: Notice | undefined;
 const options: Options<Record<string, never>> = {

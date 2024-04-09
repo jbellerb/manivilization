@@ -35,14 +35,19 @@
           # The uno config is imported at runtime so nix wouldn't know to fetch
           # its dependencies otherwise
           entrypoints = [ "uno.config.ts" ];
-          # Make sure the Lightning CSS wasm executable is included in the
-          # when building
+          # Make sure the Lightning CSS wasm executable and reset stylesheet is
+          # included when building
           extraImports = {
             "lightningcss-wasm/lightningcss_node.wasm" = {
               url =
                 "https://esm.sh/lightningcss-wasm@1.24.1/lightningcss_node.wasm";
               sha256 =
                 "173c741d07bfd9434a7910190464306b9102808cc6d5dc92ed38aa7d560730db";
+            };
+            "@unocss/reset/tailwind.css" = {
+              url = "https://esm.sh/@unocss/reset@0.58.9/tailwind.css";
+              sha256 =
+                "96b71bb7ed85888c5168421d30644c9dedc0da54bb9aef8af3b406fdd1b6a941";
             };
           };
           # Build throws errors unless *something* is present for the runtime
@@ -55,6 +60,13 @@
             export DISCORD_GUILD_ID=0
             export DISCORD_ADMIN_ROLE=0
           '';
+        });
+
+        manivilization-wrapper = denoLib.buildDenoScript (commonArgs // {
+          src = pkgs.manivilization;
+          denoVendorDir = pkgs.manivilization.denoVendorDir;
+          denoConfigVendored = pkgs.manivilization.denoConfigVendored;
+          denoCacheDir = pkgs.manivilization.cache;
         });
 
         manivilization-container = pkgs.callPackage ({ dockerTools }:
@@ -92,10 +104,7 @@
       apps."${system}" = rec {
         manivilization = {
           type = "app";
-          program = "${pkgs.writeShellScript "manivilization-wrapped" ''
-            export DENO_DIR=${pkgs.manivilization.cache}
-            ${pkgs.deno}/bin/deno run -A --no-remote ${pkgs.manivilization}/main.ts
-          ''}";
+          program = "${pkgs.manivilization-wrapper}/bin/manivilization";
         };
         default = manivilization;
       };
@@ -107,6 +116,7 @@
       devShells."${system}".default = pkgs.mkShell {
         nativeBuildInputs = [
           pkgs.deno
+          pkgs.postgresql
         ];
       };
     };

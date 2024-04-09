@@ -37,7 +37,8 @@
     "$std/": "https://deno.land/std@0.221.0/",
     "@unocss/core": "https://esm.sh/@unocss/core@0.58.9",
     "@unocss/preset-uno": "https://esm.sh/@unocss/preset-uno@0.58.9",
-    "@unocss/preset-typography": "https://esm.sh/@unocss/preset-typography@0.58.9"
+    "@unocss/preset-typography": "https://esm.sh/@unocss/preset-typography@0.58.9",
+    "@unocss/reset/": "https://esm.sh/@unocss/reset@0.58.9/"
   },
   "compilerOptions": {
     "jsx": "react-jsx",

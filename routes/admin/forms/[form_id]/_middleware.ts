@@ -3,7 +3,7 @@ import type { MiddlewareHandler } from "$fresh/server.ts";
 import db from "../../../../utils/db/mod.ts";
 
 import type { AdminState } from "../../_middleware.ts";
-import type { Form } from "../../../../utils/db/schema.ts";
+import type { Form } from "../../../../utils/db/mod.ts";
 import type { FormSpec } from "../../../../utils/form/types.ts";
 
 export type AdminFormState = AdminState & {

@@ -1,28 +1,6 @@
 import { defineLayout } from "$fresh/server.ts";
 
-import classnames from "../../../../utils/classnames.ts";
-
-type LinkProps = {
-  active: boolean;
-  href: string;
-  text: string;
-};
-
-function Link(props: LinkProps) {
-  return (
-    <a
-      class={classnames(
-        "inline border-b border-transparent italic",
-        props.active
-          ? "text-browser-purple hover:border-browser-purple"
-          : "text-browser-blue hover:border-browser-blue",
-      )}
-      href={props.href}
-    >
-      {props.text}
-    </a>
-  );
-}
+import NavItem from "../../(_components)/NavItem.tsx";
 
 export default defineLayout((_req, { Component, params, url }) => {
   const formId = params.form_id;
@@ -30,15 +8,15 @@ export default defineLayout((_req, { Component, params, url }) => {
   return (
     <>
       <nav class="ml-auto py-4 px-5 space-x-4">
-        <Link
-          active={url.pathname === `/admin/forms/${formId}`}
+        <NavItem
           href={`/admin/forms/${formId}`}
           text="Edit"
+          highlight={url.pathname === `/admin/forms/${formId}`}
         />
-        <Link
-          active={url.pathname === `/admin/forms/${formId}/results`}
+        <NavItem
           href={`/admin/forms/${formId}/results`}
           text="Results"
+          highlight={url.pathname === `/admin/forms/${formId}/results`}
         />
       </nav>
       <Component />

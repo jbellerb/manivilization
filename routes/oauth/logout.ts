@@ -12,8 +12,10 @@ export const handler: Handlers<void, State> = {
     const { searchParams } = new URL(req.url);
     const redirectUrl = searchParams.get("redirect") ?? "/";
 
-    const headers = new Headers({ Location: redirectUrl });
-    const response = new Response(null, { status: STATUS_CODE.Found, headers });
+    const response = new Response(null, {
+      status: STATUS_CODE.Found,
+      headers: { Location: redirectUrl },
+    });
 
     if (ctx.state.sessionToken) {
       const tokenId = ctx.state.sessionToken;

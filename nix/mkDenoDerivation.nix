@@ -10,6 +10,7 @@
 , denoLock ? null
 , denoLockParsed ? null
 , denoVendorDir ? null
+, denoConfigVendored ? null
 , denoCacheDir ? "$TMPDIR/deno"
 , nativeBuildInputs ? null
 , configurePhase ? null
@@ -30,10 +31,12 @@
       // (lib.optionalAttrs (extraImports != null) { inherit extraImports; })
       // (lib.optionalAttrs (denoConfig != null) { inherit denoConfig; })));
 
-    vendoredDenoConfig = writeText "vendored-deno-config" (builtins.toJSON
-      ((builtins.removeAttrs denoConfigParsed [ "imports" "scopes" ]) // {
-        importMap = "${denoVendorDir}/import_map.json";
-      }));
+    denoConfigVendored = args.denoConfigVendored or (writeText
+      "deno-config-vendored"
+      (builtins.toJSON
+        ((builtins.removeAttrs denoConfigParsed [ "imports" "scopes" ]) // {
+          importMap = "${denoVendorDir}/import_map.json";
+        })));
 
     cleanArgs = builtins.removeAttrs args [
       "entrypoints"
@@ -52,7 +55,8 @@
     inherit pname version src;
 
     nativeBuildInputs = (args.nativeBuildInputs or [ ]) ++ [ deno ];
-    denoConfig = "${vendoredDenoConfig}";
+    denoConfigVendored = "${denoConfigVendored}";
+    denoVendorDir = "${denoVendorDir}";
 
     configurePhase = args.configurePhase or ''
       runHook preConfigure
