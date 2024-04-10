@@ -156,11 +156,12 @@ function FormTextQuestion(
     <div
       id={`question-${props.question.name}`}
       aria-role="group"
-      aria-labelledby={props.question.comment &&
-        `question-${props.question.name}-comment`}
+      aria-labelledby={props.question.comment
+        ? `question-${props.question.name}-comment`
+        : undefined}
       class="space-y-2"
     >
-      {props.question.comment && (
+      {props.question.comment != null && (
         <label
           class="block text-lg"
           id={`question-${props.question.name}-comment`}
@@ -184,14 +185,12 @@ function FormTextQuestion(
         name={`question-${props.question.name}`}
         label={props.question.label}
         value={props.value}
-        aria-describedby={!props.question.label
-          ? undefined
-          : props.question.comment &&
-            `question-${props.question.name}-comment`}
-        aria-labelledby={props.question.label
-          ? undefined
-          : props.question.comment &&
-            `question-${props.question.name}-comment`}
+        aria-describedby={props.question.comment && props.question.label
+          ? `question-${props.question.name}-comment`
+          : undefined}
+        aria-labelledby={props.question.comment && !props.question.label
+          ? `question-${props.question.name}-comment`
+          : undefined}
         error={props.issues?.includes("required")}
         required={props.question.required}
       />
@@ -206,7 +205,7 @@ function FormCheckboxQuestion(
 
   return (
     <fieldset id={`question-${props.question.name}`} class="space-y-2">
-      {props.question.comment && (
+      {props.question.comment != null && (
         <legend class="text-lg">
           {props.question.comment}
           {props.question.required && (
