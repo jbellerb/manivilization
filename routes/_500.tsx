@@ -10,8 +10,8 @@ export default defineRoute(() => {
       <header class="max-w-xl w-full">
         <h1 class="text-3xl font-bold">500 - Internal server error</h1>
       </header>
-      <main class="max-w-xl w-full markdown markdown-invert markdown-gray italic">
-        <p>Something went wrong while processing your request.</p>
+      <main class="max-w-xl w-full text-gray-200 italic leading-relaxed">
+        <p class="my-4">Something went wrong while processing your request.</p>
       </main>
     </>
   );

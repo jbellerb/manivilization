@@ -10,8 +10,8 @@ export default defineRoute(() => {
       <header class="max-w-xl w-full">
         <h1 class="text-3xl font-bold">404 - Page not found</h1>
       </header>
-      <main class="max-w-xl w-full markdown markdown-invert markdown-gray italic">
-        <p>The page you were looking for doesn't exist.</p>
+      <main class="max-w-xl w-full text-gray-200 italic leading-relaxed">
+        <p class="my-4">The page you were looking for doesn't exist.</p>
       </main>
     </>
   );

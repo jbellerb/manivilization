@@ -12,7 +12,7 @@ export default {
   presets: [
     presetStyling(),
     presetUno(),
-    presetTypography({ selectorName: "markdown" }),
+    presetTypography(),
   ],
   theme: {
     boxShadow: {

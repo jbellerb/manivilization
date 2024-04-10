@@ -28,7 +28,7 @@ export const handler: Handlers<void, State> = {
 export default defineRoute<State>((_req, { state }) => {
   return (
     <section
-      class="-my-4 markdown markdown-invert markdown-gray"
+      class="-my-4 prose prose-invert prose-gray"
       dangerouslySetInnerHTML={{
         __html: (new HtmlRenderer()).render(
           (new Parser()).parse(state.form.successMessage ?? ""),

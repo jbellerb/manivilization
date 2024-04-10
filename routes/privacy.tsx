@@ -9,7 +9,7 @@ export default defineRoute<State>((_req, { state }) => {
     <main>
       <h1 class="text-3xl font-bold">Privacy Policy</h1>
       <article
-        class="markdown markdown-invert markdown-gray"
+        class="prose prose-invert prose-gray"
         dangerouslySetInnerHTML={{
           __html: (new HtmlRenderer()).render(
             (new Parser()).parse(state.instance.privacyPolicy ?? ""),

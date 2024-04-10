@@ -141,7 +141,7 @@ function ResubmitWarning() {
       <div class="mr-4 text-3xl" aria-label="Alert">
         !
       </div>
-      <p class="markdown markdown-invert markdown-gray font-bold italic tracking-wide">
+      <p class="text-gray-200 font-bold italic leading-relaxed tracking-wide">
         You've already filled out this form. If you would like to change your
         response, please edit it and resubmit.
       </p>

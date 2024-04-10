@@ -30,11 +30,9 @@ export default defineLayout<State>((_req, { Component, state }) => {
         )}
       </Head>
       <header class="max-w-xl w-full">
-        <h1 class="pb-1 text-3xl font-bold">
-          {state.form.name}
-        </h1>
+        <h1 class="text-3xl font-bold">{state.form.name}</h1>
         <div
-          class="-mt-1 -mb-4 markdown markdown-invert markdown-gray italic"
+          class="prose prose-invert prose-gray italic"
           dangerouslySetInnerHTML={{
             __html: (new HtmlRenderer()).render(
               (new Parser()).parse(state.form.description ?? ""),
