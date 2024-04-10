@@ -10,7 +10,7 @@ import { SUPER_ADMIN } from "../../utils/env.ts";
 import type { RootState } from "../_middleware.ts";
 import type { User } from "../../utils/discord/user.ts";
 
-const superAdmin = BigInt(SUPER_ADMIN);
+const superAdmin = BigInt(SUPER_ADMIN ?? 0);
 
 export type AdminState = RootState & {
   user: User;
