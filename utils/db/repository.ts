@@ -297,7 +297,7 @@ ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
     for (const [col, val] of Object.entries(row)) {
       if (val !== entity[sqlRow][col]) changes[col] = val;
     }
-    if (changes.length === 0) return;
+    if (Object.keys(changes).length === 0) return;
 
     if (table[primaryKey] in changes) {
       throw new Error(

@@ -22,6 +22,7 @@ import * as $admin_index from "./routes/admin/index.tsx";
 import * as $oauth_callback from "./routes/oauth/callback.ts";
 import * as $oauth_login from "./routes/oauth/login.ts";
 import * as $oauth_logout from "./routes/oauth/logout.ts";
+import * as $FormResetter from "./islands/FormResetter.tsx";
 import * as $GrowableTextArea from "./islands/GrowableTextArea.tsx";
 import * as $admin_forms_form_id_islands_OptionsEditor from "./routes/admin/forms/[form_id]/(_islands)/OptionsEditor.tsx";
 import * as $admin_forms_form_id_islands_QuestionEditor from "./routes/admin/forms/[form_id]/(_islands)/QuestionEditor.tsx";
@@ -55,6 +56,7 @@ const manifest = {
     "./routes/oauth/logout.ts": $oauth_logout,
   },
   islands: {
+    "./islands/FormResetter.tsx": $FormResetter,
     "./islands/GrowableTextArea.tsx": $GrowableTextArea,
     "./routes/admin/forms/[form_id]/(_islands)/OptionsEditor.tsx":
       $admin_forms_form_id_islands_OptionsEditor,

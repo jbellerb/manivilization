@@ -15,11 +15,11 @@ export default function AdminButton(
       type={props.onClick ? "button" : "submit"}
       class={classnames(
         "group text-browser-blue active:text-browser-purple",
-        extraClasses ?? "",
+        extraClasses,
       )}
       {...props}
     >
-      <span class="border-b border-transparent group-hover:border-current">
+      <span class="border-b border-transparent group-hover:border-current group-focus-visible:outline-auto">
         {name}
       </span>
     </button>

@@ -16,3 +16,8 @@ export const DISCORD_CLIENT_SECRET = Deno.env.get(
 if (!DISCORD_CLIENT_SECRET) {
   throw new Error("DISCORD_CLIENT_SECRET is not set for Discord OAuth");
 }
+
+export const SUPER_ADMIN = Deno.env.get("SUPER_ADMIN") as string;
+if (!SUPER_ADMIN) {
+  throw new Error("DISCORD_CLIENT_SECRET is not set for Discord OAuth");
+}

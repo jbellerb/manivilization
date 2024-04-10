@@ -8,6 +8,7 @@ import SlugField from "./(_islands)/SlugField.tsx";
 import SubmitterRoleField from "./(_islands)/SubmitterRoleField.tsx";
 import Button from "../../../../components/Button.tsx";
 import TextInput from "../../../../components/TextInput.tsx";
+import FormResetter from "../../../../islands/FormResetter.tsx";
 import GrowableTextArea from "../../../../islands/GrowableTextArea.tsx";
 import db from "../../../../utils/db/mod.ts";
 import { fromSnowflake } from "../../../../utils/discord/snowflake.ts";
@@ -45,7 +46,7 @@ export default defineRoute<State>((_req, { state }) => {
       <form
         method="post"
         class="max-w-xl w-full"
-        name={state.form.id}
+        name={state.form.slug}
       >
         <div class="flex flex-col space-y-6">
           <TextInput
@@ -80,12 +81,7 @@ export default defineRoute<State>((_req, { state }) => {
           </div>
         </div>
       </form>
-      {/* Reset the form to prevent Firefox from restoring past unsaved values */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `document["${state.form.id}"].reset();`,
-        }}
-      />
+      <FormResetter form={state.form.slug} />
     </main>
   );
 });

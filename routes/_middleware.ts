@@ -20,21 +20,22 @@ export type RootState = {
 
 const instance: MiddlewareHandler<RootState> = async (req, ctx) => {
   const { host } = new URL(req.url);
+  let instance;
   try {
-    const instance = await db.instances.findOne({}, {
+    instance = await db.instances.findOne({}, {
       where: (instance, { eq }) => eq(instance.host, host),
       cache: { key: host, ttl: 5 * 60 * 1000 },
     });
-
-    if (instance) {
-      ctx.state.instance = instance;
-      return await ctx.next();
-    }
   } catch (e) {
     console.error(e);
     return new Response("Internal Server Error", {
       status: STATUS_CODE.InternalServerError,
     });
+  }
+
+  if (instance) {
+    ctx.state.instance = instance;
+    return await ctx.next();
   }
 
   return new Response("Forbidden", { status: STATUS_CODE.Forbidden });
