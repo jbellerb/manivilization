@@ -30,7 +30,8 @@ export const handler: Handlers<void, State> = {
       instance.name = getString("name", formData);
       instance.host = getString("host", formData);
       instance.guildId = toSnowflake(getString("guild", formData));
-      instance.adminRole = toSnowflake(getString("role", formData));
+      instance.adminRole = toSnowflake(getString("admin-role", formData));
+      instance.privacyPolicy = getString("privacy-policy", formData);
       await db.instances.update(instance);
 
       const headers = new Headers({ Location: "/admin" });
@@ -81,13 +82,23 @@ async function instanceEditor(id: string) {
             </div>
             <span title="Guild settings">Guild</span>
           </div>
-          <label for="input-role">Admin role:</label>
+          <label for="input-admin-role">Admin role:</label>
           <AdminInput
-            name="role"
+            name="admin-role"
             value={fromSnowflake(instance.adminRole)}
             required
           />
         </div>
+        <label for="textarea-privacy-policy">Privacy policy:</label>
+        <div class="flex p-[2px] shadow-debossed border border-input-border">
+          <textarea
+            name="privacy-policy"
+            id="textarea-privacy-policy"
+            class="px-[2px]"
+            value={instance.privacyPolicy}
+          />
+        </div>
+        <div aria-hidden />
         <div class="col-span-2" role="presentation">
           <button class="px-4 py-1 text-sm bg-[#bdbdbd] shadow-embossed active:shadow-debossed focus-visible:outline-1 focus-visible:outline-dotted focus-visible:outline-offset-[-5px] focus-visible:outline-black group">
             <span class="relative group-active:top-[1px] group-active:left-[1px]">

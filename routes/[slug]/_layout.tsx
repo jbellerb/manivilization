@@ -42,9 +42,21 @@ export default defineLayout<State>((_req, { Component, state }) => {
           }}
         />
       </header>
-      <main class="max-w-xl w-full mt-8">
+      <main class="max-w-xl w-full mt-4">
         <Component />
       </main>
+      <footer class="max-w-xl w-full mt-16">
+        <ul class="flex">
+          <li class="ml-auto">
+            <a
+              class="text-gray-400 hover:text-white focus-visible:text-white focus-visible:outline-none transition-color"
+              href="/privacy"
+            >
+              Privacy
+            </a>
+          </li>
+        </ul>
+      </footer>
     </>
   );
 });

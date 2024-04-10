@@ -14,12 +14,15 @@ export class Instance extends Entity {
   guildId: bigint;
   @column("admin_role")
   adminRole: bigint;
+  @column("privacy_policy")
+  privacyPolicy: string;
 
   constructor(
     host: string,
     name: string,
     guildId: bigint,
     adminRole: bigint,
+    privacyPolicy: string,
   ) {
     super();
     this.id = crypto.randomUUID();
@@ -27,6 +30,7 @@ export class Instance extends Entity {
     this.name = name;
     this.guildId = guildId;
     this.adminRole = adminRole;
+    this.privacyPolicy = privacyPolicy;
   }
 }
 
