@@ -1,4 +1,4 @@
-import { APIUser } from "discord_api_types/payloads/v10/user.ts";
+import type { APIUser } from "discord_api_types/payloads/v10/user.ts";
 
 import {
   authorizeUser,

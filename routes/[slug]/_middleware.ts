@@ -19,6 +19,10 @@ const form: MiddlewareHandler<FormState> = async (_req, ctx) => {
         eq(form.instance, ctx.state.instance.id),
         eq(form.slug, ctx.params.slug),
       ),
+    cache: {
+      key: `${ctx.state.instance.id}-${ctx.params.slug}`,
+      ttl: 60 * 1000,
+    },
   });
   if (!form || !form.active) return ctx.renderNotFound();
   ctx.state.form = form;

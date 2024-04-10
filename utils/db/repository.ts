@@ -12,6 +12,7 @@ import {
   tableName,
 } from "./decorators.ts";
 import sql from "./sql.ts";
+import { getCache, setCache } from "../cache.ts";
 
 import type {
   ClassExtends,
@@ -155,6 +156,7 @@ type FindOptions<T extends Entity> = {
   orderBy?: OrderByClause<T>;
   limit?: number;
   offset?: number;
+  cache?: string | { key: string; ttl: number };
 };
 
 export const setupRepository = <
@@ -187,6 +189,16 @@ export const setupRepository = <
     options?: FindOptions<T["prototype"]>,
   ): Promise<Partial<FullyNullable<T["prototype"]>>[]> {
     const cols = selectCols(props, table[columns]);
+    const cacheKey = options?.cache
+      ? (typeof options.cache === "string" ? options.cache : options.cache.key)
+      : undefined;
+
+    if (cacheKey) {
+      const cached = getCache(`sql-${table[tableName]}`, cacheKey) as
+        | Row[]
+        | undefined;
+      if (cached) return buildRows(table, cached, cols.length === 0);
+    }
 
     const selectClause = cols.length === 0 ? sql`*` : sql(cols);
     const whereClause = options
@@ -206,7 +218,17 @@ ${options?.limit ? sql`\n    LIMIT ${options?.limit}` : sql``}\
 ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
 `;
 
-    return buildRows(table, await query, cols.length === 0);
+    const rows = await query;
+    if (cacheKey) {
+      setCache(
+        `sql-${table[tableName]}`,
+        cacheKey,
+        rows,
+        typeof options?.cache === "object" ? options.cache.ttl : undefined,
+      );
+    }
+
+    return buildRows(table, rows, cols.length === 0);
   }
 
   async function find(

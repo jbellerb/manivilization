@@ -3,10 +3,10 @@ import { oauthClient } from "./oauth.ts";
 
 import type { Session } from "./db/mod.ts";
 
-export async function refreshSession(
-  session: Session,
-): Promise<boolean> {
-  if (!session.refreshToken) return false;
+export async function refreshSession(session: Session): Promise<void> {
+  if (!session.refreshToken) {
+    throw new SessionRefreshError("No token to refresh session with");
+  }
 
   try {
     const tokens = await oauthClient().refreshToken
@@ -17,9 +17,15 @@ export async function refreshSession(
       ? new Date(Date.now() + tokens.expiresIn * 1000)
       : null;
   } catch {
-    throw new Error("Failed to refresh expired OAuth session");
+    throw new SessionRefreshError("Failed to refresh expired OAuth session");
   }
-  await db.sessions.update(session);
 
-  return true;
+  await db.sessions.update(session);
+}
+
+export class SessionRefreshError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = "SessionRefreshError";
+  }
 }

@@ -2,6 +2,7 @@ import { STATUS_CODE } from "$std/http/status.ts";
 
 import type { MiddlewareHandler } from "$fresh/server.ts";
 
+import { memo } from "../../utils/cache.ts";
 import { getRoles } from "../../utils/discord/guild.ts";
 import { DiscordHTTPError } from "../../utils/discord/http.ts";
 
@@ -31,9 +32,11 @@ const user: MiddlewareHandler<AdminState> = async (req, ctx) => {
 
 const roles: MiddlewareHandler<AdminState> = async (_req, ctx) => {
   try {
-    ctx.state.roles = await getRoles(
-      ctx.state.instance.guildId,
-      ctx.state.user.id,
+    ctx.state.roles = await memo(
+      "roles",
+      `${ctx.state.instance.guildId}-${ctx.state.user.id}`,
+      () => getRoles(ctx.state.instance.guildId, ctx.state.user.id),
+      5 * 60 * 1000,
     );
     if (ctx.state.roles.includes(ctx.state.instance.adminRole)) {
       return await ctx.next();
