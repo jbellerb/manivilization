@@ -26,7 +26,7 @@ export default {
     colors: {
       "browser-blue": "blue",
       "browser-purple": "purple",
-      "input-border": "#bdbdbd",
+      "windows-gray": "#bdbdbd",
     },
     gridTemplateColumn: {
       "form": "auto auto",

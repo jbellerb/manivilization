@@ -16,7 +16,7 @@ export default function AdminInput(
       name={name}
       id={`input-${name}`}
       class={classnames(
-        "shadow-debossed px-[4px] py-[2px] border border-input-border",
+        "shadow-debossed px-[4px] py-[2px] border border-windows-gray",
         extraClasses,
       )}
       {...props}

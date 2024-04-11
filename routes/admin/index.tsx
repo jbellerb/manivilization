@@ -167,7 +167,7 @@ async function instanceEditor(id: string, sudo: boolean) {
           {sudo && (
             <div
               role="presentation"
-              class="flex p-[2px] shadow-debossed border border-input-border"
+              class="flex p-[2px] shadow-debossed border border-windows-gray"
             >
               <textarea
                 name="privacy-policy"
@@ -180,7 +180,7 @@ async function instanceEditor(id: string, sudo: boolean) {
             </div>
           )}
           <div class="justify-self-end" role="presentation">
-            <button class="px-4 py-1 text-sm bg-[#bdbdbd] shadow-embossed active:shadow-debossed focus-visible:outline-1 focus-visible:outline-dotted focus-visible:outline-offset-[-5px] focus-visible:outline-black group">
+            <button class="px-4 py-1 text-sm bg-windows-gray shadow-embossed active:shadow-debossed focus-visible:outline-1 focus-visible:outline-dotted focus-visible:outline-offset-[-5px] focus-visible:outline-black group">
               <span class="relative group-active:top-[1px] group-active:left-[1px]">
                 Save
               </span>
