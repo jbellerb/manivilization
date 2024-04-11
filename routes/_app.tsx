@@ -19,7 +19,6 @@ export default defineApp((_req, { Component }) => {
           sizes="16x16"
           href="/favicon-16x16.png"
         />
-        <title>Manivilization</title>
       </head>
       <Component />
     </html>

@@ -18,7 +18,7 @@ export default defineLayout<State>((_req, { Component, state }) => {
   return (
     <>
       <Head>
-        <title>{state.form.name}</title>
+        <title>{state.form.name} | {state.instance.name}</title>
         <meta property="og:title" content={state.form.name} />
         <meta property="og:type" content="website" />
         <meta
