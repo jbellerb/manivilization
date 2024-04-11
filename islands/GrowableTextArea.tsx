@@ -34,13 +34,14 @@ export default function GrowableTextArea(
           { "resize-none overflow-hidden": IS_BROWSER },
         )}
         placeholder=" "
-        value={value}
         {...props}
         onInput={(e) => {
           props.onInput && props.onInput(e);
           value.value = e.currentTarget.value;
         }}
-      />
+      >
+        {value}
+      </textarea>
     </div>
   );
 }

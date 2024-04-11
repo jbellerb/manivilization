@@ -173,9 +173,10 @@ async function instanceEditor(id: string, sudo: boolean) {
                 name="privacy-policy"
                 id="textarea-privacy-policy"
                 class="px-[2px] w-full"
-                value={instance.privacyPolicy}
                 rows={4}
-              />
+              >
+                {instance.privacyPolicy}
+              </textarea>
             </div>
           )}
           <div class="justify-self-end" role="presentation">
