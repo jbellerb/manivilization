@@ -50,7 +50,7 @@ export default defineLayout<State>((_req, { Component, state }) => {
         <Component />
       </main>
       {state.instance.privacyPolicy && (
-        <footer class="max-w-xl w-full mt-16 flex">
+        <footer class="max-w-xl w-full mt-auto pt-16 flex">
           <a
             class="ml-auto text-gray-400 hover:text-white focus-visible:text-white focus-visible:outline-none transition-color"
             href="/privacy"
