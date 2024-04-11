@@ -10,6 +10,8 @@ export class Instance extends Entity {
   host: string;
   @column("name")
   name: string;
+  @column("owner")
+  owner: bigint;
   @column("guild_id")
   guildId: bigint;
   @column("admin_role")
@@ -26,6 +28,7 @@ export class Instance extends Entity {
   constructor(
     host: string,
     name: string,
+    owner: bigint,
     guildId: bigint,
     adminRole: bigint,
     privacyPolicy: string,
@@ -37,6 +40,7 @@ export class Instance extends Entity {
     this.id = crypto.randomUUID();
     this.host = host;
     this.name = name;
+    this.owner = owner;
     this.guildId = guildId;
     this.adminRole = adminRole;
     this.privacyPolicy = privacyPolicy;

@@ -7,6 +7,7 @@ import AdminFileInput from "./(_components)/AdminFileInput.tsx";
 import AdminInput from "./(_components)/AdminInput.tsx";
 import NavItem from "./(_components)/NavItem.tsx";
 import FormResetter from "../../islands/FormResetter.tsx";
+import classnames from "../../utils/classnames.ts";
 import db from "../../utils/db/mod.ts";
 import { fromSnowflake, toSnowflake } from "../../utils/discord/snowflake.ts";
 
@@ -29,10 +30,14 @@ export const handler: Handlers<void, State> = {
     try {
       // lazy form data parsing
       instance.name = getString("name", formData);
-      instance.host = getString("host", formData);
       instance.guildId = toSnowflake(getString("guild", formData));
       instance.adminRole = toSnowflake(getString("admin-role", formData));
-      instance.privacyPolicy = getString("privacy-policy", formData);
+
+      if (ctx.state.superAdmin) {
+        instance.host = getString("host", formData);
+        instance.owner = toSnowflake(getString("owner", formData));
+        instance.privacyPolicy = getString("privacy-policy", formData);
+      }
 
       const favicon16 = formData.get("favicon-16");
       const favicon32 = formData.get("favicon-32");
@@ -73,7 +78,7 @@ function GroupLabel(props: { label: string; title: string }) {
   );
 }
 
-async function instanceEditor(id: string) {
+async function instanceEditor(id: string, sudo: boolean) {
   const instance = await db.instances.findOne({}, {
     where: (instance, { eq }) => eq(instance.id, id),
   });
@@ -90,8 +95,14 @@ async function instanceEditor(id: string) {
       >
         <label for="input-name" class="justify-self-end">Name:</label>
         <AdminInput name="name" value={instance.name} required />
-        <label for="input-host" class="justify-self-end">Host:</label>
-        <AdminInput name="host" value={instance.host} required />
+        {sudo && (
+          <>
+            <label for="input-host" class="justify-self-end">Host:</label>
+            <AdminInput name="host" value={instance.host} required />
+            <label for="input-owner" class="justify-self-end">Owner:</label>
+            <AdminInput name="owner" value={fromSnowflake(instance.owner)} />
+          </>
+        )}
         <div
           class="col-span-full grid grid-cols-subgrid gap-2 justify-items-start"
           id="input-group-guild"
@@ -144,22 +155,29 @@ async function instanceEditor(id: string) {
             <AdminFileInput name="favicon-ico" accept=".ico" />
           </div>
         </div>
-        <label for="textarea-privacy-policy" class="justify-self-end">
-          Privacy policy:
-        </label>
-        <div role="presentation" class="grid gap-y-4 w-64">
-          <div
-            role="presentation"
-            class="flex p-[2px] shadow-debossed border border-input-border"
-          >
-            <textarea
-              name="privacy-policy"
-              id="textarea-privacy-policy"
-              class="px-[2px] w-full"
-              value={instance.privacyPolicy}
-              rows={4}
-            />
-          </div>
+        {sudo && (
+          <label for="textarea-privacy-policy" class="justify-self-end">
+            Privacy policy:
+          </label>
+        )}
+        <div
+          role="presentation"
+          class={classnames("grid gap-y-4", sudo ? "w-64" : "w-50 col-start-2")}
+        >
+          {sudo && (
+            <div
+              role="presentation"
+              class="flex p-[2px] shadow-debossed border border-input-border"
+            >
+              <textarea
+                name="privacy-policy"
+                id="textarea-privacy-policy"
+                class="px-[2px] w-full"
+                value={instance.privacyPolicy}
+                rows={4}
+              />
+            </div>
+          )}
           <div class="justify-self-end" role="presentation">
             <button class="px-4 py-1 text-sm bg-[#bdbdbd] shadow-embossed active:shadow-debossed focus-visible:outline-1 focus-visible:outline-dotted focus-visible:outline-offset-[-5px] focus-visible:outline-black group">
               <span class="relative group-active:top-[1px] group-active:left-[1px]">
@@ -175,8 +193,8 @@ async function instanceEditor(id: string) {
 }
 
 export default defineRoute<State>(async (_req, { state }) => {
-  const component = state.superAdmin
-    ? await instanceEditor(state.instance.id)
+  const component = state.superAdmin || state.owner
+    ? await instanceEditor(state.instance.id, state.superAdmin)
     : <h1 class="m-auto text-3xl font-semibold">:3</h1>;
 
   return (

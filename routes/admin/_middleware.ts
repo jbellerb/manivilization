@@ -14,6 +14,7 @@ const superAdmin = BigInt(SUPER_ADMIN ?? 0);
 
 export type AdminState = RootState & {
   user: User;
+  owner: boolean;
   superAdmin: boolean;
 };
 
@@ -30,6 +31,7 @@ const user: MiddlewareHandler<AdminState> = async (req, ctx) => {
   if (user instanceof Response) return user;
   ctx.state.user = user;
 
+  ctx.state.owner = ctx.state.user.id === ctx.state.instance.owner;
   ctx.state.superAdmin = ctx.state.user.id === superAdmin;
 
   return await ctx.next();
@@ -43,7 +45,10 @@ const roles: MiddlewareHandler<AdminState> = async (_req, ctx) => {
       () => getRoles(ctx.state.instance.guildId, ctx.state.user.id),
       5 * 60 * 1000,
     );
-    if (ctx.state.superAdmin || roles.includes(ctx.state.instance.adminRole)) {
+    if (
+      ctx.state.superAdmin || ctx.state.owner ||
+      roles.includes(ctx.state.instance.adminRole)
+    ) {
       return await ctx.next();
     }
   } catch (e) {
