@@ -5,7 +5,9 @@ import { HtmlRenderer, Parser } from "commonmark";
 
 import type { RootState as State } from "./_middleware.ts";
 
-export default defineRoute<State>((_req, { state }) => {
+export default defineRoute<State>((_req, { state, ...ctx }) => {
+  if (!state.instance.privacyPolicy) ctx.renderNotFound();
+
   return (
     <>
       <Head>
@@ -17,7 +19,7 @@ export default defineRoute<State>((_req, { state }) => {
           class="prose prose-invert prose-gray"
           dangerouslySetInnerHTML={{
             __html: (new HtmlRenderer()).render(
-              (new Parser()).parse(state.instance.privacyPolicy ?? ""),
+              (new Parser()).parse(state.instance.privacyPolicy),
             ),
           }}
         />

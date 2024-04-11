@@ -3,6 +3,8 @@ import { defineLayout } from "$fresh/server.ts";
 // @deno-types="https://esm.sh/v135/@types/commonmark@0.27.9/index.d.ts"
 import { HtmlRenderer, Parser } from "commonmark";
 
+import classnames from "../../utils/classnames.ts";
+
 import type { FormState as State } from "./_middleware.ts";
 
 export default defineLayout<State>((_req, { Component, state }) => {
@@ -40,21 +42,23 @@ export default defineLayout<State>((_req, { Component, state }) => {
           }}
         />
       </header>
-      <main class="max-w-xl w-full mt-4">
+      <main
+        class={classnames("max-w-xl w-full mt-4", {
+          "mb-8": !state.instance.privacyPolicy,
+        })}
+      >
         <Component />
       </main>
-      <footer class="max-w-xl w-full mt-16">
-        <ul class="flex">
-          <li class="ml-auto">
-            <a
-              class="text-gray-400 hover:text-white focus-visible:text-white focus-visible:outline-none transition-color"
-              href="/privacy"
-            >
-              Privacy
-            </a>
-          </li>
-        </ul>
-      </footer>
+      {state.instance.privacyPolicy && (
+        <footer class="max-w-xl w-full mt-16 flex">
+          <a
+            class="ml-auto text-gray-400 hover:text-white focus-visible:text-white focus-visible:outline-none transition-color"
+            href="/privacy"
+          >
+            Privacy
+          </a>
+        </footer>
+      )}
     </>
   );
 });
