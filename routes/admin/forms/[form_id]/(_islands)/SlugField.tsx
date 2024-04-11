@@ -39,6 +39,8 @@ export default function SlugField(props: Props) {
             ? "text-gray-600 hover:text-gray-500 focus-visible:text-white"
             : "text-gray-700 pointer-events-none",
         )}
+        aria-disabled={!active.value}
+        tabindex={!active.value ? -1 : undefined}
       >
         {/* Icon from Google Material Design Icons */}
         <svg
