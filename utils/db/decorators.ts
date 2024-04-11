@@ -23,6 +23,7 @@ export type SerializableValue =
   | string
   | Date
   | Uint8Array
+  | ArrayBuffer
   | Array<SerializableValue>
   | SerializableObject;
 interface SerializableObject {

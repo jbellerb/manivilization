@@ -43,6 +43,9 @@ function formPreflight(): Preflight {
     "[type='checkbox']:checked::before": {
       transform: "scale(1)",
     },
+    "::file-selector-button": {
+      display: "none",
+    },
     "select": {
       appearance: "none",
       "background-color": "transparent",

@@ -29,7 +29,7 @@ export default {
       "input-border": "#bdbdbd",
     },
     gridTemplateColumn: {
-      "form": "auto auto auto",
+      "form": "auto auto",
     },
     fontFamily: {
       times: ['"Times New Roman"', "Times", "ui-serif", "serif"],

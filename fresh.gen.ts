@@ -19,6 +19,7 @@ import * as $admin_forms_form_id_index from "./routes/admin/forms/[form_id]/inde
 import * as $admin_forms_form_id_results from "./routes/admin/forms/[form_id]/results.tsx";
 import * as $admin_forms_new from "./routes/admin/forms/new.ts";
 import * as $admin_index from "./routes/admin/index.tsx";
+import * as $favicon from "./routes/favicon.ts";
 import * as $oauth_callback from "./routes/oauth/callback.ts";
 import * as $oauth_login from "./routes/oauth/login.ts";
 import * as $oauth_logout from "./routes/oauth/logout.ts";
@@ -52,6 +53,7 @@ const manifest = {
     "./routes/admin/forms/[form_id]/results.tsx": $admin_forms_form_id_results,
     "./routes/admin/forms/new.ts": $admin_forms_new,
     "./routes/admin/index.tsx": $admin_index,
+    "./routes/favicon.ts": $favicon,
     "./routes/oauth/callback.ts": $oauth_callback,
     "./routes/oauth/login.ts": $oauth_login,
     "./routes/oauth/logout.ts": $oauth_logout,

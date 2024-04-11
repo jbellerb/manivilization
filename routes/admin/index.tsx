@@ -3,6 +3,7 @@ import { defineRoute } from "$fresh/server.ts";
 
 import type { Handlers } from "$fresh/server.ts";
 
+import AdminFileInput from "./(_components)/AdminFileInput.tsx";
 import AdminInput from "./(_components)/AdminInput.tsx";
 import NavItem from "./(_components)/NavItem.tsx";
 import FormResetter from "../../islands/FormResetter.tsx";
@@ -32,6 +33,19 @@ export const handler: Handlers<void, State> = {
       instance.guildId = toSnowflake(getString("guild", formData));
       instance.adminRole = toSnowflake(getString("admin-role", formData));
       instance.privacyPolicy = getString("privacy-policy", formData);
+
+      const favicon16 = formData.get("favicon-16");
+      const favicon32 = formData.get("favicon-32");
+      const faviconIco = formData.get("favicon-ico");
+      if (favicon16 && favicon16 instanceof File) {
+        instance.favicon16 = await favicon16.arrayBuffer();
+      }
+      if (favicon32 && favicon32 instanceof File) {
+        instance.favicon32 = await favicon32.arrayBuffer();
+      }
+      if (faviconIco && faviconIco instanceof File) {
+        instance.faviconIco = await faviconIco.arrayBuffer();
+      }
       await db.instances.update(instance);
 
       const headers = new Headers({ Location: "/admin" });
@@ -46,6 +60,19 @@ export const handler: Handlers<void, State> = {
   },
 };
 
+function GroupLabel(props: { label: string; title: string }) {
+  return (
+    <div
+      class="row-span-full col-start-2 flex items-center py-1"
+      aria-hidden
+    >
+      <div class="h-full border-y border-r border-black w-2 mr-2">
+      </div>
+      <span title={props.title}>{props.label}</span>
+    </div>
+  );
+}
+
 async function instanceEditor(id: string) {
   const instance = await db.instances.findOne({}, {
     where: (instance, { eq }) => eq(instance.id, id),
@@ -57,54 +84,89 @@ async function instanceEditor(id: string) {
       <h1 class="text-xl font-bold mx-auto mb-6">Instance settings</h1>
       <form
         method="post"
-        class="mx-auto grid grid-cols-form gap-y-4 gap-x-2 auto-rows-min justify-items-end"
+        class="mx-auto grid grid-cols-form gap-y-4 gap-x-2 auto-rows-min justify-items-start"
+        enctype="multipart/form-data"
         name="instance"
       >
-        <label for="input-name">Name:</label>
+        <label for="input-name" class="justify-self-end">Name:</label>
         <AdminInput name="name" value={instance.name} required />
-        <div aria-hidden />
-        <label for="input-name">Host:</label>
+        <label for="input-host" class="justify-self-end">Host:</label>
         <AdminInput name="host" value={instance.host} required />
-        <div aria-hidden />
         <div
-          class="col-span-3 grid grid-cols-subgrid gap-2 justify-items-end"
+          class="col-span-full grid grid-cols-subgrid gap-2 justify-items-start"
           id="input-group-guild"
           aria-label="Guild settings"
         >
-          <label for="input-guild">Id:</label>
-          <AdminInput
-            name="guild"
-            value={fromSnowflake(instance.guildId)}
-            required
-          />
-          <div class="row-span-2 flex items-center py-1" aria-hidden>
-            <div class="h-full border-y border-r border-black w-2 mr-2">
-            </div>
-            <span title="Guild settings">Guild</span>
+          <label for="input-guild" class="justify-self-end">
+            Id:
+          </label>
+          <label for="input-admin-role" class="justify-self-end">
+            Admin role:
+          </label>
+          <div
+            role="presentation"
+            class="row-span-2 row-start-1 col-start-2 grid grid-cols-form grid-rows-subgrid gap-2"
+          >
+            <GroupLabel label="Guild" title="Guild settings" />
+            <AdminInput
+              name="guild"
+              value={fromSnowflake(instance.guildId)}
+              required
+            />
+            <AdminInput
+              name="admin-role"
+              value={fromSnowflake(instance.adminRole)}
+              required
+            />
           </div>
-          <label for="input-admin-role">Admin role:</label>
-          <AdminInput
-            name="admin-role"
-            value={fromSnowflake(instance.adminRole)}
-            required
-          />
         </div>
-        <label for="textarea-privacy-policy">Privacy policy:</label>
-        <div class="flex p-[2px] shadow-debossed border border-input-border">
-          <textarea
-            name="privacy-policy"
-            id="textarea-privacy-policy"
-            class="px-[2px]"
-            value={instance.privacyPolicy}
-          />
+        <div
+          class="col-span-full grid grid-cols-subgrid gap-2 justify-items-start"
+          id="input-group-favicon"
+          aria-label="Favicon settings"
+        >
+          <label for="input-favicon-16" class="justify-self-end row-start-1">
+            16x16:
+          </label>
+          <label for="input-favicon-32" class="justify-self-end">
+            32x32:
+          </label>
+          <label for="input-favicon-ico" class="justify-self-end">
+            .ico:
+          </label>
+          <div
+            role="presentation"
+            class="row-span-3 row-start-1 col-start-2 grid grid-cols-form grid-rows-subgrid gap-2"
+          >
+            <GroupLabel label="Favicon" title="Favicon settings" />
+            <AdminFileInput name="favicon-16" accept=".png" />
+            <AdminFileInput name="favicon-32" accept=".png" />
+            <AdminFileInput name="favicon-ico" accept=".ico" />
+          </div>
         </div>
-        <div aria-hidden />
-        <div class="col-span-2" role="presentation">
-          <button class="px-4 py-1 text-sm bg-[#bdbdbd] shadow-embossed active:shadow-debossed focus-visible:outline-1 focus-visible:outline-dotted focus-visible:outline-offset-[-5px] focus-visible:outline-black group">
-            <span class="relative group-active:top-[1px] group-active:left-[1px]">
-              Save
-            </span>
-          </button>
+        <label for="textarea-privacy-policy" class="justify-self-end">
+          Privacy policy:
+        </label>
+        <div role="presentation" class="grid gap-y-4 w-64">
+          <div
+            role="presentation"
+            class="flex p-[2px] shadow-debossed border border-input-border"
+          >
+            <textarea
+              name="privacy-policy"
+              id="textarea-privacy-policy"
+              class="px-[2px] w-full"
+              value={instance.privacyPolicy}
+              rows={4}
+            />
+          </div>
+          <div class="justify-self-end" role="presentation">
+            <button class="px-4 py-1 text-sm bg-[#bdbdbd] shadow-embossed active:shadow-debossed focus-visible:outline-1 focus-visible:outline-dotted focus-visible:outline-offset-[-5px] focus-visible:outline-black group">
+              <span class="relative group-active:top-[1px] group-active:left-[1px]">
+                Save
+              </span>
+            </button>
+          </div>
         </div>
       </form>
       <FormResetter form="instance" />

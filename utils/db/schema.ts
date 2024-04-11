@@ -16,6 +16,12 @@ export class Instance extends Entity {
   adminRole: bigint;
   @column("privacy_policy")
   privacyPolicy: string;
+  @column("favicon_16")
+  favicon16?: ArrayBuffer | null;
+  @column("favicon_32")
+  favicon32?: ArrayBuffer | null;
+  @column("favicon_ico")
+  faviconIco?: ArrayBuffer | null;
 
   constructor(
     host: string,
@@ -23,6 +29,9 @@ export class Instance extends Entity {
     guildId: bigint,
     adminRole: bigint,
     privacyPolicy: string,
+    favicon16?: ArrayBuffer,
+    favicon32?: ArrayBuffer,
+    faviconIco?: ArrayBuffer,
   ) {
     super();
     this.id = crypto.randomUUID();
@@ -31,6 +40,9 @@ export class Instance extends Entity {
     this.guildId = guildId;
     this.adminRole = adminRole;
     this.privacyPolicy = privacyPolicy;
+    this.favicon16 = favicon16;
+    this.favicon32 = favicon32;
+    this.faviconIco = faviconIco;
   }
 }
 
