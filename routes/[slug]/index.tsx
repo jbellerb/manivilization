@@ -20,6 +20,7 @@ import type {
   Question,
   TextQuestion,
 } from "../../utils/form/types.ts";
+import FormResetter from "../../islands/FormResetter.tsx";
 
 type Data = {
   completed: boolean;
@@ -246,6 +247,7 @@ export default function FormPage({ data, state }: PageProps<Data, State>) {
         <form
           method="post"
           class="mt-10 mx-auto max-w-lg w-full space-y-8"
+          name={state.form.slug}
         >
           {data.completed && <ResubmitWarning />}
           {state.form.questions &&
@@ -269,6 +271,7 @@ export default function FormPage({ data, state }: PageProps<Data, State>) {
                 : undefined
             )}
           <Button name="Submit" class="float-right" />
+          {data.completed && <FormResetter form={state.form.slug} />}
         </form>
       )}
     </>
