@@ -1,8 +1,9 @@
 import { decodeBase64Url, encodeBase64Url } from "$std/encoding/base64url.ts";
 import { STATUS_CODE } from "$std/http/status.ts";
+import { SELF, useCSP } from "$fresh/runtime.ts";
 import { decode, encode } from "cbor-x";
 
-import type { Handlers, PageProps } from "$fresh/server.ts";
+import type { Handlers, PageProps, RouteConfig } from "$fresh/server.ts";
 
 import UserBanner from "./(_components)/UserBanner.tsx";
 import Button from "../../components/Button.tsx";
@@ -49,6 +50,10 @@ function maybeString(input: unknown): string | undefined {
   if (typeof input === "string") return input;
   return undefined;
 }
+
+export const config: RouteConfig = {
+  csp: true,
+};
 
 export const handler: Handlers<Data, State> = {
   async GET(req, ctx) {
@@ -240,6 +245,11 @@ function FormCheckboxQuestion(
 }
 
 export default function FormPage({ data, state }: PageProps<Data, State>) {
+  useCSP((csp) => {
+    csp.directives.imgSrc = [SELF, "https://cdn.discordapp.com"];
+    csp.directives.styleSrc = [SELF];
+  });
+
   return (
     <>
       <UserBanner path={`/${state.form.slug}`} user={state.user} />
