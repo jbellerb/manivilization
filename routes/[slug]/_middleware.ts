@@ -5,10 +5,9 @@ import db from "../../utils/db/mod.ts";
 import type { RootState } from "../_middleware.ts";
 import type { Form } from "../../utils/db/mod.ts";
 import type { User } from "../../utils/discord/user.ts";
-import type { FormSpec } from "../../utils/form/types.ts";
 
 export type FormState = RootState & {
-  form: Form<FormSpec>;
+  form: Form;
   user?: User;
 };
 

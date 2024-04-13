@@ -7,17 +7,14 @@ import Select from "../../../../../components/Select.tsx";
 import TextInput from "../../../../../components/TextInput.tsx";
 import classnames from "../../../../../utils/classnames.ts";
 
-import type { FormSpec, Question } from "../../../../../utils/form/types.ts";
+import type { Question } from "../../../../../utils/form/types.ts";
 
 export type Props = {
-  questions?: FormSpec;
+  questions?: Question[];
 };
 
 export default function QuestionEditor(props: Props) {
-  if (props.questions && props.questions.version !== "v1") {
-    throw new Error("unsupported question format version");
-  }
-  const questions = useSignal(props.questions?.questions ?? []);
+  const questions = useSignal(props.questions ?? []);
 
   const addQuestion = (question: Question) =>
     questions.value = [...questions.value, question];

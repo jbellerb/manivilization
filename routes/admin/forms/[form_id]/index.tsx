@@ -61,7 +61,7 @@ export default defineRoute<State>((_req, { state }) => {
             label="Description"
             value={state.form.description ?? undefined}
           />
-          <QuestionEditor questions={state.form.questions ?? undefined} />
+          <QuestionEditor questions={state.form.questions?._} />
           <GrowableTextArea
             name="success_message"
             label="Success Message"

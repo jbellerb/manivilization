@@ -16,9 +16,4 @@ export type CheckboxQuestion = {
 
 export type Question = TextQuestion | CheckboxQuestion;
 
-export type FormSpec = {
-  version: string;
-  questions: Question[];
-};
-
 export type ValidationIssue = "required";

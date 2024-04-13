@@ -1,6 +1,6 @@
 import { toSnowflake } from "../discord/snowflake.ts";
 
-import type { FormSpec, Question, ValidationIssue } from "./types.ts";
+import type { Question, ValidationIssue } from "./types.ts";
 import type { EntityProps } from "../db/decorators.ts";
 import type { Form } from "../db/mod.ts";
 
@@ -88,7 +88,7 @@ function mapMaybe<T, R>(
 
 export function parseEditorFormData(
   data: FormData,
-): Omit<EntityProps<Form<FormSpec>>, "id" | "instance"> {
+): Omit<EntityProps<Form>, "id" | "instance"> {
   const questions: Question[] = [];
   const formData = walkFormData(data);
   for (let [key, value] of Object.entries(formData.question ?? {}).sort()) {
@@ -122,7 +122,7 @@ export function parseEditorFormData(
     slug: isString("slug", data.get("slug")),
     active: isString("active", data.get("active") ?? "off") === "on",
     description: mapMaybe(isString, "description", data.get("description")),
-    questions: { version: "v1", questions },
+    questions: { _: questions },
     successMessage: mapMaybe(
       isString,
       "success_message",
@@ -138,7 +138,7 @@ export function parseEditorFormData(
 
 export function parseFormData(
   data: FormData,
-  form: Form<FormSpec>,
+  form: Form,
 ): {
   answers: Record<string, string>;
   issues: Record<string, ValidationIssue[]>;
@@ -148,7 +148,7 @@ export function parseFormData(
 
   if (form.questions) {
     const values = isAttrs("question", walkFormData(data).question);
-    for (const question of form.questions.questions) {
+    for (const question of form.questions._) {
       const name = `question.${question.name}`;
       if (question.type === "text") {
         answers[question.name] =

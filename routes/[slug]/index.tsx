@@ -91,7 +91,7 @@ export const handler: Handlers<Data, State> = {
       const answers = parseFormData(formData, ctx.state.form);
       if (Object.keys(answers.issues).length > 0) {
         const errorData = encodeBase64Url(encode(answers));
-        const firstError = ctx.state.form.questions?.questions
+        const firstError = ctx.state.form.questions?._
           ?.find((question) => question.name in answers.issues)?.name;
         const headers = new Headers({
           Location:
@@ -249,7 +249,7 @@ export default function FormPage({ data, state }: PageProps<Data, State>) {
         >
           {data.completed && <ResubmitWarning />}
           {state.form.questions &&
-            state.form.questions.questions.map((question: Question) =>
+            state.form.questions._.map((question: Question) =>
               question.type === "text"
                 ? (
                   <FormTextQuestion

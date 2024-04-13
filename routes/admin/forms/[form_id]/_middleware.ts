@@ -4,10 +4,9 @@ import db from "../../../../utils/db/mod.ts";
 
 import type { AdminState } from "../../_middleware.ts";
 import type { Form } from "../../../../utils/db/mod.ts";
-import type { FormSpec } from "../../../../utils/form/types.ts";
 
 export type AdminFormState = AdminState & {
-  form: Form<FormSpec>;
+  form: Form;
 };
 
 const form: MiddlewareHandler<AdminFormState> = async (_req, ctx) => {

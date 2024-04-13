@@ -7,7 +7,7 @@ import db from "../../../../utils/db/mod.ts";
 import { fromSnowflake } from "../../../../utils/discord/snowflake.ts";
 
 export default defineRoute<State>(async (_req, { state }) => {
-  const questions = state.form.questions?.questions ?? [];
+  const questions = state.form.questions?._ ?? [];
   const responses = await db.responses.find({}, {
     where: (response, { eq }) => eq(response.form, state.form.id),
   });

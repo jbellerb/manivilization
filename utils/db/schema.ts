@@ -1,6 +1,6 @@
 import { column, Entity, table } from "./decorators.ts";
 
-import type { SerializableValue } from "./decorators.ts";
+import type { Question } from "../form/types.ts";
 
 @table("instances")
 export class Instance extends Entity {
@@ -115,7 +115,7 @@ export class Session extends Entity {
 }
 
 @table("forms")
-export class Form<T extends SerializableValue> extends Entity {
+export class Form extends Entity {
   @column("id")
   id: string;
   @column("instance")
@@ -129,7 +129,7 @@ export class Form<T extends SerializableValue> extends Entity {
   @column("description")
   description?: string | null;
   @column("questions")
-  questions?: T | null;
+  questions?: { _: Question[] } | null;
   @column("success_message")
   successMessage?: string | null;
   @column("submitter_role")
@@ -141,7 +141,7 @@ export class Form<T extends SerializableValue> extends Entity {
     slug: string,
     active: boolean,
     description?: string,
-    questions?: T,
+    questions?: Question[],
     successMessage?: string,
     submitterRole?: bigint,
   ) {
@@ -152,7 +152,7 @@ export class Form<T extends SerializableValue> extends Entity {
     this.slug = slug;
     this.active = active;
     this.description = description;
-    this.questions = questions;
+    this.questions = questions && { _: questions };
     this.successMessage = successMessage;
     this.submitterRole = submitterRole;
   }
