@@ -162,8 +162,6 @@ export class Form extends Entity {
 export class FormResponse extends Entity {
   @column("id")
   id: string;
-  @column("instance")
-  instance: string;
   @column("date")
   date: Date;
   @column("form")
@@ -176,7 +174,6 @@ export class FormResponse extends Entity {
   response?: Record<string, string> | null;
 
   constructor(
-    instance: string,
     form: string,
     discordId: bigint,
     discordName: string,
@@ -184,7 +181,6 @@ export class FormResponse extends Entity {
   ) {
     super();
     this.id = crypto.randomUUID();
-    this.instance = instance;
     this.date = new Date();
     this.form = form;
     this.discordId = discordId;

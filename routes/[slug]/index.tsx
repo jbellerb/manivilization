@@ -109,7 +109,6 @@ export const handler: Handlers<Data, State> = {
       }
 
       const response = new FormResponse(
-        ctx.state.instance.id,
         ctx.state.form.id,
         ctx.state.user.id,
         ctx.state.user.username,
