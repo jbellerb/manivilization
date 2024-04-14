@@ -40,12 +40,12 @@ export default function TextInput(
         name={name}
         id={`input-${name}`}
         class={classnames(
-          "block w-full py-1 bg-transparent border-b-2 border-gray-600 transition-border-color transition-color",
+          "block w-full py-1 bg-transparent border-b-2 border-gray-600 transition-colors",
           disabled
             ? "text-gray-600 border-gray-700"
             : error
             ? "border-red-400"
-            : "border-gray-600 hover:border-gray-500 focus-visible:border-white",
+            : "border-gray-600 invalid:!border-red-400 hover:border-gray-500 focus-visible:border-white",
         )}
         disabled={disabled}
         {...props}

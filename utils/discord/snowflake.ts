@@ -1,6 +1,15 @@
 const MAX_I64 = 9223372036854775807n;
 const RANGE_U64 = 18446744073709551616n;
 
+export function validSnowflake(snowflake: string): boolean {
+  try {
+    toSnowflake(snowflake);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function toSnowflake(snowflake: string): bigint {
   let int = BigInt(snowflake);
   if (int < 0 || int >= RANGE_U64) {

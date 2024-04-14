@@ -12,7 +12,6 @@ import type {
   CheckboxRolesQuestion,
   Question,
 } from "../../../../../utils/form/types.ts";
-import { fromSnowflake } from "../../../../../utils/discord/snowflake.ts";
 
 export type Props = {
   questions?: Question[];
@@ -34,8 +33,7 @@ function loosen(
     if (type === "checkbox_roles" && key === "options") {
       const options = value as CheckboxRolesQuestion["options"];
       stringifiedProps.options = options.map((option) => option.label);
-      stringifiedProps.roles = options
-        .map((option) => fromSnowflake(option.role));
+      stringifiedProps.roles = options.map((option) => option.role);
     } else {
       stringifiedProps[key] = Array.isArray(value) ? value : [value];
     }

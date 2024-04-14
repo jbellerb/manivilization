@@ -7,8 +7,8 @@ import type { Handlers, PageProps, RouteConfig } from "$fresh/server.ts";
 
 import UserBanner from "./(_components)/UserBanner.tsx";
 import Button from "../../components/Button.tsx";
-import Checkbox from "../../components/Checkbox.tsx";
 import TextInput from "../../components/TextInput.tsx";
+import CheckboxGroup from "../../islands/CheckboxGroup.tsx";
 import classnames from "../../utils/classnames.ts";
 import db, { FormResponse } from "../../utils/db/mod.ts";
 import { assignRole } from "../../utils/discord/guild.ts";
@@ -229,40 +229,16 @@ function FormCheckboxQuestion(
   const checked = props.value?.split(", ");
 
   return (
-    <fieldset id={`question-${props.question.name}`} class="space-y-2">
-      {props.question.comment != null && (
-        <legend class="text-lg">
-          {props.question.comment}
-          {props.question.required && (
-            <span
-              class={classnames(
-                "block mt-0 text-sm font-semibold",
-                props.issues?.includes("required")
-                  ? "text-red-400"
-                  : "text-gray-400",
-              )}
-            >
-              * Required
-            </span>
-          )}
-        </legend>
-      )}
-      {(props.question.type === "checkbox_roles"
+    <CheckboxGroup
+      name={props.question.name}
+      comment={props.question.comment}
+      options={props.question.type === "checkbox_roles"
         ? props.question.options.map((option) => option.label)
-        : props.question.options)
-        .map((option, idx) => (
-          <Checkbox
-            name={`question-${props.question.name}`}
-            id={`checkbox-${props.question.name}-${idx}`}
-            label={option}
-            checked={checked?.includes(option)}
-            value={option}
-            required={props.question.options.length === 1
-              ? props.question.required
-              : undefined}
-          />
-        ))}
-    </fieldset>
+        : props.question.options}
+      checked={checked}
+      required={props.question.required}
+      error={props.issues?.includes("required")}
+    />
   );
 }
 

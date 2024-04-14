@@ -1,6 +1,6 @@
 import IconButton from "../../../../../components/IconButton.tsx";
 import TextInput from "../../../../../components/TextInput.tsx";
-import { toSnowflake } from "../../../../../utils/discord/snowflake.ts";
+import { validSnowflake } from "../../../../../utils/discord/snowflake.ts";
 
 type Props = {
   name: string;
@@ -8,15 +8,6 @@ type Props = {
   roles: string[];
   onChange?: (options: string[], roles: string[]) => void;
 };
-
-function validateRole(role: string): boolean {
-  try {
-    toSnowflake(role);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export default function OptionsEditor(props: Props) {
   const addOption = (option: string, role: string) =>
@@ -61,7 +52,6 @@ export default function OptionsEditor(props: Props) {
                 name={`${props.name}-labels-${idx}`}
                 class="mr-2"
                 value={option}
-                error={!option}
                 onChange={(e) =>
                   updateOption(idx, e.currentTarget.value, props.roles[idx])}
                 aria-labelledby={`${props.name}-options`}
@@ -70,12 +60,11 @@ export default function OptionsEditor(props: Props) {
               <TextInput
                 name={`${props.name}-roles-${idx}`}
                 value={props.roles[idx]}
-                error={!props.roles[idx] && !validateRole(props.roles[idx])}
                 onChange={(e) =>
                   updateOption(idx, option, e.currentTarget.value)}
                 onInput={(e) =>
                   e.currentTarget.setCustomValidity(
-                    validateRole(e.currentTarget.value)
+                    validSnowflake(e.currentTarget.value)
                       ? ""
                       : "Please enter a valid Discord role ID.",
                   )}

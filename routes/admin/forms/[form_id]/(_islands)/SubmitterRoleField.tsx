@@ -3,10 +3,12 @@ import { useSignal } from "@preact/signals";
 import Checkbox from "../../../../../components/Checkbox.tsx";
 import TextInput from "../../../../../components/TextInput.tsx";
 import classnames from "../../../../../utils/classnames.ts";
+import { validSnowflake } from "../../../../../utils/discord/snowflake.ts";
 
 type Props = { class: string; submitterRole?: string };
 
 export default function SubmitterRoleField(props: Props) {
+  const submitterRole = useSignal(props.submitterRole);
   const assignsRole = useSignal(Boolean(props.submitterRole));
 
   return (
@@ -22,10 +24,18 @@ export default function SubmitterRoleField(props: Props) {
       <TextInput
         name={assignsRole.value ? "submitter_role" : ""}
         id="input-submitter_role"
-        label="Role ID"
+        label="Role ID *"
         class="ml-3"
+        onChange={(e) => submitterRole.value = e.currentTarget.value}
+        onInput={(e) =>
+          e.currentTarget.setCustomValidity(
+            validSnowflake(e.currentTarget.value)
+              ? ""
+              : "Please enter a valid Discord role ID.",
+          )}
         disabled={!assignsRole.value}
-        value={props.submitterRole}
+        value={submitterRole.value}
+        required
       />
     </div>
   );

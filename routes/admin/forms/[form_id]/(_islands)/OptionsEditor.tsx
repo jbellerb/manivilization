@@ -1,5 +1,6 @@
 import IconButton from "../../../../../components/IconButton.tsx";
 import TextInput from "../../../../../components/TextInput.tsx";
+import { validSnowflake } from "../../../../../utils/discord/snowflake.ts";
 
 type Props = {
   name: string;
@@ -24,7 +25,10 @@ export default function OptionsEditor(props: Props) {
         onClick={() => addOption("New Option")}
       />
       <div class="flex flex-col w-full ml-2">
-        <label class="text-sm font-semibold text-gray-400">
+        <label
+          id={`${props.name}-options`}
+          class="text-sm font-semibold text-gray-400"
+        >
           Options<span class="ml-1">*</span>
         </label>
         <ul class="-mt-1">
@@ -34,6 +38,7 @@ export default function OptionsEditor(props: Props) {
                 name={`${props.name}-options-${idx}`}
                 value={option}
                 onChange={(e) => updateOption(e.currentTarget.value, idx)}
+                aria-labelledby={`${props.name}-options`}
                 required
               />
               <IconButton
