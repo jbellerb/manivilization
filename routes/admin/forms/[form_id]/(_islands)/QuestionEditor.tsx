@@ -1,26 +1,79 @@
 import { useSignal } from "@preact/signals";
 
 import OptionsEditor from "./OptionsEditor.tsx";
+import OptionsRolesEditor from "./OptionsRolesEditor.tsx";
 import IconButton from "../../../../../components/IconButton.tsx";
 import InlineCheckbox from "../../../../../components/InlineCheckbox.tsx";
 import Select from "../../../../../components/Select.tsx";
 import TextInput from "../../../../../components/TextInput.tsx";
 import classnames from "../../../../../utils/classnames.ts";
 
-import type { Question } from "../../../../../utils/form/types.ts";
+import type {
+  CheckboxRolesQuestion,
+  Question,
+} from "../../../../../utils/form/types.ts";
+import { fromSnowflake } from "../../../../../utils/discord/snowflake.ts";
 
 export type Props = {
   questions?: Question[];
 };
 
-export default function QuestionEditor(props: Props) {
-  const questions = useSignal(props.questions ?? []);
+type LooseQuestion = {
+  type: Question["type"];
+  name: string;
+  required: boolean;
+  comment?: string;
+  props: Record<string, string[]>;
+};
 
-  const addQuestion = (question: Question) =>
+function loosen(
+  { type, name, required, comment, ...props }: Question,
+): LooseQuestion {
+  const stringifiedProps: Record<string, string[]> = {};
+  for (const [key, value] of Object.entries(props)) {
+    if (type === "checkbox_roles" && key === "options") {
+      const options = value as CheckboxRolesQuestion["options"];
+      stringifiedProps.options = options.map((option) => option.label);
+      stringifiedProps.roles = options
+        .map((option) => fromSnowflake(option.role));
+    } else {
+      stringifiedProps[key] = Array.isArray(value) ? value : [value];
+    }
+  }
+
+  return ({ type, name, required, comment, props: stringifiedProps });
+}
+
+function changeType(
+  question: LooseQuestion,
+  type: Question["type"],
+): LooseQuestion {
+  const props = {
+    ...question.props,
+    ...(type === "text"
+      ? { label: question.props.label ?? "" }
+      : type === "checkbox"
+      ? { options: question.props.options ?? ["New Option"] }
+      : type === "checkbox_roles"
+      ? {
+        options: question.props.options ?? ["New Option"],
+        roles: question.props.roles ?? question.props.options?.map(() => "0") ??
+          ["0"],
+      }
+      : undefined),
+  };
+
+  return { ...question, type, props };
+}
+
+export default function QuestionEditor(props: Props) {
+  const questions = useSignal((props.questions ?? []).map(loosen));
+
+  const addQuestion = (question: LooseQuestion) =>
     questions.value = [...questions.value, question];
   const deleteQuestion = (idx: number) =>
     questions.value = questions.value.toSpliced(idx, 1);
-  const updateQuestion = (question: Question, idx: number) =>
+  const updateQuestion = (question: LooseQuestion, idx: number) =>
     questions.value = questions.value.toSpliced(idx, 1, question);
   const swapQuestions = (a: number, b: number) => {
     const copy = [...questions.value];
@@ -28,22 +81,10 @@ export default function QuestionEditor(props: Props) {
     questions.value = copy;
   };
 
-  // This cast retains associated data with the previous type in case the user
-  // changes it back. This is safe as only visible form elements are submitted.
-  const changeType = (question: Question, type: Question["type"]) => ({
-    ...question,
-    type,
-    ...(type === "text"
-      ? { label: "label" in question ? question.label : "" }
-      : type === "checkbox"
-      ? { options: "options" in question ? question.options : ["New Option"] }
-      : undefined),
-  } as Question);
-
   return (
     <div>
       <ul class="space-y-6" aria-label="Questions">
-        {questions.value.map((question: Question, idx: number) => (
+        {questions.value.map((question, idx) => (
           <li class="flex" key={question.name} aria-label={question.name}>
             <div class="flex flex-col mr-2 space-y-2">
               <IconButton
@@ -86,6 +127,7 @@ export default function QuestionEditor(props: Props) {
                 >
                   <option value="text">Textbox</option>
                   <option value="checkbox">Checkboxes</option>
+                  <option value="checkbox_roles">Role Checkboxes</option>
                 </Select>
                 <TextInput
                   name={`question-${idx}-name`}
@@ -124,11 +166,14 @@ export default function QuestionEditor(props: Props) {
                   <TextInput
                     name={`question-${idx}-label`}
                     label="Label"
-                    value={question.label}
+                    value={question.props.label[0]}
                     onChange={(e) =>
                       updateQuestion({
                         ...question,
-                        label: e.currentTarget.value,
+                        props: {
+                          ...question.props,
+                          label: [e.currentTarget.value],
+                        },
                       }, idx)}
                   />
                 )
@@ -136,9 +181,25 @@ export default function QuestionEditor(props: Props) {
                 ? (
                   <OptionsEditor
                     name={`question-${idx}`}
-                    options={question.options}
+                    options={question.props.options}
                     onChange={(options) =>
-                      updateQuestion({ ...question, options }, idx)}
+                      updateQuestion({
+                        ...question,
+                        props: { ...question.props, options },
+                      }, idx)}
+                  />
+                )
+                : (question.type === "checkbox_roles")
+                ? (
+                  <OptionsRolesEditor
+                    name={`question-${idx}`}
+                    options={question.props.options}
+                    roles={question.props.roles}
+                    onChange={(options, roles) =>
+                      updateQuestion({
+                        ...question,
+                        props: { ...question.props, options, roles },
+                      }, idx)}
                   />
                 )
                 : undefined}
@@ -155,13 +216,13 @@ export default function QuestionEditor(props: Props) {
           type="button"
           class="p-2 border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white rounded-full transition-border-color after:block after:content-empty after:w-6 after:h-6 after:i-mdi-plus"
           aria-label="Add a question"
-          onClick={() => (addQuestion({
-            type: "text",
-            name: `col_${questions.value.length + 1}`,
-            required: true,
-            comment: "",
-            label: "",
-          }))}
+          onClick={() =>
+            addQuestion(changeType({
+              type: "text",
+              name: `col_${questions.value.length + 1}`,
+              required: false,
+              props: {},
+            }, "text"))}
         >
         </button>
       </div>

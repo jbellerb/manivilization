@@ -14,6 +14,14 @@ export type CheckboxQuestion = {
   options: string[];
 };
 
-export type Question = TextQuestion | CheckboxQuestion;
+export type CheckboxRolesQuestion = {
+  type: "checkbox_roles";
+  name: string;
+  required: boolean;
+  comment?: string;
+  options: { label: string; role: string }[];
+};
+
+export type Question = TextQuestion | CheckboxQuestion | CheckboxRolesQuestion;
 
 export type ValidationIssue = "required";

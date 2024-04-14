@@ -27,6 +27,7 @@ import * as $privacy from "./routes/privacy.tsx";
 import * as $FormResetter from "./islands/FormResetter.tsx";
 import * as $GrowableTextArea from "./islands/GrowableTextArea.tsx";
 import * as $admin_forms_form_id_islands_OptionsEditor from "./routes/admin/forms/[form_id]/(_islands)/OptionsEditor.tsx";
+import * as $admin_forms_form_id_islands_OptionsRolesEditor from "./routes/admin/forms/[form_id]/(_islands)/OptionsRolesEditor.tsx";
 import * as $admin_forms_form_id_islands_QuestionEditor from "./routes/admin/forms/[form_id]/(_islands)/QuestionEditor.tsx";
 import * as $admin_forms_form_id_islands_ResultsTable from "./routes/admin/forms/[form_id]/(_islands)/ResultsTable.tsx";
 import * as $admin_forms_form_id_islands_SlugField from "./routes/admin/forms/[form_id]/(_islands)/SlugField.tsx";
@@ -64,6 +65,8 @@ const manifest = {
     "./islands/GrowableTextArea.tsx": $GrowableTextArea,
     "./routes/admin/forms/[form_id]/(_islands)/OptionsEditor.tsx":
       $admin_forms_form_id_islands_OptionsEditor,
+    "./routes/admin/forms/[form_id]/(_islands)/OptionsRolesEditor.tsx":
+      $admin_forms_form_id_islands_OptionsRolesEditor,
     "./routes/admin/forms/[form_id]/(_islands)/QuestionEditor.tsx":
       $admin_forms_form_id_islands_QuestionEditor,
     "./routes/admin/forms/[form_id]/(_islands)/ResultsTable.tsx":

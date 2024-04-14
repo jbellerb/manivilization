@@ -1,4 +1,4 @@
-import { toSnowflake } from "../discord/snowflake.ts";
+import { fromSnowflake, toSnowflake } from "../discord/snowflake.ts";
 
 import type { Question, ValidationIssue } from "./types.ts";
 import type { EntityProps } from "../db/decorators.ts";
@@ -110,6 +110,16 @@ export function parseEditorFormData(
         isValues(`question.${key}.options[${i}]`, options[i])[0]
       );
       questions.push({ type, name, required, comment, options: optionsArray });
+    } else if (type === "checkbox_roles") {
+      const labels = isAttrs(`question.${key}.labels`, value.labels);
+      const roles = isAttrs(`question.${key}.roles`, value.roles);
+      const optionsArray = Object.keys(labels).sort().map((i) => ({
+        label: isValues(`question.${key}.options[${i}]`, labels[i])[0],
+        role: fromSnowflake(
+          toSnowflake(isValues(`question.${key}.roles[${i}]`, roles[i])[0]),
+        ),
+      }));
+      questions.push({ type, name, required, comment, options: optionsArray });
     } else {
       throw new FormParseError(
         `question.${key}.type is unexpected type "${type}"`,
@@ -153,7 +163,9 @@ export function parseFormData(
       if (question.type === "text") {
         answers[question.name] =
           mapMaybe(isValues, name, values[question.name])?.[0] ?? "";
-      } else if (question.type === "checkbox") {
+      } else if (
+        question.type === "checkbox" || question.type === "checkbox_roles"
+      ) {
         answers[question.name] =
           mapMaybe(isValues, name, values[question.name])?.join(", ") ?? "";
       }

@@ -12,12 +12,14 @@ import TextInput from "../../components/TextInput.tsx";
 import classnames from "../../utils/classnames.ts";
 import db, { FormResponse } from "../../utils/db/mod.ts";
 import { assignRole } from "../../utils/discord/guild.ts";
+import { toSnowflake } from "../../utils/discord/snowflake.ts";
 import { DiscordHTTPError } from "../../utils/discord/http.ts";
 import { FormParseError, parseFormData } from "../../utils/form/parse.ts";
 
 import type { FormState as State } from "./_middleware.ts";
 import type {
   CheckboxQuestion,
+  CheckboxRolesQuestion,
   Question,
   TextQuestion,
 } from "../../utils/form/types.ts";
@@ -94,11 +96,11 @@ export const handler: Handlers<Data, State> = {
 
     const formData = await req.formData();
     try {
-      const answers = parseFormData(formData, ctx.state.form);
-      if (Object.keys(answers.issues).length > 0) {
-        const errorData = encodeBase64Url(encode(answers));
+      const { answers, issues } = parseFormData(formData, ctx.state.form);
+      if (Object.keys(issues).length > 0) {
+        const errorData = encodeBase64Url(encode({ answers, issues }));
         const firstError = ctx.state.form.questions?._
-          ?.find((question) => question.name in answers.issues)?.name;
+          ?.find((question) => question.name in issues)?.name;
         const headers = new Headers({
           Location:
             `/${ctx.state.form.slug}?error=${errorData}#question-${firstError}`,
@@ -111,21 +113,34 @@ export const handler: Handlers<Data, State> = {
         ctx.state.form.id,
         ctx.state.user.id,
         ctx.state.user.username,
-        answers.answers,
+        answers,
       );
       await db.responses.insert(response);
 
-      if (ctx.state.form.submitterRole) {
-        try {
+      try {
+        const user = ctx.state.user.id;
+        if (ctx.state.form.submitterRole) {
           await assignRole(
             ctx.state.instance.guildId,
-            ctx.state.user.id,
+            user,
             ctx.state.form.submitterRole,
           );
-        } catch (e) {
-          if (e instanceof DiscordHTTPError) console.log(e);
-          else throw e;
         }
+        await Promise.all((ctx.state.form.questions?._ ?? [])
+          .flatMap((question) => {
+            if (question.type === "checkbox_roles") {
+              const roles = answers[question.name]?.split(", ");
+              return question.options.map(async ({ label, role }) =>
+                roles.includes(label) && await assignRole(
+                  ctx.state.instance.guildId,
+                  user,
+                  toSnowflake(role),
+                )
+              );
+            }
+          }));
+      } catch (e) {
+        if (!(e instanceof DiscordHTTPError)) throw e;
       }
 
       const headers = new Headers({
@@ -206,7 +221,11 @@ function FormTextQuestion(
 }
 
 function FormCheckboxQuestion(
-  props: { question: CheckboxQuestion; value?: string; issues?: unknown[] },
+  props: {
+    question: CheckboxQuestion | CheckboxRolesQuestion;
+    value?: string;
+    issues?: unknown[];
+  },
 ) {
   const checked = props.value?.split(", ");
 
@@ -229,18 +248,21 @@ function FormCheckboxQuestion(
           )}
         </legend>
       )}
-      {props.question.options.map((option, idx) => (
-        <Checkbox
-          name={`question-${props.question.name}`}
-          id={`checkbox-${props.question.name}-${idx}`}
-          label={option}
-          checked={checked?.includes(option)}
-          value={option}
-          required={props.question.options.length === 1
-            ? props.question.required
-            : undefined}
-        />
-      ))}
+      {(props.question.type === "checkbox_roles"
+        ? props.question.options.map((option) => option.label)
+        : props.question.options)
+        .map((option, idx) => (
+          <Checkbox
+            name={`question-${props.question.name}`}
+            id={`checkbox-${props.question.name}-${idx}`}
+            label={option}
+            checked={checked?.includes(option)}
+            value={option}
+            required={props.question.options.length === 1
+              ? props.question.required
+              : undefined}
+          />
+        ))}
     </fieldset>
   );
 }
@@ -271,7 +293,8 @@ export default function FormPage({ data, state }: PageProps<Data, State>) {
                     issues={maybeArray(data.issues?.[question.name])}
                   />
                 )
-                : question.type === "checkbox"
+                : question.type === "checkbox" ||
+                    question.type === "checkbox_roles"
                 ? (
                   <FormCheckboxQuestion
                     question={question}
