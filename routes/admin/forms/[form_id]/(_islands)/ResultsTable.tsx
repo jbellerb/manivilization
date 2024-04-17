@@ -1,42 +1,8 @@
 import { IS_BROWSER } from "$fresh/runtime.ts";
 import { useSignal } from "@preact/signals";
 
+import UserCard from "./UserCard.tsx";
 import AdminButton from "../../../(_components)/AdminButton.tsx";
-
-type UserCardProps = {
-  id: string;
-  name: string;
-};
-
-function UserCard(props: UserCardProps) {
-  const active = useSignal(false);
-
-  const mention = `<@${props.id}>`;
-
-  return (
-    <th
-      scope="row"
-      class="px-4 py-2 border-b border-black"
-    >
-      {active.value
-        ? (
-          <input
-            type="text"
-            // I think this is a valid use of ref? Need to delay calling
-            // .focus() until after the <input> is committed to the DOM.
-            // useSignalEffect fires before commit so that won't work.
-            // See: https://github.com/preactjs/signals/issues/228
-            ref={(refNode) => refNode?.focus()}
-            onBlur={() => active.value = false}
-            onFocus={(e) => e.currentTarget.select()}
-            onInput={(e) => e.currentTarget.value = mention}
-            value={mention}
-          />
-        )
-        : <span onClick={() => active.value = true}>{props.name}</span>}
-    </th>
-  );
-}
 
 type Props = {
   columns: string[];
@@ -78,7 +44,7 @@ function exportCsv(props: Props) {
 
 export default function ResultsTable(props: Props) {
   const sortBy = useSignal(-2);
-  const sortOrder = useSignal(false);
+  const sortAsc = useSignal(false);
   const cmp = Intl.Collator();
 
   const responses = props.responses.toSorted((a, b) => {
@@ -87,52 +53,52 @@ export default function ResultsTable(props: Props) {
       : sortBy.value === -1
       ? b.date - a.date
       : cmp.compare(a.response[sortBy.value], b.response[sortBy.value]);
-    return col === 0 ? b.date - a.date : col * (sortOrder.value ? -1 : 1);
+    return col === 0 ? b.date - a.date : col * (sortAsc.value ? -1 : 1);
   });
 
   return (
     <>
       <AdminButton
         name="Download CSV"
-        class="ml-4"
+        class="ml-2 mb-2"
         onClick={() => exportCsv({ columns: props.columns, responses })}
       />
-      <table class="w-full text-left border-separate border-spacing-0">
-        <thead class="text-sm">
-          <tr class="sticky top-0 bg-white">
+      <table class="w-full text-left overflow-y-hidden border-separate border-spacing-0 p-0.5">
+        <thead class="sticky top-0.5 text-sm z-10 after:content-empty after:block after:h-2">
+          <tr class="outline outline-white outline-1 relative after:content-empty after:absolute after:-z-10 after:-inset-px after:shadow-table">
             {["User", "Date", ...props.columns].map((column, idx) => (
-              <th scope="col" class="border-b border-black">
+              <th scope="col" class="bg-white shadow-cell border border-white">
                 <button
-                  class="px-4 py-2 w-full h-full text-left"
+                  class="p-2 w-full h-full text-left"
                   onClick={() => {
                     if (sortBy.value === idx - 2) {
-                      sortOrder.value = !sortOrder.value;
+                      sortAsc.value = !sortAsc.value;
                     } else {
-                      sortOrder.value = false;
+                      sortAsc.value = false;
                       sortBy.value = idx - 2;
                     }
                   }}
                 >
                   {column}
                   <span class="ml-4">
-                    {sortBy.value + 2 === idx
-                      ? sortOrder.value ? "↓" : "↑"
-                      : "↕"}
+                    {sortBy.value + 2 === idx ? sortAsc.value ? "↓" : "↑" : "↕"}
                   </span>
                 </button>
               </th>
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody class="relative after:content-empty after:absolute after:-z-10 after:-inset-px after:shadow-table">
           {responses.map((response) => (
-            <tr class="border-b border-black">
-              <UserCard id={response.userId} name={response.userName} />
-              <td class="px-4 py-2 border-b border-black">
+            <tr>
+              <th scope="row" class="p-2 shadow-cell border border-white">
+                <UserCard id={response.userId} name={response.userName} />
+              </th>
+              <td class="p-2 shadow-cell border border-white">
                 {new Date(response.date).toLocaleString()}
               </td>
               {response.response.map((data) => (
-                <td class="px-4 py-2 border-b border-black">
+                <td class="p-2 shadow-cell border border-white">
                   {data}
                 </td>
               ))}

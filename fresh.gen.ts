@@ -33,6 +33,7 @@ import * as $admin_forms_form_id_islands_QuestionEditor from "./routes/admin/for
 import * as $admin_forms_form_id_islands_ResultsTable from "./routes/admin/forms/[form_id]/(_islands)/ResultsTable.tsx";
 import * as $admin_forms_form_id_islands_SlugField from "./routes/admin/forms/[form_id]/(_islands)/SlugField.tsx";
 import * as $admin_forms_form_id_islands_SubmitterRoleField from "./routes/admin/forms/[form_id]/(_islands)/SubmitterRoleField.tsx";
+import * as $admin_forms_form_id_islands_UserCard from "./routes/admin/forms/[form_id]/(_islands)/UserCard.tsx";
 import { type Manifest } from "$fresh/server.ts";
 
 const manifest = {
@@ -77,6 +78,8 @@ const manifest = {
       $admin_forms_form_id_islands_SlugField,
     "./routes/admin/forms/[form_id]/(_islands)/SubmitterRoleField.tsx":
       $admin_forms_form_id_islands_SubmitterRoleField,
+    "./routes/admin/forms/[form_id]/(_islands)/UserCard.tsx":
+      $admin_forms_form_id_islands_UserCard,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

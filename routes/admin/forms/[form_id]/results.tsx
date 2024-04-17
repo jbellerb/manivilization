@@ -1,5 +1,4 @@
 import { SELF, useCSP } from "$fresh/runtime.ts";
-import { defineRoute } from "$fresh/server.ts";
 
 import type { Handlers, PageProps, RouteConfig } from "$fresh/server.ts";
 
@@ -38,7 +37,7 @@ export default function ResultsPage({ data }: PageProps<Data, State>) {
   });
 
   return (
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto px-2 pb-2">
       <ResultsTable
         columns={data.questions.map((question) => question.name)}
         responses={data.responses.map((response) => ({

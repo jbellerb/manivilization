@@ -22,6 +22,7 @@ export default {
         "inset -1px -1px white, inset 1px 1px #7e7e7e, inset -2px -2px #dedede, inset 2px 2px black",
       "embossed":
         "inset -1px -1px black, inset 1px 1px white, inset -2px -2px #7e7e7e, inset 2px 2px #dedede",
+      "table": "-0.5px -0.5px 0 0.5px #dedede, 0 0 0 1px #7e7e7e",
     },
     colors: {
       "browser-blue": "blue",
