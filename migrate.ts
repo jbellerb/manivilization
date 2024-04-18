@@ -90,7 +90,7 @@ async function migrate() {
       console.log("all migrations up to date");
     } else {
       for (const migration of unapplied) {
-        sql.begin(async (sql) => {
+        await sql.begin(async (sql) => {
           await sql`
             INSERT INTO migrations (name) VALUES (${migration.name})
           `;
