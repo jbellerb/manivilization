@@ -16,6 +16,12 @@ export type User = {
   avatar: string;
 };
 
+export function toUsername(user: APIUser): string {
+  return user.discriminator === "0"
+    ? `@${user.username}`
+    : `@${user.username}#${user.discriminator}`;
+}
+
 export async function getUser(accessToken: string): Promise<User> {
   const res = await fetch(`${BASE_URL}/users/@me`, {
     headers: new Headers({
@@ -29,9 +35,7 @@ export async function getUser(accessToken: string): Promise<User> {
   return {
     id: toSnowflake(user.id),
     name: user.global_name ?? user.username,
-    username: user.discriminator === "0"
-      ? `@${user.username}`
-      : `@${user.username}#${user.discriminator}`,
+    username: toUsername(user),
     avatar: `${BASE_IMAGE_URL}/avatars/${user.id}/${user.avatar}.png`,
   };
 }

@@ -37,12 +37,13 @@ export default function ResultsPage({ data }: PageProps<Data, State>) {
   });
 
   return (
-    <div class="overflow-x-auto px-2 pb-2">
+    <div class="overflow-x-auto">
       <ResultsTable
         columns={data.questions.map((question) => question.name)}
         responses={data.responses.map((response) => ({
           userId: fromSnowflake(response.discordId),
           userName: response.discordName,
+          rolesSet: response.rolesSet,
           date: response.date?.getTime() ?? 0,
           response: data.questions.map((question) =>
             response.response?.[question.name] ?? ""

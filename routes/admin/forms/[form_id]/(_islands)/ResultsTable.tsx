@@ -9,6 +9,7 @@ type Props = {
   responses: {
     userId: string;
     userName: string;
+    rolesSet: boolean;
     date: number;
     response: string[];
   }[];
@@ -60,10 +61,10 @@ export default function ResultsTable(props: Props) {
     <>
       <AdminButton
         name="Download CSV"
-        class="ml-2 mb-2"
+        class="ml-4 mb-2"
         onClick={() => exportCsv({ columns: props.columns, responses })}
       />
-      <table class="w-full text-left overflow-y-hidden border-separate border-spacing-0 p-0.5">
+      <table class="w-full px-4 pb-4 text-left overflow-y-hidden border-separate border-spacing-0 p-0.5">
         <thead class="sticky top-0.5 text-sm z-10 after:content-empty after:block after:h-2">
           <tr class="outline outline-white outline-1 relative after:content-empty after:absolute after:-z-10 after:-inset-px after:shadow-table">
             {["User", "Date", ...props.columns].map((column, idx) => (
@@ -92,7 +93,11 @@ export default function ResultsTable(props: Props) {
           {responses.map((response) => (
             <tr>
               <th scope="row" class="p-2 shadow-cell border border-white">
-                <UserCard id={response.userId} name={response.userName} />
+                <UserCard
+                  id={response.userId}
+                  name={response.userName}
+                  rolesSet={response.rolesSet}
+                />
               </th>
               <td class="p-2 shadow-cell border border-white">
                 {new Date(response.date).toLocaleString()}

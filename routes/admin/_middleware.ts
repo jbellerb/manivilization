@@ -38,21 +38,22 @@ const user: MiddlewareHandler<AdminState> = async (req, ctx) => {
 };
 
 const roles: MiddlewareHandler<AdminState> = async (_req, ctx) => {
+  if (ctx.state.superAdmin || ctx.state.owner) return await ctx.next();
+
+  let roles;
   try {
-    const roles = await memo(
+    roles = await memo(
       "roles",
       `${ctx.state.instance.guildId}-${ctx.state.user.id}`,
       () => getRoles(ctx.state.instance.guildId, ctx.state.user.id),
       5 * 60 * 1000,
     );
-    if (
-      ctx.state.superAdmin || ctx.state.owner ||
-      roles.includes(ctx.state.instance.adminRole)
-    ) {
-      return await ctx.next();
-    }
   } catch (e) {
     if (!(e instanceof DiscordHTTPError)) throw e;
+  }
+
+  if (roles && roles.includes(ctx.state.instance.adminRole)) {
+    return await ctx.next();
   }
 
   return new Response("Forbidden", { status: STATUS_CODE.Forbidden });

@@ -3,9 +3,10 @@ import { useSignal } from "@preact/signals";
 type Props = {
   id: string;
   name: string;
+  rolesSet: boolean;
 };
 
-export default function UserCard({ id, name }: Props) {
+export default function UserCard({ id, name, rolesSet }: Props) {
   const active = useSignal(false);
 
   const mention = `<@${id}>`;
@@ -26,6 +27,17 @@ export default function UserCard({ id, name }: Props) {
       />
     );
   } else {
-    return <span onClick={() => active.value = true}>{name}</span>;
+    return (
+      <div class="flex">
+        <span onClick={() => active.value = true}>{name}</span>
+        {!rolesSet && (
+          <span class="ml-2" title="Failed to set Discord roles">*</span>
+        )}
+        <form class="ml-auto" method="post" action="refresh">
+          <input type="text" name="user" class="hidden" value={id} />
+          <button class="block">↻</button>
+        </form>
+      </div>
+    );
   }
 }

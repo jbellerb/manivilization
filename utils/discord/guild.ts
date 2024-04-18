@@ -31,10 +31,10 @@ export async function assignRole(
   if (!res.ok) throw new DiscordHTTPError(`${res.status} ${res.statusText}`);
 }
 
-export async function getRoles(
+export async function getMember(
   guild: bigint,
   userId: bigint,
-): Promise<bigint[]> {
+): Promise<APIGuildMember> {
   const guildString = fromSnowflake(guild);
   const userIdString = fromSnowflake(userId);
 
@@ -48,7 +48,14 @@ export async function getRoles(
     },
   );
   if (!res.ok) throw new DiscordHTTPError(`${res.status} ${res.statusText}`);
-  const member: APIGuildMember = await res.json();
+  return await res.json();
+}
+
+export async function getRoles(
+  guild: bigint,
+  userId: bigint,
+): Promise<bigint[]> {
+  const member = await getMember(guild, userId);
 
   return member.roles.map((role) => toSnowflake(role));
 }

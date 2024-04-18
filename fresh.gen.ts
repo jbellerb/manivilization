@@ -16,6 +16,7 @@ import * as $admin_middleware from "./routes/admin/_middleware.ts";
 import * as $admin_forms_form_id_layout from "./routes/admin/forms/[form_id]/_layout.tsx";
 import * as $admin_forms_form_id_middleware from "./routes/admin/forms/[form_id]/_middleware.ts";
 import * as $admin_forms_form_id_index from "./routes/admin/forms/[form_id]/index.tsx";
+import * as $admin_forms_form_id_refresh from "./routes/admin/forms/[form_id]/refresh.ts";
 import * as $admin_forms_form_id_results from "./routes/admin/forms/[form_id]/results.tsx";
 import * as $admin_forms_new from "./routes/admin/forms/new.ts";
 import * as $admin_index from "./routes/admin/index.tsx";
@@ -53,6 +54,7 @@ const manifest = {
     "./routes/admin/forms/[form_id]/_middleware.ts":
       $admin_forms_form_id_middleware,
     "./routes/admin/forms/[form_id]/index.tsx": $admin_forms_form_id_index,
+    "./routes/admin/forms/[form_id]/refresh.ts": $admin_forms_form_id_refresh,
     "./routes/admin/forms/[form_id]/results.tsx": $admin_forms_form_id_results,
     "./routes/admin/forms/new.ts": $admin_forms_new,
     "./routes/admin/index.tsx": $admin_index,

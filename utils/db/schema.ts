@@ -172,11 +172,14 @@ export class FormResponse extends Entity {
   discordName: string;
   @column("response")
   response?: Record<string, string> | null;
+  @column("roles_set")
+  rolesSet: boolean;
 
   constructor(
     form: string,
     discordId: bigint,
     discordName: string,
+    rolesSet: boolean,
     response?: Record<string, string>,
   ) {
     super();
@@ -186,5 +189,6 @@ export class FormResponse extends Entity {
     this.discordId = discordId;
     this.discordName = discordName;
     this.response = response;
+    this.rolesSet = rolesSet;
   }
 }

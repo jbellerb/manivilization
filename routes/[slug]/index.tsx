@@ -108,14 +108,7 @@ export const handler: Handlers<Data, State> = {
         return new Response(null, { status: STATUS_CODE.SeeOther, headers });
       }
 
-      const response = new FormResponse(
-        ctx.state.form.id,
-        ctx.state.user.id,
-        ctx.state.user.username,
-        answers,
-      );
-      await db.responses.insert(response);
-
+      let rolesSet = true;
       try {
         const user = ctx.state.user.id;
         if (ctx.state.form.submitterRole) {
@@ -139,8 +132,18 @@ export const handler: Handlers<Data, State> = {
             }
           }));
       } catch (e) {
+        rolesSet = false;
         if (!(e instanceof DiscordHTTPError)) throw e;
       }
+
+      const response = new FormResponse(
+        ctx.state.form.id,
+        ctx.state.user.id,
+        ctx.state.user.username,
+        rolesSet,
+        answers,
+      );
+      await db.responses.insert(response);
 
       const headers = new Headers({
         Location: `/${ctx.state.form.slug}/success?response=${response.id}`,
