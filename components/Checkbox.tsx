@@ -6,10 +6,11 @@ type Props = {
   name: string;
   class?: string;
   label?: string;
+  presentational?: boolean;
 } & JSX.HTMLAttributes<HTMLInputElement>;
 
 export default function Checkbox(
-  { name, class: extraClasses, label, ...props }: Props,
+  { name, class: extraClasses, label, presentational, ...props }: Props,
 ) {
   return (
     <div
@@ -18,7 +19,7 @@ export default function Checkbox(
     >
       <input
         type="checkbox"
-        name={name}
+        name={presentational ? undefined : name}
         id={`checkbox-${name}`}
         class="w-6 h-6 shrink-0 bg-black border-2 checked:border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white rounded transition-border-color"
         {...props}

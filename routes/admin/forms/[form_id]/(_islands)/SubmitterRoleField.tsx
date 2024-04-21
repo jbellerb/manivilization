@@ -14,12 +14,13 @@ export default function SubmitterRoleField(props: Props) {
   return (
     <div class={classnames("flex", props.class)}>
       <Checkbox
-        name="active"
+        name="assign-role"
         id="checkbox-submit-active"
         class="max-w-36"
         label="Assign role for submitters?"
         checked={assignsRole.value}
         onChange={(e) => assignsRole.value = e.currentTarget.checked}
+        presentational
       />
       <ValidatedTextInput
         name={assignsRole.value ? "submitter_role" : ""}
