@@ -142,7 +142,7 @@ export function parseEditorFormData(
       (n, v) => toSnowflake(isString(n, v)),
       "submitter_role",
       data.get("submitter_role"),
-    ),
+    ) ?? null,
   };
 }
 
