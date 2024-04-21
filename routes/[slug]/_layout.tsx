@@ -13,7 +13,10 @@ export default defineLayout<State>((_req, { Component, state }) => {
     descriptionLine = state.form.description;
     const split = state.form.description.search(/[\n\r]/);
     if (split !== -1) {
-      descriptionLine = state.form.description.slice(0, split) + "...";
+      descriptionLine = state.form.description.slice(0, split);
+      descriptionLine += descriptionLine[descriptionLine.length - 1] === "."
+        ? ".."
+        : "...";
     }
   }
 
