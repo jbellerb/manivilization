@@ -22,7 +22,7 @@ export default function CheckboxGroup(props: Props) {
   );
 
   useSignalEffect(() => {
-    if (setRef.current && props.required) {
+    if (setRef.current && props.required && props.options.length > 1) {
       const finalBox = setRef.current.lastElementChild?.firstElementChild;
       if (finalBox instanceof HTMLInputElement) {
         finalBox.setCustomValidity(
