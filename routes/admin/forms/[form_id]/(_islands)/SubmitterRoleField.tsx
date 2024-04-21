@@ -1,7 +1,7 @@
 import { useSignal } from "@preact/signals";
 
 import Checkbox from "../../../../../components/Checkbox.tsx";
-import TextInput from "../../../../../components/TextInput.tsx";
+import ValidatedTextInput from "../../../../../islands/ValidatedTextInput.tsx";
 import classnames from "../../../../../utils/classnames.ts";
 import { validSnowflake } from "../../../../../utils/discord/snowflake.ts";
 
@@ -21,7 +21,7 @@ export default function SubmitterRoleField(props: Props) {
         checked={assignsRole.value}
         onChange={(e) => assignsRole.value = e.currentTarget.checked}
       />
-      <TextInput
+      <ValidatedTextInput
         name={assignsRole.value ? "submitter_role" : ""}
         id="input-submitter_role"
         label="Role ID *"

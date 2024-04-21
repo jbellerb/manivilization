@@ -28,6 +28,7 @@ import * as $privacy from "./routes/privacy.tsx";
 import * as $CheckboxGroup from "./islands/CheckboxGroup.tsx";
 import * as $FormResetter from "./islands/FormResetter.tsx";
 import * as $GrowableTextArea from "./islands/GrowableTextArea.tsx";
+import * as $ValidatedTextInput from "./islands/ValidatedTextInput.tsx";
 import * as $admin_forms_form_id_islands_OptionsEditor from "./routes/admin/forms/[form_id]/(_islands)/OptionsEditor.tsx";
 import * as $admin_forms_form_id_islands_OptionsRolesEditor from "./routes/admin/forms/[form_id]/(_islands)/OptionsRolesEditor.tsx";
 import * as $admin_forms_form_id_islands_QuestionEditor from "./routes/admin/forms/[form_id]/(_islands)/QuestionEditor.tsx";
@@ -68,6 +69,7 @@ const manifest = {
     "./islands/CheckboxGroup.tsx": $CheckboxGroup,
     "./islands/FormResetter.tsx": $FormResetter,
     "./islands/GrowableTextArea.tsx": $GrowableTextArea,
+    "./islands/ValidatedTextInput.tsx": $ValidatedTextInput,
     "./routes/admin/forms/[form_id]/(_islands)/OptionsEditor.tsx":
       $admin_forms_form_id_islands_OptionsEditor,
     "./routes/admin/forms/[form_id]/(_islands)/OptionsRolesEditor.tsx":

@@ -7,8 +7,8 @@ import type { Handlers, PageProps, RouteConfig } from "$fresh/server.ts";
 
 import UserBanner from "./(_components)/UserBanner.tsx";
 import Button from "../../components/Button.tsx";
-import TextInput from "../../components/TextInput.tsx";
 import CheckboxGroup from "../../islands/CheckboxGroup.tsx";
+import ValidatedTextInput from "../../islands/ValidatedTextInput.tsx";
 import classnames from "../../utils/classnames.ts";
 import db, { FormResponse } from "../../utils/db/mod.ts";
 import { assignRole } from "../../utils/discord/guild.ts";
@@ -205,7 +205,7 @@ function FormTextQuestion(
           )}
         </label>
       )}
-      <TextInput
+      <ValidatedTextInput
         name={`question-${props.question.name}`}
         label={props.question.label}
         value={props.value}

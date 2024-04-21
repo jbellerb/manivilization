@@ -1,7 +1,7 @@
 import { useSignal } from "@preact/signals";
 
 import Checkbox from "../../../../../components/Checkbox.tsx";
-import TextInput from "../../../../../components/TextInput.tsx";
+import ValidatedTextInput from "../../../../../islands/ValidatedTextInput.tsx";
 import classnames from "../../../../../utils/classnames.ts";
 
 type Props = { class?: string; active?: boolean; value?: string };
@@ -21,7 +21,7 @@ export default function SlugField(props: Props) {
       <span class="ml-3 mr-1 text-gray-400 tracking-wide">
         http://../
       </span>
-      <TextInput
+      <ValidatedTextInput
         name="slug"
         label="Slug *"
         value={href.value}

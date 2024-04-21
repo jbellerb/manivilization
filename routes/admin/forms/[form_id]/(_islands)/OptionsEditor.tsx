@@ -1,6 +1,5 @@
 import IconButton from "../../../../../components/IconButton.tsx";
-import TextInput from "../../../../../components/TextInput.tsx";
-import { validSnowflake } from "../../../../../utils/discord/snowflake.ts";
+import ValidatedTextInput from "../../../../../islands/ValidatedTextInput.tsx";
 
 type Props = {
   name: string;
@@ -34,7 +33,7 @@ export default function OptionsEditor(props: Props) {
         <ul class="-mt-1">
           {props.options.map((option, idx) => (
             <li class="flex">
-              <TextInput
+              <ValidatedTextInput
                 name={`${props.name}-options-${idx}`}
                 value={option}
                 onChange={(e) => updateOption(e.currentTarget.value, idx)}

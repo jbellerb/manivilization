@@ -7,9 +7,9 @@ import QuestionEditor from "./(_islands)/QuestionEditor.tsx";
 import SlugField from "./(_islands)/SlugField.tsx";
 import SubmitterRoleField from "./(_islands)/SubmitterRoleField.tsx";
 import Button from "../../../../components/Button.tsx";
-import TextInput from "../../../../components/TextInput.tsx";
 import FormResetter from "../../../../islands/FormResetter.tsx";
 import GrowableTextArea from "../../../../islands/GrowableTextArea.tsx";
+import ValidatedTextInput from "../../../../islands/ValidatedTextInput.tsx";
 import db from "../../../../utils/db/mod.ts";
 import { fromSnowflake } from "../../../../utils/discord/snowflake.ts";
 import {
@@ -49,7 +49,7 @@ export default defineRoute<State>((_req, { state }) => {
         name={state.form.slug}
       >
         <div class="flex flex-col space-y-6">
-          <TextInput
+          <ValidatedTextInput
             name="name"
             label="Form Name *"
             value={state.form.name}

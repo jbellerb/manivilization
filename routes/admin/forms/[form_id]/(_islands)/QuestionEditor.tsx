@@ -6,6 +6,7 @@ import IconButton from "../../../../../components/IconButton.tsx";
 import InlineCheckbox from "../../../../../components/InlineCheckbox.tsx";
 import Select from "../../../../../components/Select.tsx";
 import TextInput from "../../../../../components/TextInput.tsx";
+import ValidatedTextInput from "../../../../../islands/ValidatedTextInput.tsx";
 import classnames from "../../../../../utils/classnames.ts";
 
 import type {
@@ -127,7 +128,7 @@ export default function QuestionEditor(props: Props) {
                   <option value="checkbox">Checkboxes</option>
                   <option value="checkbox_roles">Role Checkboxes</option>
                 </Select>
-                <TextInput
+                <ValidatedTextInput
                   name={`question-${idx}-name`}
                   label="Column Name *"
                   value={question.name}

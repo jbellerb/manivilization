@@ -1,5 +1,5 @@
 import IconButton from "../../../../../components/IconButton.tsx";
-import TextInput from "../../../../../components/TextInput.tsx";
+import ValidatedTextInput from "../../../../../islands/ValidatedTextInput.tsx";
 import { validSnowflake } from "../../../../../utils/discord/snowflake.ts";
 
 type Props = {
@@ -48,7 +48,7 @@ export default function OptionsEditor(props: Props) {
         <ul class="-mt-1 grid col-span-full grid-cols-subgrid">
           {props.options.map((option, idx) => (
             <li class="grid col-span-full grid-cols-subgrid">
-              <TextInput
+              <ValidatedTextInput
                 name={`${props.name}-labels-${idx}`}
                 class="mr-2"
                 value={option}
@@ -57,7 +57,7 @@ export default function OptionsEditor(props: Props) {
                 aria-labelledby={`${props.name}-options`}
                 required
               />
-              <TextInput
+              <ValidatedTextInput
                 name={`${props.name}-roles-${idx}`}
                 value={props.roles[idx]}
                 onChange={(e) =>

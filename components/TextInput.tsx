@@ -7,11 +7,13 @@ type Props = {
   label?: string;
   class?: string;
   error?: boolean;
+  validating?: boolean;
   disabled?: boolean;
 } & JSX.HTMLAttributes<HTMLInputElement>;
 
 export default function TextInput(
-  { name, label, class: extraClasses, error, disabled, ...props }: Props,
+  { name, label, class: extraClasses, error, validating, disabled, ...props }:
+    Props,
 ) {
   return (
     <div
@@ -45,7 +47,10 @@ export default function TextInput(
             ? "text-gray-600 border-gray-700"
             : error
             ? "border-red-400"
-            : "border-gray-600 invalid:!border-red-400 hover:border-gray-500 focus-visible:border-white",
+            : classnames(
+              "border-gray-600 hover:border-gray-500 focus-visible:border-white",
+              { "invalid:!border-red-400": validating !== false },
+            ),
         )}
         disabled={disabled}
         {...props}
