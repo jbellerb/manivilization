@@ -59,3 +59,25 @@ export async function getRoles(
 
   return member.roles.map((role) => toSnowflake(role));
 }
+
+export async function removeRole(
+  guild: bigint,
+  userId: bigint,
+  role: bigint,
+): Promise<void> {
+  const guildString = fromSnowflake(guild);
+  const userIdString = fromSnowflake(userId);
+  const roleString = fromSnowflake(role);
+
+  const res = await fetch(
+    `${BASE_URL}/guilds/${guildString}/members/${userIdString}/roles/${roleString}`,
+    {
+      method: "DELETE",
+      headers: new Headers({
+        ...BASE_HEADERS,
+        ...authorizeBot(DISCORD_BOT_TOKEN),
+      }),
+    },
+  );
+  if (!res.ok) throw new DiscordHTTPError(`${res.status} ${res.statusText}`);
+}

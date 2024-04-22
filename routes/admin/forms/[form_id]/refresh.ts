@@ -3,12 +3,17 @@ import { STATUS_CODE } from "$std/http/status.ts";
 import type { Handlers } from "$fresh/server.ts";
 
 import db from "../../../../utils/db/mod.ts";
-import { assignRole } from "../../../../utils/discord/guild.ts";
+import {
+  assignRole,
+  getMember,
+  getRoles,
+  removeRole,
+} from "../../../../utils/discord/guild.ts";
 import { toSnowflake } from "../../../../utils/discord/snowflake.ts";
+import { toUsername } from "../../../../utils/discord/user.ts";
+import { assignableRoles, neededRoles } from "../../../../utils/form/roles.ts";
 
 import type { AdminFormState as State } from "./_middleware.ts";
-import { getMember } from "../../../../utils/discord/guild.ts";
-import { toUsername } from "../../../../utils/discord/user.ts";
 
 export const handler: Handlers<void, State> = {
   async POST(req, ctx) {
@@ -19,47 +24,43 @@ export const handler: Handlers<void, State> = {
       return new Response("Bad Request", { status: STATUS_CODE.BadRequest });
     }
 
+    const userSnowflake = toSnowflake(user);
     const response = await db.responses.findOne({}, {
       where: (response, { and, eq }) =>
         and(
           eq(response.form, ctx.state.form.id),
-          eq(response.discordId, toSnowflake(user)),
+          eq(response.discordId, userSnowflake),
         ),
       orderBy: (response, { desc }) => desc(response.date),
     });
-    const member = await getMember(
-      ctx.state.instance.guildId,
-      toSnowflake(user),
-    );
+    const member = await getMember(ctx.state.instance.guildId, userSnowflake);
 
     if (response && member.user) {
       response.discordName = toUsername(member.user);
-      if (!response.rolesSet) {
-        response.rolesSet = true;
-        const neededRoles = new Set<bigint>();
 
-        if (ctx.state.form.submitterRole) {
-          neededRoles.add(ctx.state.form.submitterRole);
-        }
-        for (const question of ctx.state.form.questions?._ ?? []) {
-          if (question.type === "checkbox_roles") {
-            const roles = response.response?.[question.name]?.split(", ");
-            for (const { label, role } of question.options) {
-              if (roles?.includes(label)) neededRoles.add(toSnowflake(role));
-            }
-          }
-        }
+      response.rolesSet = true;
+      try {
+        const roles = new Set(assignableRoles(ctx.state.form));
+        const responseRoles = new Set(
+          neededRoles(ctx.state.form, response.response),
+        );
+        const guildRoles = new Set(
+          await getRoles(ctx.state.instance.guildId, userSnowflake),
+        );
 
-        try {
-          await Promise.all(
-            Array.from(neededRoles).map((role) =>
-              assignRole(ctx.state.instance.guildId, response.discordId, role)
-            ),
-          );
-        } catch (e) {
-          response.rolesSet = false;
-          throw e;
-        }
+        await Promise.all([
+          ...Array.from(responseRoles.difference(guildRoles)).map((role) =>
+            assignRole(ctx.state.instance.guildId, response.discordId, role)
+          ),
+          ...Array.from(
+            guildRoles.intersection(roles).difference(responseRoles),
+          ).map((role) =>
+            removeRole(ctx.state.instance.guildId, response.discordId, role)
+          ),
+        ]);
+      } catch (e) {
+        response.rolesSet = false;
+        throw e;
       }
 
       await db.responses.update(response);
