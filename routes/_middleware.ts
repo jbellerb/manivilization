@@ -18,13 +18,12 @@ export type RootState = {
   userPromise?: () => Promise<User | Response>;
 };
 
-const instance: MiddlewareHandler<RootState> = async (req, ctx) => {
-  const { host } = new URL(req.url);
+const instance: MiddlewareHandler<RootState> = async (_req, ctx) => {
   let instance;
   try {
     instance = await db.instances.findOne({}, {
-      where: (instance, { eq }) => eq(instance.host, host),
-      cache: { key: host, ttl: 5 * 60 * 1000 },
+      where: (instance, { eq }) => eq(instance.host, ctx.url.host),
+      cache: { key: ctx.url.host, ttl: 5 * 60 * 1000 },
     });
   } catch (e) {
     console.error(e);
@@ -88,10 +87,9 @@ const auth: MiddlewareHandler<RootState> = async (req, ctx) => {
         }
       }
 
-      const { pathname } = new URL(req.url);
       const response = new Response(null, {
         status: STATUS_CODE.Found,
-        headers: { Location: `/oauth/login?redirect=${pathname}` },
+        headers: { Location: `/oauth/login?redirect=${ctx.url.pathname}` },
       });
       if (session) {
         await db.sessions.delete(session);

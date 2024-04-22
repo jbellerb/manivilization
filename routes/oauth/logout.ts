@@ -8,11 +8,10 @@ import db from "../../utils/db/mod.ts";
 import type { RootState as State } from "../_middleware.ts";
 
 export const handler: Handlers<void, State> = {
-  async GET(req, { config, state }) {
+  async GET(_req, { config, state, url }) {
     const sessionCookieName = `${config.dev ? "" : "__Host-"}session`;
 
-    const { searchParams } = new URL(req.url);
-    const redirectUrl = searchParams.get("redirect") ?? "/";
+    const redirectUrl = url.searchParams.get("redirect") ?? "/";
 
     const response = new Response(null, {
       status: STATUS_CODE.Found,

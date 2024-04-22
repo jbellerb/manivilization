@@ -10,9 +10,8 @@ import db from "../../utils/db/mod.ts";
 import type { FormState as State } from "./_middleware.ts";
 
 export const handler: Handlers<void, State> = {
-  async GET(req, ctx) {
-    const { searchParams } = new URL(req.url);
-    const responseId = searchParams.get("response");
+  async GET(_req, ctx) {
+    const responseId = ctx.url.searchParams.get("response");
     if (responseId) {
       const response = await db.responses.findOne({ id: true }, {
         where: (response, { eq }) => eq(response.id, responseId),

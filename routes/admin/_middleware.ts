@@ -18,12 +18,11 @@ export type AdminState = RootState & {
   superAdmin: boolean;
 };
 
-const user: MiddlewareHandler<AdminState> = async (req, ctx) => {
+const user: MiddlewareHandler<AdminState> = async (_req, ctx) => {
   if (!ctx.state.userPromise) {
-    const { pathname } = new URL(req.url);
     return new Response(null, {
       status: STATUS_CODE.Found,
-      headers: { Location: `/oauth/login?redirect=${pathname}` },
+      headers: { Location: `/oauth/login?redirect=${ctx.url.pathname}` },
     });
   }
 

@@ -13,7 +13,7 @@ import type { RootState as State } from "../_middleware.ts";
 const SESSION_EXPIRE = 90 * 24 * 60 * 60;
 
 export const handler: Handlers<void, State> = {
-  async GET(req, { config, state }) {
+  async GET(req, { config, state, url }) {
     const authSessionCookieName = `${config.dev ? "" : "__Host-"}oauth-session`;
     const sessionCookieName = `${config.dev ? "" : "__Host-"}session`;
 
@@ -32,10 +32,9 @@ export const handler: Handlers<void, State> = {
       return new Response("Bad Request", { status: STATUS_CODE.BadRequest });
     }
 
-    const { protocol } = new URL(req.url);
     const tokens = await oauthClient(
       state.instance.host,
-      config.dev && protocol === "http:",
+      config.dev && url.protocol === "http:",
     ).code.getToken(req.url, {
       state: authSession.state,
       codeVerifier: authSession.verifier,

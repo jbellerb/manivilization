@@ -13,12 +13,11 @@ export const config = {
   skipInheritedLayouts: true,
 } satisfies LayoutConfig;
 
-export default defineLayout<State>(async (req, ctx) => {
+export default defineLayout<State>(async (_req, ctx) => {
   const forms = await db.forms.find({ id: true, name: true }, {
     where: (form, { eq }) => eq(form.instance, ctx.state.instance.id),
   });
   const formId = ctx.params.form_id;
-  const { pathname } = new URL(req.url);
 
   return (
     <>
@@ -35,7 +34,7 @@ export default defineLayout<State>(async (req, ctx) => {
             <NavItem
               href="/admin"
               text={ctx.state.instance.name}
-              highlight={pathname === "/admin"}
+              highlight={ctx.route === "/admin"}
             />
           </div>
           <hr class="my-4 border-white shadow-box" />

@@ -58,9 +58,8 @@ export const config: RouteConfig = {
 };
 
 export const handler: Handlers<Data, State> = {
-  async GET(req, ctx) {
-    const { searchParams } = new URL(req.url);
-    const error = searchParams.get("error");
+  async GET(_req, ctx) {
+    const error = ctx.url.searchParams.get("error");
 
     let completed = false;
     let answers: Data["answers"] = {};

@@ -13,15 +13,13 @@ import type { RootState as State } from "../_middleware.ts";
 const AUTH_EXPIRE = 10 * 60;
 
 export const handler: Handlers<void, State> = {
-  async GET(req, { config, state }) {
+  async GET(_req, { config, state, url }) {
     const authSessionCookieName = `${config.dev ? "" : "__Host-"}oauth-session`;
-
-    const { searchParams, protocol } = new URL(req.url);
 
     const oauthState = crypto.randomUUID();
     const { uri, codeVerifier } = await oauthClient(
       state.instance.host,
-      config.dev && protocol === "http:",
+      config.dev && url.protocol === "http:",
     ).code.getAuthorizationUri({ state: oauthState });
 
     const authSession = new AuthSession(
@@ -29,7 +27,7 @@ export const handler: Handlers<void, State> = {
       oauthState,
       new Date(Date.now() + AUTH_EXPIRE * 1000),
       codeVerifier,
-      searchParams.get("redirect") ?? "/",
+      url.searchParams.get("redirect") ?? "/",
     );
     await db.authSessions.insert(authSession);
 
