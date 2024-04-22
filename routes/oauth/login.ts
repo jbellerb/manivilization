@@ -13,13 +13,15 @@ import type { RootState as State } from "../_middleware.ts";
 const AUTH_EXPIRE = 10 * 60;
 
 export const handler: Handlers<void, State> = {
-  async GET(req, { state }) {
-    const { searchParams, hostname } = new URL(req.url);
+  async GET(req, { config, state }) {
+    const authSessionCookieName = `${config.dev ? "" : "__Host-"}oauth-session`;
+
+    const { searchParams, protocol } = new URL(req.url);
 
     const oauthState = crypto.randomUUID();
     const { uri, codeVerifier } = await oauthClient(
       state.instance.host,
-      hostname === "localhost",
+      config.dev && protocol === "http:",
     ).code.getAuthorizationUri({ state: oauthState });
 
     const authSession = new AuthSession(
@@ -36,9 +38,10 @@ export const handler: Handlers<void, State> = {
       headers: { Location: uri.toString() },
     });
     const authSessionCookie = {
-      name: "__Host-oauth-session",
+      name: authSessionCookieName,
       value: authSession.id,
       maxAge: AUTH_EXPIRE,
+      path: "/",
       httpOnly: true,
       sameSite: "Lax",
     } satisfies Cookie;

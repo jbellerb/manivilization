@@ -44,7 +44,9 @@ const instance: MiddlewareHandler<RootState> = async (req, ctx) => {
 const auth: MiddlewareHandler<RootState> = async (req, ctx) => {
   if (ctx.destination !== "route") return await ctx.next();
 
-  const token = getCookies(req.headers)["__Host-session"];
+  const sessionCookieName = `${ctx.config.dev ? "" : "__Host-"}session`;
+
+  const token = getCookies(req.headers)[sessionCookieName];
   if (token) {
     ctx.state.sessionToken = token;
     ctx.state.userPromise = async () => {
@@ -93,7 +95,7 @@ const auth: MiddlewareHandler<RootState> = async (req, ctx) => {
       });
       if (session) {
         await db.sessions.delete(session);
-        deleteCookie(response.headers, "__Host-session");
+        deleteCookie(response.headers, sessionCookieName, { path: "/" });
       }
       return response;
     };

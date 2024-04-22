@@ -8,7 +8,9 @@ import db from "../../utils/db/mod.ts";
 import type { RootState as State } from "../_middleware.ts";
 
 export const handler: Handlers<void, State> = {
-  async GET(req, ctx) {
+  async GET(req, { config, state }) {
+    const sessionCookieName = `${config.dev ? "" : "__Host-"}session`;
+
     const { searchParams } = new URL(req.url);
     const redirectUrl = searchParams.get("redirect") ?? "/";
 
@@ -17,16 +19,16 @@ export const handler: Handlers<void, State> = {
       headers: { Location: redirectUrl },
     });
 
-    if (ctx.state.sessionToken) {
-      const tokenId = ctx.state.sessionToken;
+    if (state.sessionToken) {
+      const tokenId = state.sessionToken;
       await db.authSessions
         .delete((authSession, { and, eq }) =>
           and(
             eq(authSession.id, tokenId),
-            eq(authSession.instance, ctx.state.instance.id),
+            eq(authSession.instance, state.instance.id),
           )
         );
-      deleteCookie(response.headers, "__Host-session");
+      deleteCookie(response.headers, sessionCookieName, { path: "/" });
     }
 
     return response;

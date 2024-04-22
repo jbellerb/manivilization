@@ -13,8 +13,11 @@ import type { RootState as State } from "../_middleware.ts";
 const SESSION_EXPIRE = 90 * 24 * 60 * 60;
 
 export const handler: Handlers<void, State> = {
-  async GET(req, { state }) {
-    const authSessionId = getCookies(req.headers)["__Host-oauth-session"];
+  async GET(req, { config, state }) {
+    const authSessionCookieName = `${config.dev ? "" : "__Host-"}oauth-session`;
+    const sessionCookieName = `${config.dev ? "" : "__Host-"}session`;
+
+    const authSessionId = getCookies(req.headers)[authSessionCookieName];
     if (!authSessionId) throw new Error("missing session cookie");
 
     const [authSession] = await db.authSessions.delete(
@@ -29,10 +32,10 @@ export const handler: Handlers<void, State> = {
       return new Response("Bad Request", { status: STATUS_CODE.BadRequest });
     }
 
-    const { hostname } = new URL(req.url);
+    const { protocol } = new URL(req.url);
     const tokens = await oauthClient(
       state.instance.host,
-      hostname === "localhost",
+      config.dev && protocol === "http:",
     ).code.getToken(req.url, {
       state: authSession.state,
       codeVerifier: authSession.verifier,
@@ -53,9 +56,9 @@ export const handler: Handlers<void, State> = {
       status: STATUS_CODE.Found,
       headers: { Location: authSession.redirect },
     });
-    deleteCookie(response.headers, "__Host-oauth-session");
+    deleteCookie(response.headers, authSessionCookieName, { path: "/" });
     const sessionCookie = {
-      name: "__Host-session",
+      name: sessionCookieName,
       value: session.id,
       maxAge: SESSION_EXPIRE,
       path: "/",
