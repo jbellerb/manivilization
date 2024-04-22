@@ -1,3 +1,5 @@
+import type { SerializableValue } from "./sql.ts";
+
 // deno-lint-ignore no-explicit-any
 type Constructor<R = unknown, A extends unknown[] = any[]> = {
   new (...args: A): NonNullable<R>;
@@ -11,24 +13,10 @@ export type FullyNullable<T> = {
   [K in keyof T]: undefined extends T[K] ? T[K] | null : T[K];
 };
 
-export type ClassExtends<T extends Constructor> =
+export type DerivedClass<T extends Constructor, R extends InstanceType<T>> =
   & OmitConstructor<T>
-  & Constructor;
+  & Constructor<R>;
 
-export type SerializableValue =
-  | null
-  | boolean
-  | number
-  | bigint
-  | string
-  | Date
-  | Uint8Array
-  | ArrayBuffer
-  | Array<SerializableValue>
-  | SerializableObject;
-interface SerializableObject {
-  [x: string]: SerializableValue;
-}
 export type Serializable<T> = {
   [K in keyof T]: T[K] extends SerializableValue | undefined ? T[K] : never;
 };
@@ -45,11 +33,12 @@ export class Entity {
   static [columns]: Record<string, string | symbol> = {};
   static [properties]: Record<string | symbol, string> = {};
 
-  [sqlRow]: Record<string, unknown> = {};
+  [sqlRow]: Record<string, SerializableValue> = {};
 
-  static fromSql<
-    T extends ClassExtends<typeof Entity>,
-  >(this: T, row: Record<string, unknown>): FullyNullable<InstanceType<T>> {
+  static fromSql<T extends Entity>(
+    this: DerivedClass<typeof Entity, T>,
+    row: Record<string, SerializableValue>,
+  ): FullyNullable<T> {
     const _this = Object.create(this.prototype);
     Object.defineProperty(_this, sqlRow, { value: row, writable: true });
     for (const [col, val] of Object.entries(row)) {
@@ -58,11 +47,13 @@ export class Entity {
     return _this;
   }
 
-  toSql<T extends Entity>(this: T): Record<string, unknown> {
-    const row: Record<string, unknown> = {};
+  toSql<T extends Entity>(
+    this: Serializable<EntityProps<T>>,
+  ): Record<string, SerializableValue> {
+    const row: Record<string, SerializableValue> = {};
     const props = (this.constructor as typeof Entity)[properties];
     Reflect.ownKeys(props).forEach((p) => {
-      const val = this[p as keyof T];
+      const val = this[p as keyof EntityProps<T>];
       if (val !== undefined) row[props[p]] = val;
     });
     return row;
@@ -93,25 +84,26 @@ export const column = (name: string, primary?: boolean) =>
   }
 };
 
-export const table = (name: string) =>
-<T extends ClassExtends<typeof Entity>>(
-  _target: T & { prototype: Serializable<EntityProps<T["prototype"]>> },
-  context: ClassDecoratorContext<T>,
-) => {
-  const discovered = Array.from(knownCols);
-  knownCols.clear();
+export const table =
+  (name: string) =>
+  <T extends Entity & Serializable<EntityProps<T>>>(
+    _target: Constructor<T>,
+    context: ClassDecoratorContext<Constructor<T>>,
+  ) => {
+    const discovered = Array.from(knownCols);
+    knownCols.clear();
 
-  const primary = knownPrimary.chosen ?? knownPrimary.first;
-  if (!primary) throw new Error("Entity has no columns");
-  [knownPrimary.first, knownPrimary.chosen] = [undefined, undefined];
+    const primary = knownPrimary.chosen ?? knownPrimary.first;
+    if (!primary) throw new Error("Entity has no columns");
+    [knownPrimary.first, knownPrimary.chosen] = [undefined, undefined];
 
-  const cols = Object.fromEntries(discovered);
-  const props = Object.fromEntries(discovered.map(([k, v]) => [v, k]));
+    const cols = Object.fromEntries(discovered);
+    const props = Object.fromEntries(discovered.map(([k, v]) => [v, k]));
 
-  context.addInitializer(function () {
-    Object.defineProperty(this, tableName, { value: name });
-    Object.defineProperty(this, primaryKey, { value: primary });
-    Object.defineProperty(this, columns, { value: cols });
-    Object.defineProperty(this, properties, { value: props });
-  });
-};
+    context.addInitializer(function () {
+      Object.defineProperty(this, tableName, { value: name });
+      Object.defineProperty(this, primaryKey, { value: primary });
+      Object.defineProperty(this, columns, { value: cols });
+      Object.defineProperty(this, properties, { value: props });
+    });
+  };
