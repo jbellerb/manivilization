@@ -20,9 +20,10 @@ export type AdminState = RootState & {
 
 const user: MiddlewareHandler<AdminState> = async (_req, ctx) => {
   if (!ctx.state.userPromise) {
+    const redirect = encodeURIComponent(ctx.url.pathname + ctx.url.search);
     return new Response(null, {
       status: STATUS_CODE.Found,
-      headers: { Location: `/oauth/login?redirect=${ctx.url.pathname}` },
+      headers: { Location: `/oauth/login?redirect=${redirect}` },
     });
   }
 

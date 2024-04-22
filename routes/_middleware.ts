@@ -87,9 +87,10 @@ const auth: MiddlewareHandler<RootState> = async (req, ctx) => {
         }
       }
 
+      const redirect = encodeURIComponent(ctx.url.pathname + ctx.url.search);
       const response = new Response(null, {
         status: STATUS_CODE.Found,
-        headers: { Location: `/oauth/login?redirect=${ctx.url.pathname}` },
+        headers: { Location: `/oauth/login?redirect=${redirect}` },
       });
       if (session) {
         await db.sessions.delete(session);
