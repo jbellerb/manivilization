@@ -1,4 +1,4 @@
-import { SELF, useCSP } from "$fresh/runtime.ts";
+import { SELF, STRICT_DYNAMIC, useCSP } from "$fresh/runtime.ts";
 
 import type { Handlers, PageProps, RouteConfig } from "$fresh/server.ts";
 
@@ -34,6 +34,7 @@ export const handler: Handlers<Data, State> = {
 export default function ResultsPage({ data }: PageProps<Data, State>) {
   useCSP((csp) => {
     csp.directives.imgSrc = [SELF];
+    csp.directives.scriptSrc = [STRICT_DYNAMIC];
     csp.directives.styleSrc = [SELF];
   });
 
