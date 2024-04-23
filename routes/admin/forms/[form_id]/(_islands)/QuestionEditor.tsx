@@ -20,6 +20,7 @@ export type Props = {
 
 type LooseQuestion = {
   type: Question["type"];
+  stableId: string;
   name: string;
   required: boolean;
   comment?: string;
@@ -39,8 +40,9 @@ function loosen(
       stringifiedProps[key] = Array.isArray(value) ? value : [value];
     }
   }
+  const stableId = crypto.randomUUID();
 
-  return ({ type, name, required, comment, props: stringifiedProps });
+  return ({ type, stableId, name, required, comment, props: stringifiedProps });
 }
 
 function changeType(
@@ -84,7 +86,7 @@ export default function QuestionEditor(props: Props) {
     <div>
       <ul class="space-y-6" aria-label="Questions">
         {questions.value.map((question, idx) => (
-          <li class="flex" key={question.name} aria-label={question.name}>
+          <li class="flex" key={question.stableId} aria-label={question.name}>
             <div class="flex flex-col mr-2 space-y-2">
               <IconButton
                 label="Delete question"
@@ -218,6 +220,7 @@ export default function QuestionEditor(props: Props) {
           onClick={() =>
             addQuestion(changeType({
               type: "text",
+              stableId: crypto.randomUUID(),
               name: `col_${questions.value.length + 1}`,
               required: false,
               props: {},
