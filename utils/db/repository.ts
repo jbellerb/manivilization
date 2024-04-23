@@ -152,6 +152,7 @@ type PropsMirror<T> = { [K in keyof Required<T>]: K };
 
 // WHERE and ORDER BY callback syntax inspired by Drizzle ORM
 type FindOptions<T extends Entity> = {
+  distinct?: true | (keyof EntityProps<T>)[];
   where?: WhereClause<T>;
   orderBy?: OrderByClause<T>;
   limit?: number;
@@ -199,15 +200,31 @@ export const setupRepository = <
     }
 
     const selectClause = cols.length === 0 ? sql`*` : sql(cols);
+    const distinctOnList = Array.isArray(options?.distinct)
+      ? options.distinct
+        .map((prop) => table[properties][prop as string | symbol])
+      : undefined;
+    const distinctOnClause = distinctOnList &&
+      sql` ON (${sql(distinctOnList)})`;
     const whereClause = options
       ?.where?.(mirror, whereOperators(table[properties]));
-    const orderByMaybeList = options
+    const orderByDistinct = distinctOnList
+      ?.map((col) => sql`${sql(col)}`)
+      .reduce((acc, col) => sql`${acc}, ${col}`);
+    const orderByGivenMaybeList = options
       ?.orderBy?.(mirror, orderByOperators(table[properties]));
-    const orderByClause = orderByMaybeList && Array.isArray(orderByMaybeList)
-      ? orderByMaybeList.reduce?.((acc, sort) => sql`${acc}, ${sort}`)
-      : orderByMaybeList;
+    const orderByGiven =
+      orderByGivenMaybeList && Array.isArray(orderByGivenMaybeList)
+        ? orderByGivenMaybeList.reduce((acc, sort) => sql`${acc}, ${sort}`)
+        : orderByGivenMaybeList;
+    const orderByClause = orderByDistinct
+      ? orderByGiven
+        ? sql`${orderByDistinct}, ${orderByGiven}`
+        : orderByDistinct
+      : orderByGiven;
 
-    const query = sql`SELECT
+    const query = sql`SELECT\
+${options?.distinct ? sql` DISTINCT${distinctOnClause ?? sql``}` : sql``}
     ${selectClause}
     FROM ${sql(table[tableName])}\
 ${whereClause ? sql`\n    WHERE ${whereClause}` : sql``}\
