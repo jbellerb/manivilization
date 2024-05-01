@@ -251,7 +251,7 @@ const buildColSelector = <T extends Entity>(
     colSelector[prop] = {
       [columnName]: as,
       [columnTable]: table,
-      [columnColumn]: table[properties][prop],
+      [columnColumn]: prop,
     }
   );
   return colSelector as Columns<T>;
