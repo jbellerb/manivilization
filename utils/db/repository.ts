@@ -555,15 +555,17 @@ ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
       }
       whereClause = sql`${sql(table[primaryKey])} = ${pKey}`;
     }
+    const returningClause = sql(cols
+      .map(({ table, column }) => (table ? table + "." : "") + column));
 
     const query = sql`DELETE FROM ${sql(table[tableName])}
     WHERE ${whereClause}\
-${props !== undefined ? sql`\n    RETURNING ${sql(cols)}` : sql``}\
+${returningClause ? sql`\n    RETURNING ${returningClause}` : sql``}\
 `;
 
     return props === undefined
       ? (await query).count
-      : (await query).map((row) => buildRow(props, table, row, cols));
+      : (await query.values()).map((row) => buildRow(props, table, row, cols));
   }
 
   return {
