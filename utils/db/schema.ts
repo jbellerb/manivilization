@@ -1,11 +1,12 @@
-import { column, Entity, table } from "./decorators.ts";
+import { Entity } from "./entity.ts";
+import { column, references, table } from "./decorators.ts";
 
 import type { Question } from "../form/types.ts";
 
 @table("instances")
 export class Instance extends Entity {
   @column("id")
-  id: string;
+  readonly id: string;
   @column("host")
   host: string;
   @column("name")
@@ -53,7 +54,7 @@ export class Instance extends Entity {
 @table("auth_sessions")
 export class AuthSession extends Entity {
   @column("id")
-  id: string;
+  readonly id: string;
   @column("instance")
   instance: string;
   @column("expires")
@@ -85,7 +86,7 @@ export class AuthSession extends Entity {
 @table("sessions")
 export class Session extends Entity {
   @column("id")
-  id: string;
+  readonly id: string;
   @column("instance")
   instance: string;
   @column("expires")
@@ -117,9 +118,10 @@ export class Session extends Entity {
 @table("forms")
 export class Form extends Entity {
   @column("id")
-  id: string;
+  readonly id: string;
   @column("instance")
-  instance: string;
+  @references(Instance, (instance) => instance.id)
+  instance: string | Instance;
   @column("name")
   name: string;
   @column("slug")
@@ -161,11 +163,12 @@ export class Form extends Entity {
 @table("responses")
 export class FormResponse extends Entity {
   @column("id")
-  id: string;
+  readonly id: string;
   @column("date")
   date: Date;
   @column("form")
-  form: string;
+  @references(Form, (form) => form.id)
+  form: string | Form;
   @column("discord_id")
   discordId: bigint;
   @column("discord_name")

@@ -1,167 +1,340 @@
-import type {
-  PendingQuery,
-  Row,
-  SerializableParameter as PgSerializableValue,
-} from "postgresjs/types/index.d.ts";
+import type { PendingQuery, Row } from "postgresjs/types/index.d.ts";
 
 import {
   columns,
+  Entity,
   primaryKey,
   properties,
+  relations,
   sqlRow,
   tableName,
-} from "./decorators.ts";
+} from "./entity.ts";
 import sql from "./sql.ts";
 import { getCache, setCache } from "../cache.ts";
 
 import type {
-  DerivedClass,
-  Entity,
+  ColSelector,
+  EntityJoined,
   EntityProps,
-  FullyNullable,
+  JoinSelector,
+  RelatedEntities,
+  SelectCols,
   Serializable,
-} from "./decorators.ts";
+} from "./entity.ts";
+import type { SerializableValue } from "./sql.ts";
+import type { DerivedClass, FullyNullable } from "./util.ts";
 
-const selectCols = <P extends string | symbol>(
-  props: { [K in P]?: boolean } | undefined,
-  columns: Record<string, P>,
-): string[] => {
-  const included = new Set<string | symbol>();
-  const excluded = new Set<string | symbol>();
-  for (const [prop, status] of Object.entries(props ?? {})) {
-    if (status) included.add(prop);
-    else excluded.add(prop);
-  }
+const columnName = Symbol("columnName");
+const columnTable = Symbol("columnTable");
+const columnColumn = Symbol("columnColumn");
 
-  const cols: string[] = [];
-  for (const [col, prop] of Object.entries(columns)) {
-    if (included.size > 0) {
-      if (included.has(prop)) cols.push(col);
-    } else if (excluded.size > 0) {
-      if (!excluded.has(prop)) cols.push(col);
-    }
-  }
+// deno-lint-ignore no-explicit-any
+type Column<T extends Entity = Entity, C extends keyof T = any> = {
+  [columnName]?: string;
+  [columnTable]: DerivedClass<typeof Entity, T>;
+  [columnColumn]: C;
+};
 
-  return cols;
+type Columns<T extends Entity> = {
+  -readonly [K in keyof EntityProps<T>]-?: Column<T, K>;
+};
+type JoinColumnSelector<T extends Entity, J extends JoinSelector<T>> = J extends
+  undefined ? never : {
+  [
+    K in keyof J as K extends keyof T
+      ? J[K] extends true | JoinSelector<Extract<T[K], Entity>> ? K : never
+      : never
+  ]-?: K extends keyof T ? (J[K] extends JoinSelector<Extract<T[K], Entity>> ?
+        & Columns<Extract<T[K], Entity>>
+        & JoinColumnSelector<Extract<T[K], Entity>, J[K]>
+      : Columns<Extract<T[K], Entity>>)
+    : never;
 };
 
 type WhereBooleanOperator = (
   ...conds: PendingQuery<Row[]>[]
 ) => PendingQuery<Row[]>;
 type WhereUnaryOperator = (cond: PendingQuery<Row[]>) => PendingQuery<Row[]>;
-type WhereComparisonOperator<T> = <C extends keyof T>(
-  col: C,
-  value: T[C] extends PgSerializableValue<bigint> ? T[C] : never,
+type WhereComparisonOperator = <
+  T extends Entity,
+  C extends keyof T,
+  T2 extends Entity,
+  C2 extends keyof T2,
+>(
+  col: Column<T, C>,
+  value:
+    | Extract<T[C], SerializableValue | Entity>
+    | (T2[C2] extends T[C] ? Column<T2, C2> : never),
 ) => PendingQuery<Row[]>;
-type WhereOperators<T> = {
-  and: WhereBooleanOperator;
-  or: WhereBooleanOperator;
-  not: WhereUnaryOperator;
-  eq: WhereComparisonOperator<T>;
-  neq: WhereComparisonOperator<T>;
-  lt: WhereComparisonOperator<T>;
-  gt: WhereComparisonOperator<T>;
-  lte: WhereComparisonOperator<T>;
-  gte: WhereComparisonOperator<T>;
+const buildWhereBoolean =
+  (operator: PendingQuery<Row[]>): WhereBooleanOperator => (...conds) => {
+    if (conds.length === 0) return sql``;
+    else if (conds.length === 1) return conds[0];
+    else {
+      const chain = conds
+        .reduce((acc, cond) => sql`${acc} ${operator} ${cond}`);
+      return sql`( ${chain} )`;
+    }
+  };
+const buildWhereUnary =
+  (operator: PendingQuery<Row[]>): WhereUnaryOperator => (cond) =>
+    sql`${operator} ${cond}`;
+const buildWhereComparison =
+  (operator: PendingQuery<Row[]>): WhereComparisonOperator =>
+  (
+    { [columnName]: name, [columnTable]: table, [columnColumn]: col },
+    value,
+  ) => {
+    const column = table[properties][col as string | symbol];
+    const prop = sql((name ? name + "." : "") + column);
+    let resolvedValue: SerializableValue;
+    if (typeof value === "object" && value != null && columnColumn in value) {
+      const valueColumn =
+        value[columnTable][properties][value[columnColumn] as string | symbol];
+      resolvedValue = sql(
+        (value[columnName] ? value[columnName] + "." : "") + valueColumn,
+      );
+    } else if (value instanceof Entity) {
+      resolvedValue =
+        value.toSql()[table[relations][col as string | symbol].foreignKey];
+    } else resolvedValue = value;
+    return sql`${prop} ${operator} ${resolvedValue}`;
+  };
+const whereOperators = {
+  and: buildWhereBoolean(sql`AND`),
+  or: buildWhereBoolean(sql`OR`),
+  not: buildWhereUnary(sql`NOT`),
+  eq: buildWhereComparison(sql`=`),
+  neq: buildWhereComparison(sql`<>`),
+  lt: buildWhereComparison(sql`<`),
+  gt: buildWhereComparison(sql`>`),
+  lte: buildWhereComparison(sql`<=`),
+  gte: buildWhereComparison(sql`>=`),
 };
 
 type WhereClause<T extends Entity> = (
-  columns: PropsMirror<EntityProps<T>>,
-  opts: WhereOperators<EntityProps<T>>,
+  columns: Columns<T>,
+  opts: typeof whereOperators,
 ) => PendingQuery<Row[]>;
+type WhereClauseWithJoin<T extends Entity, J extends JoinSelector<T>> = (
+  columns: Columns<T>,
+  opts: typeof whereOperators,
+  joins: JoinColumnSelector<T, J>,
+) => PendingQuery<Row[]> | PendingQuery<Row[]>[];
 
-const whereOperators = <T>(
-  properties: Record<string | symbol, string>,
-): WhereOperators<T> => {
-  const buildBoolean =
-    (operator: PendingQuery<Row[]>): WhereBooleanOperator => (...conds) => {
-      if (conds.length === 0) return sql``;
-      else if (conds.length === 1) return conds[0];
-      else {
-        const chain = conds.reduce((acc, cond) =>
-          sql`${acc} ${operator} ${cond}`
-        );
-        return sql`( ${chain} )`;
-      }
-    };
-
-  const buildComparison =
-    (operator: PendingQuery<Row[]>): WhereComparisonOperator<T> =>
-    (col, value) =>
-      // This cast is safe as only name and symbol properties are supported.
-      sql`${sql(properties[col as string | symbol])} ${operator} ${value}`;
-
-  return {
-    and: buildBoolean(sql`AND`),
-    or: buildBoolean(sql`OR`),
-    not: (cond) => sql`NOT ${cond}`,
-    eq: buildComparison(sql`=`),
-    neq: buildComparison(sql`<>`),
-    lt: buildComparison(sql`<`),
-    gt: buildComparison(sql`>`),
-    lte: buildComparison(sql`<=`),
-    gte: buildComparison(sql`>=`),
+type OrderByUnaryOperator = <T extends Entity, C extends keyof T>(
+  sort: Column<T, C> | PendingQuery<Row[]>,
+) => PendingQuery<Row[]>;
+const buildOrderByUnary =
+  (operator: PendingQuery<Row[]>): OrderByUnaryOperator => (sort) => {
+    if (columnColumn in sort) {
+      const { [columnName]: name, [columnTable]: table, [columnColumn]: col } =
+        sort;
+      const column = table[properties][col as string | symbol];
+      return sql`${sql((name ? name + "." : "") + column)} ${operator}`;
+    } else {
+      return sql`${sort} ${operator}`;
+    }
   };
-};
-
-type OrderByUnaryOperator<T> = <C extends keyof T>(
-  sort: C | PendingQuery<Row[]>,
-) => PendingQuery<Row[]>;
-type OrderByOperators<T> = {
-  asc: OrderByUnaryOperator<T>;
-  desc: OrderByUnaryOperator<T>;
+const orderByOperators = {
+  asc: buildOrderByUnary(sql`ASC`),
+  desc: buildOrderByUnary(sql`DESC`),
 };
 
 type OrderByClause<T extends Entity> = (
-  columns: PropsMirror<EntityProps<T>>,
-  opts: OrderByOperators<EntityProps<T>>,
+  columns: Columns<T>,
+  opts: typeof orderByOperators,
 ) => PendingQuery<Row[]> | PendingQuery<Row[]>[];
-
-const orderByOperators = <T>(
-  properties: Record<string | symbol, string>,
-): OrderByOperators<T> => {
-  const buildUnary =
-    (operator: PendingQuery<Row[]>): OrderByUnaryOperator<T> => (sort) =>
-      sql`${
-        typeof sort !== "object"
-          // This cast is safe as only name and symbol properties are supported.
-          ? sql(properties[sort as string | symbol])
-          : sort
-      } ${operator}`;
-
-  return {
-    asc: buildUnary(sql`ASC`),
-    desc: buildUnary(sql`DESC`),
-  };
-};
-
-const buildRows = <T extends Entity & Serializable<EntityProps<T>>>(
-  table: DerivedClass<typeof Entity, T>,
-  rows: Row[],
-  construct: boolean,
-): Partial<FullyNullable<T>>[] =>
-  rows.map((row) => {
-    if (construct) return table.fromSql(row);
-    const obj: Record<string | symbol, unknown> = {};
-    Object.entries(row)
-      .forEach(([col, val]) => obj[table[columns][col]] = val);
-    return obj as Partial<FullyNullable<T>>;
-  });
-
-type PropsMirror<T> = { [K in keyof Required<T>]: K };
+type OrderByClauseWithJoin<T extends Entity, J extends JoinSelector<T>> = (
+  columns: Columns<T>,
+  opts: typeof orderByOperators,
+  joins: JoinColumnSelector<T, J>,
+) => PendingQuery<Row[]> | PendingQuery<Row[]>[];
 
 // WHERE and ORDER BY callback syntax inspired by Drizzle ORM
 type FindOptions<T extends Entity> = {
-  distinct?: true | (keyof EntityProps<T>)[];
+  distinct?: true | keyof EntityProps<T> | (keyof EntityProps<T>)[];
   where?: WhereClause<T>;
   orderBy?: OrderByClause<T>;
   limit?: number;
   offset?: number;
   cache?: string | { key: string; ttl: number };
 };
+type FindOptionsWithJoin<T extends Entity, J extends JoinSelector<T>> = {
+  where?: WhereClauseWithJoin<T, J>;
+  orderBy?: OrderByClauseWithJoin<T, J>;
+} & Omit<FindOptions<T>, "where" | "orderBy">;
+
+type SqlColumn = {
+  table?: string;
+  column: string;
+  joinedFrom?: string[];
+};
+type SqlJoin = {
+  table: string;
+  as?: string;
+  on?: PendingQuery<Row[]>;
+  children?: Record<string, SqlJoin>;
+};
+
+const selectCols = <T extends Entity, J extends JoinSelector<T> | void>(
+  props: ColSelector<EntityJoined<T, J>> | undefined,
+  table: DerivedClass<typeof Entity, T>,
+  joins?: J,
+  name?: string,
+  tables: Record<string, number> = {},
+): { cols: SqlColumn[]; joins?: Record<string, SqlJoin> } => {
+  const queryCols: SqlColumn[] = [];
+  const queryJoins: Record<string, SqlJoin> = {};
+  const tableJoins = new Map<string, boolean | JoinSelector<T>>();
+  const tableProps = Object.fromEntries(
+    Reflect.ownKeys(table[properties])
+      .map((p) => [table[properties][p], props?.[p as keyof typeof props]]),
+  );
+
+  const isExclusive = Object.values(tableProps).some((s) => s);
+  for (const [col, status] of Object.entries(tableProps)) {
+    if (isExclusive ? status : status !== false) {
+      queryCols.push({ column: col });
+      if (table[relations][table[columns][col]]) {
+        const join = joins?.[table[columns][col] as keyof typeof joins];
+        join && tableJoins.set(col, join);
+      }
+    }
+  }
+
+  if (tableJoins.size > 0) queryCols.forEach((c) => c.table = table[tableName]);
+  for (const [col, status] of tableJoins) {
+    const rel = table[relations][table[columns][col]];
+    tables[rel.table[tableName]] = (tables[rel.table[tableName]] ?? -1) + 1;
+    const as = tables[rel.table[tableName]] > 0
+      ? `${rel.table[tableName]}_${tables[rel.table[tableName]]}`
+      : undefined;
+    const on = sql`${sql(`${name ?? table[tableName]}.${col}`)} = ${
+      sql(`${as ?? rel.table[tableName]}.${rel.foreignKey}`)
+    }`;
+    const joined = selectCols(
+      typeof tableProps[col] === "object" ? tableProps[col] : {},
+      rel.table,
+      // @ts-ignore TypeScript doesn't know that status is the JoinSelector
+      // for rel.table. Not going to bother fixing this, the generics are
+      // complicated enough as is...
+      typeof status === "object" ? status : undefined,
+      as,
+      tables,
+    );
+    queryCols.push(...joined.cols.map((c) => ({
+      ...c,
+      table: c.table ?? as ?? rel.table[tableName],
+      joinedFrom: [col, ...(c.joinedFrom ?? [])],
+    })));
+    queryJoins[col] = {
+      table: rel.table[tableName],
+      as,
+      on,
+      children: joined.joins,
+    };
+  }
+
+  return {
+    cols: queryCols,
+    joins: Object.keys(queryJoins).length > 0 ? queryJoins : undefined,
+  };
+};
+
+const buildColSelector = <T extends Entity>(
+  table: DerivedClass<typeof Entity, T>,
+  as?: string,
+): Columns<T> => {
+  const colSelector: Record<string | symbol, Column> = {};
+  Reflect.ownKeys(table[properties]).forEach((prop) =>
+    colSelector[prop] = {
+      [columnName]: as,
+      [columnTable]: table,
+      [columnColumn]: table[properties][prop],
+    }
+  );
+  return colSelector as Columns<T>;
+};
+
+const buildJoinSelector = <T extends Entity, J extends JoinSelector<T>>(
+  table: DerivedClass<typeof Entity, T>,
+  joins?: Record<string, SqlJoin>,
+): JoinColumnSelector<T, J> => {
+  const joinSelector: Record<string | symbol, Record<string | symbol, Column>> =
+    {};
+  Object.entries(joins ?? {}).forEach(([prop, join]) => {
+    const rel = table[relations][prop];
+    const cols = buildColSelector(rel.table, join.as ?? join.table);
+    if (cols) joinSelector[table[columns][prop]] = cols;
+    if (join.children) {
+      const children = buildJoinSelector(rel.table, join.children);
+      Reflect.ownKeys(children).forEach((child) =>
+        Object.assign(
+          joinSelector[table[columns][prop]][child],
+          children[child as keyof typeof children],
+        )
+      );
+    }
+  });
+  return joinSelector as JoinColumnSelector<T, J>;
+};
+
+const buildJoinList = (
+  joins?: Record<string, SqlJoin>,
+): SqlJoin[] | undefined => {
+  if (!joins) return undefined;
+  const list = Object.values(joins).flatMap(({ table, as, on, children }) => {
+    return [{ table, as, on }, ...(children && buildJoinList(children)) ?? []];
+  });
+  return list.length > 0 ? list : undefined;
+};
+
+const buildRow = <T extends Entity, J extends JoinSelector<T> | void>(
+  props: ColSelector<EntityJoined<T, J>> | undefined,
+  table: DerivedClass<typeof Entity, T>,
+  row: Row,
+  cols: SqlColumn[],
+): Partial<FullyNullable<EntityJoined<T, J>>> => {
+  const obj: Record<string, SerializableValue> = {};
+  const joins: Record<string, unknown> = {};
+  let idx = 0;
+  while (idx < row.length) {
+    const col = cols[idx];
+    if (col.joinedFrom && col.joinedFrom.length > 0) {
+      const key = col.joinedFrom[0];
+      let skip = cols.slice(idx).findIndex((c) => c.joinedFrom?.[0] !== key);
+      skip = skip === -1 ? cols.length - idx : skip;
+      joins[key] = buildRow(
+        props?.[table[columns][key] as keyof typeof props],
+        table[relations][table[columns][key]].table,
+        row.slice(idx).toSpliced(skip),
+        cols.slice(idx).toSpliced(skip)
+          .map((c) => ({ ...c, joinedFrom: c.joinedFrom?.slice(1) })),
+      );
+      idx += skip;
+    } else {
+      obj[col.column] = row[idx];
+      idx += 1;
+    }
+  }
+
+  let entity: Record<string | symbol, unknown> = {};
+  if (Object.keys(obj).length === Object.keys(table[columns]).length) {
+    entity = table.fromSql(obj);
+  } else {
+    for (const [col, val] of Object.entries(obj)) {
+      entity[table[columns][col]] = val;
+    }
+  }
+  for (const [col, val] of Object.entries(joins)) {
+    entity[table[columns][col]] = val;
+  }
+  return entity as FullyNullable<EntityJoined<T, J>>;
+};
 
 export const setupRepository = <
-  T extends Entity & Serializable<EntityProps<T>>,
+  T extends Entity,
 >(table: DerivedClass<typeof Entity, T>) => {
   async function insert(entity: T): Promise<void> {
     const row = entity.toSql();
@@ -172,22 +345,15 @@ export const setupRepository = <
     ${sql(row)}`;
   }
 
-  // This is valid as long as every field in the entity was annotated with a
-  // column decorator since the properties map contains every property on the
-  // entity that isn't a part of the base entity class. I don't belive it's
-  // possible to either require every field be annotated or create a type
-  // representing only the fields that were annotated. With that, assuming all
-  // fields seems like the most sensible approach.
-  const mirror = {} as PropsMirror<EntityProps<T>>;
-  Reflect.ownKeys(table[properties]).forEach((p) =>
-    (mirror as Record<string | symbol, string | symbol>)[p] = p
-  );
-
-  async function findImpl<P extends keyof EntityProps<T>>(
-    props?: { [K in P]?: boolean },
-    options?: FindOptions<T>,
-  ): Promise<Partial<FullyNullable<T>>[]> {
-    const cols = selectCols(props, table[columns]);
+  async function findImpl<
+    J extends JoinSelector<T>,
+    P extends ColSelector<EntityJoined<T, J>>,
+  >(
+    props?: P,
+    options?: FindOptions<T> | FindOptionsWithJoin<T, J>,
+    join?: J,
+  ): Promise<Partial<FullyNullable<EntityJoined<T, J>>>[]> {
+    const { cols, joins } = selectCols(props, table, join);
     const cacheKey = options?.cache
       ? (typeof options.cache === "string" ? options.cache : options.cache.key)
       : undefined;
@@ -196,23 +362,38 @@ export const setupRepository = <
       const cached = getCache(`sql-${table[tableName]}`, cacheKey) as
         | Row[]
         | undefined;
-      if (cached) return buildRows(table, cached, cols.length === 0);
+      if (cached) return cached.map((row) => buildRow(props, table, row, cols));
     }
 
-    const selectClause = cols.length === 0 ? sql`*` : sql(cols);
-    const distinctOnList = Array.isArray(options?.distinct)
+    const colSelector = buildColSelector(
+      table,
+      joins ? table[tableName] : undefined,
+    );
+    const joinSelector = buildJoinSelector<T, J>(table, joins);
+
+    const selectClause = sql(cols
+      .map(({ table, column }) => (table ? table + "." : "") + column));
+    const distinctOnList = options?.distinct && Array.isArray(options.distinct)
       ? options.distinct
         .map((prop) => table[properties][prop as string | symbol])
+      : options?.distinct && options.distinct !== true
+      ? [table[properties][options.distinct as string | symbol]]
       : undefined;
     const distinctOnClause = distinctOnList &&
       sql` ON (${sql(distinctOnList)})`;
+    const joinList = buildJoinList(joins)?.map(({ as, on, table }) =>
+      sql`${sql(table)}${as ? sql` AS ${sql(as)}` : sql``}\
+${on ? sql` ON ${on}` : sql``}`
+    );
+    const joinClause = joinList
+      ?.reduce((acc, smt) => sql`${acc}\n    LEFT OUTER JOIN ${smt}`);
     const whereClause = options
-      ?.where?.(mirror, whereOperators(table[properties]));
+      ?.where?.(colSelector, whereOperators, joinSelector);
     const orderByDistinct = distinctOnList
       ?.map((col) => sql`${sql(col)}`)
       .reduce((acc, col) => sql`${acc}, ${col}`);
     const orderByGivenMaybeList = options
-      ?.orderBy?.(mirror, orderByOperators(table[properties]));
+      ?.orderBy?.(colSelector, orderByOperators, joinSelector);
     const orderByGiven =
       orderByGivenMaybeList && Array.isArray(orderByGivenMaybeList)
         ? orderByGivenMaybeList.reduce((acc, sort) => sql`${acc}, ${sort}`)
@@ -227,13 +408,14 @@ export const setupRepository = <
 ${options?.distinct ? sql` DISTINCT${distinctOnClause ?? sql``}` : sql``}
     ${selectClause}
     FROM ${sql(table[tableName])}\
+${joinClause ? sql`\n    LEFT OUTER JOIN ${joinClause}` : sql``}\
 ${whereClause ? sql`\n    WHERE ${whereClause}` : sql``}\
 ${orderByClause ? (sql`\n    ORDER BY ${orderByClause}`) : sql``}\
 ${options?.limit ? sql`\n    LIMIT ${options?.limit}` : sql``}\
 ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
 `;
 
-    const rows = await query;
+    const rows = await query.values();
     if (cacheKey) {
       setCache(
         `sql-${table[tableName]}`,
@@ -243,66 +425,78 @@ ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
       );
     }
 
-    return buildRows(table, rows, cols.length === 0);
+    return rows.map((row) => buildRow(props, table, row, cols));
   }
 
   async function find(
     props?: Record<string, never>,
     options?: FindOptions<T>,
-  ): Promise<FullyNullable<T>[]>;
-  async function find<P extends keyof EntityProps<T>>(
-    props: { [K in P]?: true },
+  ): Promise<FullyNullable<EntityJoined<T, void>>[]>;
+  async function find<P extends ColSelector<EntityJoined<T, void>>>(
+    props: P,
     options?: FindOptions<T>,
-  ): Promise<Pick<FullyNullable<T>, P>[]>;
-  async function find<P extends keyof EntityProps<T>>(
-    props: { [K in P]?: false },
-    options?: FindOptions<T>,
-  ): Promise<Omit<FullyNullable<T>, P>[]>;
-  async function find<P extends keyof EntityProps<T>>(
-    props: { [K in P]?: boolean },
-    options?: FindOptions<T>,
-  ): Promise<Partial<FullyNullable<T>>[]>;
-  async function find<P extends keyof EntityProps<T>>(
-    props?: { [K in P]?: boolean },
-    options?: FindOptions<T>,
+  ): Promise<SelectCols<FullyNullable<EntityJoined<T, void>>, P>[]>;
+  async function find<J extends JoinSelector<T>>(
+    props: Record<string, never> | undefined,
+    options: FindOptionsWithJoin<T, NoInfer<J>>,
+    join: J,
+  ): Promise<FullyNullable<EntityJoined<T, J>>[]>;
+  async function find<
+    J extends JoinSelector<T>,
+    P extends ColSelector<EntityJoined<T, NoInfer<J>>>,
+  >(
+    props: P,
+    options: FindOptionsWithJoin<T, NoInfer<J>>,
+    join: J,
+  ): Promise<SelectCols<FullyNullable<EntityJoined<T, J>>, P>[]>;
+  async function find<
+    J extends JoinSelector<T>,
+    P extends ColSelector<EntityJoined<T, NoInfer<J>>>,
+  >(
+    props?: P,
+    options?: FindOptions<T> | FindOptionsWithJoin<T, NoInfer<J>>,
+    join?: J,
   ): Promise<
-    // TypeScript doesn't understand that Pick<T, P> or Omit<T, P> are
-    // assignable to Partial<T> because it can't reason that P extends keyof T
-    // or Exclude<keyof T, P> are subsets of keyof T.
-    // This is a known bug: https://github.com/microsoft/TypeScript/issues/37768
-    | Pick<FullyNullable<T>, P>[]
-    | Omit<FullyNullable<T>, P>[]
-    | Partial<FullyNullable<T>>[]
+    | Partial<FullyNullable<EntityJoined<T, void>>>[]
+    | Partial<FullyNullable<EntityJoined<T, J>>>[]
   > {
-    return await findImpl(props, options);
+    return await findImpl(props, options, join);
   }
 
   async function findOne(
     props?: Record<string, never>,
     options?: Omit<FindOptions<T>, "limit">,
-  ): Promise<FullyNullable<T> | undefined>;
-  async function findOne<P extends keyof EntityProps<T>>(
-    props: { [K in P]?: true },
+  ): Promise<FullyNullable<EntityJoined<T, void>> | undefined>;
+  async function findOne<P extends ColSelector<EntityJoined<T, void>>>(
+    props: P,
     options?: Omit<FindOptions<T>, "limit">,
-  ): Promise<Pick<FullyNullable<T>, P> | undefined>;
-  async function findOne<P extends keyof EntityProps<T>>(
-    props: { [K in P]?: false },
-    options?: Omit<FindOptions<T>, "limit">,
-  ): Promise<Omit<FullyNullable<T>, P> | undefined>;
-  async function findOne<P extends keyof EntityProps<T>>(
-    props: { [K in P]?: boolean },
-    options?: Omit<FindOptions<T>, "limit">,
-  ): Promise<Partial<FullyNullable<T>> | undefined>;
-  async function findOne<P extends keyof EntityProps<T>>(
-    props?: { [K in P]?: boolean },
-    options?: Omit<FindOptions<T>, "limit">,
+  ): Promise<SelectCols<FullyNullable<EntityJoined<T, void>>, P> | undefined>;
+  async function findOne<J extends JoinSelector<T>>(
+    props: Record<string, never> | undefined,
+    options: Omit<FindOptionsWithJoin<T, NoInfer<J>>, "limit">,
+    join: J,
+  ): Promise<FullyNullable<EntityJoined<T, J>> | undefined>;
+  async function findOne<
+    J extends JoinSelector<T>,
+    P extends ColSelector<EntityJoined<T, NoInfer<J>>>,
+  >(
+    props: P,
+    options: Omit<FindOptionsWithJoin<T, NoInfer<J>>, "limit">,
+    join: J,
+  ): Promise<SelectCols<FullyNullable<EntityJoined<T, J>>, P> | undefined>;
+  async function findOne<
+    J extends keyof RelatedEntities<T>,
+    P extends ColSelector<EntityJoined<T, NoInfer<J>>>,
+  >(
+    props?: P,
+    options?: Omit<FindOptionsWithJoin<T, NoInfer<J>>, "limit">,
+    join?: J,
   ): Promise<
-    | Pick<FullyNullable<T>, P>
-    | Omit<FullyNullable<T>, P>
-    | Partial<FullyNullable<T>>
+    | Partial<FullyNullable<EntityJoined<T, void>>>
+    | Partial<FullyNullable<EntityJoined<T, J>>>
     | undefined
   > {
-    return (await findImpl(props, { ...options, limit: 1 }))[0];
+    return (await findImpl(props, { ...options, limit: 1 }, join))[0];
   }
 
   async function update(entity: T): Promise<void> {
@@ -313,68 +507,63 @@ ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
       if (val !== entity[sqlRow][col]) changes[col] = val;
     }
     if (Object.keys(changes).length === 0) return;
-
     if (table[primaryKey] in changes) {
       throw new Error(
         `Illegal attempt to change primary key of row in ${table[tableName]}`,
       );
     }
-    Object.defineProperty(entity, sqlRow, { value: row, writable: true });
 
     await sql`UPDATE ${sql(table[tableName])}
     SET ${sql(changes)}
     WHERE ${sql(table[primaryKey])} = ${row[table[primaryKey]]}`;
+
+    Object.defineProperty(entity, sqlRow, { value: row, writable: true });
   }
 
   async function deleteImpl(
-    where: T | WhereClause<T>,
+    where: Serializable<EntityProps<T>> | WhereClause<T>,
     props?: undefined,
   ): Promise<number>;
   async function deleteImpl(
-    where: T | WhereClause<T>,
+    where: Serializable<EntityProps<T>> | WhereClause<T>,
     props: Record<string, never>,
-  ): Promise<FullyNullable<T>[]>;
-  async function deleteImpl<P extends keyof EntityProps<T>>(
-    where: T | WhereClause<T>,
-    props: { [K in P]?: true },
-  ): Promise<Pick<FullyNullable<T>, P>[]>;
-  async function deleteImpl<P extends keyof EntityProps<T>>(
-    where: T | WhereClause<T>,
-    props: { [K in P]?: false },
-  ): Promise<Omit<FullyNullable<T>, P>[]>;
-  async function deleteImpl<P extends keyof EntityProps<T>>(
-    where: T | WhereClause<T>,
-    props: { [K in P]?: boolean },
-  ): Promise<Partial<FullyNullable<T>>[]>;
-  async function deleteImpl<P extends keyof EntityProps<T>>(
-    where: T | WhereClause<T>,
-    props?: { [K in P]?: boolean },
+  ): Promise<FullyNullable<EntityJoined<T, void>>[]>;
+  async function deleteImpl<P extends ColSelector<EntityJoined<T, void>>>(
+    where: Serializable<EntityProps<T>> | WhereClause<T>,
+    props: P,
+  ): Promise<SelectCols<FullyNullable<EntityJoined<T, void>>, P>[]>;
+  async function deleteImpl<P extends ColSelector<EntityJoined<T, void>>>(
+    where: Serializable<EntityProps<T>> | WhereClause<T>,
+    props?: P,
   ): Promise<
     | number
-    | Pick<FullyNullable<T>, P>[]
-    | Omit<FullyNullable<T>, P>[]
-    | Partial<FullyNullable<T>>[]
+    | Partial<FullyNullable<EntityJoined<T, void>>>[]
   > {
-    const cols = selectCols(props, table[columns]);
+    const { cols } = selectCols(props, table);
 
     let whereClause;
     if (typeof where === "function") {
-      whereClause = where(mirror, whereOperators(table[properties]));
+      whereClause = where(buildColSelector(table), whereOperators);
     } else {
-      const pKey = where[table[columns][table[primaryKey]] as keyof T];
-      if (pKey === undefined) throw new Error("Primary key is undefined");
+      const pKey =
+        where[table[columns][table[primaryKey]] as keyof EntityProps<T>];
+      if (pKey == null) throw new Error("Primary key is undefined or null");
+      if (pKey !== undefined) {
+        if (pKey !== null && pKey instanceof Entity) {
+          throw new Error("Primary key is referencing a foreign table");
+        }
+      }
       whereClause = sql`${sql(table[primaryKey])} = ${pKey}`;
     }
-    const returningClause = cols.length === 0 ? sql`*` : sql(cols);
 
     const query = sql`DELETE FROM ${sql(table[tableName])}
     WHERE ${whereClause}\
-${props !== undefined ? sql`\n    RETURNING ${returningClause}` : sql``}\
+${props !== undefined ? sql`\n    RETURNING ${sql(cols)}` : sql``}\
 `;
 
     return props === undefined
       ? (await query).count
-      : buildRows(table, await query, cols.length === 0);
+      : (await query).map((row) => buildRow(props, table, row, cols));
   }
 
   return {

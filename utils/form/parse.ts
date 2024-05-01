@@ -1,7 +1,7 @@
 import { fromSnowflake, toSnowflake } from "../discord/snowflake.ts";
 
 import type { Question, ValidationIssue } from "./types.ts";
-import type { EntityProps } from "../db/decorators.ts";
+import type { EntityProps } from "../db/entity.ts";
 import type { Form } from "../db/mod.ts";
 
 type NestedFormData = { [property: string]: string[] | NestedFormData };
