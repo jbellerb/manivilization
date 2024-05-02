@@ -147,6 +147,10 @@ async function handleInteraction(
   req: JSON<APIInteraction>,
 ): Promise<Response | APIInteractionResponse> {
   if (typeof req !== "object") throw new Error("No interaction provided");
+  if (req?.type === InteractionType.Ping) {
+    return { type: InteractionResponseType.Pong };
+  }
+
   if (typeof req?.guild_id !== "string") {
     throw new Error("guild_id is not a string");
   }
@@ -161,8 +165,6 @@ async function handleInteraction(
 
   try {
     switch (req.type) {
-      case InteractionType.Ping:
-        return { type: InteractionResponseType.Pong };
       case InteractionType.ApplicationCommand:
       case InteractionType.ApplicationCommandAutocomplete:
       case InteractionType.ModalSubmit:
