@@ -2,7 +2,9 @@ import { toSnowflake } from "../discord/snowflake.ts";
 
 import type { Form, FormResponse } from "../db/schema.ts";
 
-export function assignableRoles(form: Form): bigint[] {
+export function assignableRoles(
+  form: Pick<Form, "questions" | "submitterRole">,
+): bigint[] {
   const roles: bigint[] = [];
 
   if (form.submitterRole) roles.push(form.submitterRole);
@@ -16,7 +18,7 @@ export function assignableRoles(form: Form): bigint[] {
 }
 
 export function neededRoles(
-  form: Form,
+  form: Pick<Form, "questions" | "submitterRole">,
   response: FormResponse["response"],
 ): bigint[] {
   const roles: bigint[] = [];

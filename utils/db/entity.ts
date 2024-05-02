@@ -34,6 +34,19 @@ export class Entity {
     return _this;
   }
 
+  static toSqlPartial<T extends Entity>(
+    this: DerivedClass<typeof Entity, T>,
+    entity: Serializable<Partial<EntityProps<EntityJoined<T, void>>>>,
+  ): Record<string, SerializableValue> {
+    const row: Record<string, SerializableValue> = {};
+    for (const prop of Reflect.ownKeys(this[properties])) {
+      const val = entity[prop as keyof EntityProps<T>];
+      if (val === undefined || val instanceof Entity) continue;
+      row[this[properties][prop]] = val;
+    }
+    return row;
+  }
+
   toSql<T extends Entity>(
     this: Serializable<EntityProps<T>>,
   ): Record<string, SerializableValue> {

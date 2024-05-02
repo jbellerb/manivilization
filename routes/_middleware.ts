@@ -1,3 +1,4 @@
+import { decodeHex } from "$std/encoding/hex.ts";
 import { deleteCookie, getCookies } from "$std/http/cookie.ts";
 import { STATUS_CODE } from "$std/http/status.ts";
 
@@ -7,18 +8,50 @@ import { getCache, invalidateCache, memo, setCache } from "../utils/cache.ts";
 import db from "../utils/db/mod.ts";
 import { DiscordHTTPError } from "../utils/discord/http.ts";
 import { getUser } from "../utils/discord/user.ts";
+import {
+  DISCORD_INTERACTIONS_VERIFYING_KEY,
+  INTERACTIONS_HOST,
+} from "../utils/env.ts";
 import { refreshSession, SessionRefreshError } from "../utils/session.ts";
 
 import type { Instance, Session } from "../utils/db/mod.ts";
 import type { User } from "../utils/discord/user.ts";
 
-export type RootState = {
+export type ConstantsState = {
+  constants: Constants;
+};
+
+export type RootState = ConstantsState & {
   instance: Instance;
+  interactions: boolean;
   sessionToken?: string;
   userPromise?: () => Promise<User | Response>;
 };
 
+export class Constants {
+  static #instance: Constants;
+
+  public interactionsVerifyingKey?: CryptoKey;
+
+  public static async init(): Promise<void> {
+    Constants.#instance = new Constants();
+    if (DISCORD_INTERACTIONS_VERIFYING_KEY) {
+      const rawKey = decodeHex(DISCORD_INTERACTIONS_VERIFYING_KEY);
+      Constants.#instance.interactionsVerifyingKey = await crypto.subtle
+        .importKey("raw", rawKey, "Ed25519", false, ["verify"]);
+    }
+  }
+
+  public static instance(): Constants {
+    if (this.#instance) return this.#instance;
+    else throw new Error("Constants not yet initialized");
+  }
+}
+
 const instance: MiddlewareHandler<RootState> = async (_req, ctx) => {
+  ctx.state.constants = Constants.instance();
+  if (ctx.route === "/api/interactions") return await ctx.next();
+
   let instance;
   try {
     instance = await db.instances.findOne({}, {
@@ -34,6 +67,9 @@ const instance: MiddlewareHandler<RootState> = async (_req, ctx) => {
 
   if (instance) {
     ctx.state.instance = instance;
+    ctx.state.interactions =
+      ctx.state.constants.interactionsVerifyingKey !== undefined &&
+      (INTERACTIONS_HOST !== undefined || ctx.config.dev);
     return await ctx.next();
   }
 
@@ -42,6 +78,7 @@ const instance: MiddlewareHandler<RootState> = async (_req, ctx) => {
 
 const auth: MiddlewareHandler<RootState> = async (req, ctx) => {
   if (ctx.destination !== "route") return await ctx.next();
+  if (ctx.route === "/api/interactions") return await ctx.next();
 
   const sessionCookieName = `${ctx.config.dev ? "" : "__Host-"}session`;
 

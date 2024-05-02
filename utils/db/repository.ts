@@ -336,7 +336,9 @@ const buildRow = <T extends Entity, J extends JoinSelector<T> | void>(
 export const setupRepository = <
   T extends Entity,
 >(table: DerivedClass<typeof Entity, T>) => {
-  async function insert(entity: T): Promise<void> {
+  async function insert(
+    entity: T & Serializable<EntityProps<T>>,
+  ): Promise<void> {
     const row = entity.toSql();
 
     Object.defineProperty(entity, sqlRow, { value: row, writable: true });
@@ -499,14 +501,31 @@ ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
     return (await findImpl(props, { ...options, limit: 1 }, join))[0];
   }
 
-  async function update(entity: T): Promise<void> {
-    const row = entity.toSql();
-
+  async function update(
+    entity:
+      | Entity & Serializable<EntityProps<T>>
+      | Serializable<Partial<EntityProps<EntityJoined<T, void>>>>,
+  ): Promise<void> {
+    let row: Record<string, SerializableValue> = {};
     const changes: Record<string, unknown> = {};
-    for (const [col, val] of Object.entries(row)) {
-      if (val !== entity[sqlRow][col]) changes[col] = val;
+
+    if (entity instanceof Entity) {
+      row = entity.toSql();
+      for (const [col, val] of Object.entries(row)) {
+        if (val !== entity[sqlRow][col]) changes[col] = val;
+      }
+    } else {
+      row = table.toSqlPartial(entity);
+      for (const [col, val] of Object.entries(row)) {
+        if (col !== table[primaryKey]) changes[col] = val;
+      }
+      console.log(row, changes);
     }
+
     if (Object.keys(changes).length === 0) return;
+    if (!(table[primaryKey] in row)) {
+      throw new Error(`Row primary key not specified`);
+    }
     if (table[primaryKey] in changes) {
       throw new Error(
         `Illegal attempt to change primary key of row in ${table[tableName]}`,
@@ -517,7 +536,9 @@ ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
     SET ${sql(changes)}
     WHERE ${sql(table[primaryKey])} = ${row[table[primaryKey]]}`;
 
-    Object.defineProperty(entity, sqlRow, { value: row, writable: true });
+    if (entity instanceof Entity) {
+      Object.defineProperty(entity, sqlRow, { value: row, writable: true });
+    }
   }
 
   async function deleteImpl(
