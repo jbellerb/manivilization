@@ -32,7 +32,7 @@ async function verifySignature(
   req: Request,
   verificationKey: CryptoKey,
 ): Promise<boolean> {
-  const body = await req.arrayBuffer();
+  const body = await req.clone().arrayBuffer();
   const signature = req.headers.get("X-Signature-Ed25519");
   const timestamp = req.headers.get("X-Signature-Timestamp");
   if (!signature || !timestamp) return false;
@@ -191,10 +191,7 @@ export const handler: Handler<void, State> = async (req, ctx) => {
     return new Response("Forbidden", { status: STATUS_CODE.Forbidden });
   }
   if (
-    !(await verifySignature(
-      req,
-      ctx.state.constants.interactionsVerifyingKey,
-    ))
+    !(await verifySignature(req, ctx.state.constants.interactionsVerifyingKey))
   ) {
     return new Response(null, { status: STATUS_CODE.Unauthorized });
   }
