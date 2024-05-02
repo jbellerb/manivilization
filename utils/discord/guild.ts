@@ -28,7 +28,7 @@ export async function assignRole(
       }),
     },
   );
-  if (!res.ok) throw new DiscordHTTPError(`${res.status} ${res.statusText}`);
+  if (!res.ok) throw new DiscordHTTPError(await res.json());
 }
 
 export async function getMember(
@@ -47,7 +47,7 @@ export async function getMember(
       }),
     },
   );
-  if (!res.ok) throw new DiscordHTTPError(`${res.status} ${res.statusText}`);
+  if (!res.ok) throw new DiscordHTTPError(await res.json());
   return await res.json();
 }
 
@@ -58,6 +58,29 @@ export async function getRoles(
   const member = await getMember(guild, userId);
 
   return member.roles.map((role) => toSnowflake(role));
+}
+
+export async function setRoles(
+  guild: bigint,
+  userId: bigint,
+  roles: bigint[],
+): Promise<void> {
+  const guildString = fromSnowflake(guild);
+  const userIdString = fromSnowflake(userId);
+
+  const res = await fetch(
+    `${BASE_URL}/guilds/${guildString}/members/${userIdString}`,
+    {
+      method: "PATCH",
+      headers: new Headers({
+        ...BASE_HEADERS,
+        ...authorizeBot(DISCORD_BOT_TOKEN),
+        "Content-Type": "application/json",
+      }),
+      body: JSON.stringify({ roles: roles.map((role) => fromSnowflake(role)) }),
+    },
+  );
+  if (!res.ok) throw new DiscordHTTPError(await res.json());
 }
 
 export async function removeRole(
@@ -79,5 +102,5 @@ export async function removeRole(
       }),
     },
   );
-  if (!res.ok) throw new DiscordHTTPError(`${res.status} ${res.statusText}`);
+  if (!res.ok) throw new DiscordHTTPError(await res.json());
 }

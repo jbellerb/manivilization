@@ -2,36 +2,29 @@ import { toSnowflake } from "../discord/snowflake.ts";
 
 import type { Form, FormResponse } from "../db/schema.ts";
 
-export function assignableRoles(
-  form: Pick<Form, "questions" | "submitterRole">,
+export function updateRoles(
+  currentRoles: bigint[],
+  responses: {
+    form: Pick<Form, "questions" | "submitterRole">;
+    response: FormResponse["response"];
+  }[],
 ): bigint[] {
-  const roles: bigint[] = [];
+  const guildRoles = new Set(currentRoles);
 
-  if (form.submitterRole) roles.push(form.submitterRole);
-  for (const question of form.questions?._ ?? []) {
-    if (question.type === "checkbox_roles") {
-      question.options.forEach(({ role }) => roles.push(toSnowflake(role)));
+  for (let i = responses.length - 1; i >= 0; i--) {
+    const form = responses[i].form;
+    if (form.submitterRole) guildRoles.add(form.submitterRole);
+    for (const question of form.questions?._ ?? []) {
+      if (question.type === "checkbox_roles") {
+        question.options
+          .forEach(({ role }) => guildRoles.delete(toSnowflake(role)));
+        const selected = responses[i].response?.[question.name]?.split(", ");
+        question.options.forEach(({ label, role }) =>
+          selected?.includes(label) && guildRoles.add(toSnowflake(role))
+        );
+      }
     }
   }
 
-  return roles;
-}
-
-export function neededRoles(
-  form: Pick<Form, "questions" | "submitterRole">,
-  response: FormResponse["response"],
-): bigint[] {
-  const roles: bigint[] = [];
-
-  if (form.submitterRole) roles.push(form.submitterRole);
-  for (const question of form.questions?._ ?? []) {
-    if (question.type === "checkbox_roles") {
-      const selected = response?.[question.name]?.split(", ");
-      question.options.forEach(({ label, role }) =>
-        selected?.includes(label) && roles.push(toSnowflake(role))
-      );
-    }
-  }
-
-  return roles;
+  return Array.from(guildRoles);
 }

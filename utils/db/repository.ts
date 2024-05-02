@@ -519,7 +519,6 @@ ${options?.offset ? sql`\n    OFFSET ${options?.offset}` : sql``}\
       for (const [col, val] of Object.entries(row)) {
         if (col !== table[primaryKey]) changes[col] = val;
       }
-      console.log(row, changes);
     }
 
     if (Object.keys(changes).length === 0) return;

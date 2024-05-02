@@ -4,14 +4,13 @@ import type { Handlers } from "$fresh/server.ts";
 
 import db from "../../../../utils/db/mod.ts";
 import {
-  assignRole,
   getMember,
   getRoles,
-  removeRole,
+  setRoles,
 } from "../../../../utils/discord/guild.ts";
 import { toSnowflake } from "../../../../utils/discord/snowflake.ts";
 import { toUsername } from "../../../../utils/discord/user.ts";
-import { assignableRoles, neededRoles } from "../../../../utils/form/roles.ts";
+import { updateRoles } from "../../../../utils/form/roles.ts";
 
 import type { AdminFormState as State } from "./_middleware.ts";
 
@@ -40,24 +39,18 @@ export const handler: Handlers<void, State> = {
 
       response.rolesSet = true;
       try {
-        const roles = new Set(assignableRoles(ctx.state.form));
-        const responseRoles = new Set(
-          neededRoles(ctx.state.form, response.response),
+        const guildRoles = await getRoles(
+          ctx.state.instance.guildId,
+          userSnowflake,
         );
-        const guildRoles = new Set(
-          await getRoles(ctx.state.instance.guildId, userSnowflake),
+        await setRoles(
+          ctx.state.instance.guildId,
+          response.discordId,
+          updateRoles(guildRoles, [{
+            form: ctx.state.form,
+            response: response.response,
+          }]),
         );
-
-        await Promise.all([
-          ...Array.from(responseRoles.difference(guildRoles)).map((role) =>
-            assignRole(ctx.state.instance.guildId, response.discordId, role)
-          ),
-          ...Array.from(
-            guildRoles.intersection(roles).difference(responseRoles),
-          ).map((role) =>
-            removeRole(ctx.state.instance.guildId, response.discordId, role)
-          ),
-        ]);
       } catch (e) {
         response.rolesSet = false;
         throw e;

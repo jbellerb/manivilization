@@ -29,7 +29,7 @@ export async function getUser(accessToken: string): Promise<User> {
       ...authorizeUser(accessToken),
     }),
   });
-  if (!res.ok) throw new DiscordHTTPError(`${res.status} ${res.statusText}`);
+  if (!res.ok) throw new DiscordHTTPError(await res.json());
   const user: APIUser = await res.json();
 
   return {

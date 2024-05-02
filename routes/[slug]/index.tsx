@@ -11,10 +11,10 @@ import CheckboxGroup from "../../islands/CheckboxGroup.tsx";
 import ValidatedTextInput from "../../islands/ValidatedTextInput.tsx";
 import classnames from "../../utils/classnames.ts";
 import db, { FormResponse } from "../../utils/db/mod.ts";
-import { assignRole, getRoles, removeRole } from "../../utils/discord/guild.ts";
+import { getRoles, setRoles } from "../../utils/discord/guild.ts";
 import { DiscordHTTPError } from "../../utils/discord/http.ts";
 import { FormParseError, parseFormData } from "../../utils/form/parse.ts";
-import { assignableRoles, neededRoles } from "../../utils/form/roles.ts";
+import { updateRoles } from "../../utils/form/roles.ts";
 
 import type { FormState as State } from "./_middleware.ts";
 import type {
@@ -109,21 +109,18 @@ export const handler: Handlers<Data, State> = {
 
       let rolesSet = true;
       try {
-        const roles = new Set(assignableRoles(ctx.state.form));
-        const responseRoles = new Set(neededRoles(ctx.state.form, answers));
-        const guildRoles = new Set(
-          await getRoles(ctx.state.instance.guildId, ctx.state.user.id),
+        const guildRoles = await getRoles(
+          ctx.state.instance.guildId,
+          ctx.state.user.id,
         );
-
-        const user = ctx.state.user.id;
-        await Promise.all([
-          ...Array.from(responseRoles.difference(guildRoles)).map((role) =>
-            assignRole(ctx.state.instance.guildId, user, role)
-          ),
-          ...Array.from(
-            guildRoles.intersection(roles).difference(responseRoles),
-          ).map((role) => removeRole(ctx.state.instance.guildId, user, role)),
-        ]);
+        await setRoles(
+          ctx.state.instance.guildId,
+          ctx.state.user.id,
+          updateRoles(guildRoles, [{
+            form: ctx.state.form,
+            response: answers,
+          }]),
+        );
       } catch (e) {
         rolesSet = false;
         if (!(e instanceof DiscordHTTPError)) throw e;
@@ -144,7 +141,7 @@ export const handler: Handlers<Data, State> = {
       return new Response(null, { status: STATUS_CODE.SeeOther, headers });
     } catch (e) {
       if (e instanceof FormParseError) {
-        console.log(e);
+        console.error(e);
         return new Response("Bad Request", { status: STATUS_CODE.BadRequest });
       }
       throw e;

@@ -18,10 +18,10 @@ import type {
 } from "discord_api_types/payloads/v10/interactions.ts";
 
 import db from "../../utils/db/mod.ts";
-import { assignRole, removeRole } from "../../utils/discord/guild.ts";
+import { setRoles } from "../../utils/discord/guild.ts";
 import { toSnowflake } from "../../utils/discord/snowflake.ts";
 import { INTERACTIONS_HOST } from "../../utils/env.ts";
-import { assignableRoles, neededRoles } from "../../utils/form/roles.ts";
+import { updateRoles } from "../../utils/form/roles.ts";
 
 import type { ConstantsState as State } from "../_middleware.ts";
 import type { Instance } from "../../utils/db/schema.ts";
@@ -68,10 +68,10 @@ async function handleComponentButton(
       const userId = toSnowflake(member.user.id);
 
       if (!Array.isArray(member.roles)) throw new Error("No roles provided");
-      const guildRoles = new Set(member.roles.map((role) => {
+      const guildRoles = member.roles.map((role) => {
         if (typeof role !== "string") throw new Error("role is not a string");
         return toSnowflake(role);
-      }));
+      });
 
       const responses = await db.responses.find({
         id: true,
@@ -87,27 +87,12 @@ async function handleComponentButton(
           ),
         orderBy: (response, { desc }) => desc(response.date),
       }, { form: true });
-      console.log(responses);
 
-      const formRoles = new Set<bigint>();
-      const expectedRoles = new Set<bigint>();
-      for (let i = responses.length - 1; i >= 0; i--) {
-        assignableRoles(responses[i].form).forEach((role) => {
-          formRoles.add(role);
-          expectedRoles.delete(role);
-        });
-        neededRoles(responses[i].form, responses[i].response)
-          .forEach((role) => expectedRoles.add(role));
-      }
-
-      await Promise.all([
-        ...Array.from(expectedRoles.difference(guildRoles)).map((role) =>
-          assignRole(instance.guildId, userId, role)
-        ),
-        ...Array.from(
-          guildRoles.intersection(formRoles).difference(expectedRoles),
-        ).map((role) => removeRole(instance.guildId, userId, role)),
-      ]);
+      await setRoles(
+        instance.guildId,
+        userId,
+        updateRoles(guildRoles, responses),
+      );
 
       for (const response of responses) {
         if (!response.rolesSet) {
