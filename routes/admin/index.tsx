@@ -3,15 +3,22 @@ import { defineRoute } from "$fresh/server.ts";
 
 import type { Handlers } from "$fresh/server.ts";
 
+import AdminButton from "./(_components)/AdminButton.tsx";
 import AdminFileInput from "./(_components)/AdminFileInput.tsx";
-import AdminInput from "./(_components)/AdminInput.tsx";
+import AdminTextInput from "./(_components)/AdminTextInput.tsx";
 import NavItem from "./(_components)/NavItem.tsx";
+import ValidatedAdminTextInput from "./(_islands)/ValidatedAdminTextInput.tsx";
 import FormResetter from "../../islands/FormResetter.tsx";
 import classnames from "../../utils/classnames.ts";
 import db from "../../utils/db/mod.ts";
-import { fromSnowflake, toSnowflake } from "../../utils/discord/snowflake.ts";
+import {
+  fromSnowflake,
+  toSnowflake,
+  validSnowflake,
+} from "../../utils/discord/snowflake.ts";
 
 import type { AdminState as State } from "./_middleware.ts";
+import type { Instance } from "../../utils/db/mod.ts";
 
 function getString(name: string, data: FormData): string {
   const value = data.get(name);
@@ -20,10 +27,14 @@ function getString(name: string, data: FormData): string {
 }
 
 export const handler: Handlers<void, State> = {
-  async POST(req, ctx) {
+  async POST(req, { state }) {
+    if (!state.superAdmin && !state.owner) {
+      return new Response("Forbidden", { status: STATUS_CODE.Forbidden });
+    }
+
     const formData = await req.formData();
     const instance = await db.instances.findOne({}, {
-      where: (instance, { eq }) => eq(instance.id, ctx.state.instance.id),
+      where: (instance, { eq }) => eq(instance.id, state.instance.id),
     });
     if (!instance) throw new Error("Failed to load current instance");
 
@@ -33,7 +44,7 @@ export const handler: Handlers<void, State> = {
       instance.guildId = toSnowflake(getString("guild", formData));
       instance.adminRole = toSnowflake(getString("admin-role", formData));
 
-      if (ctx.state.superAdmin) {
+      if (state.superAdmin) {
         instance.host = getString("host", formData);
         instance.owner = toSnowflake(getString("owner", formData));
         instance.privacyPolicy = getString("privacy-policy", formData);
@@ -78,14 +89,9 @@ function GroupLabel(props: { label: string; title: string }) {
   );
 }
 
-async function instanceEditor(id: string, sudo: boolean) {
-  const instance = await db.instances.findOne({}, {
-    where: (instance, { eq }) => eq(instance.id, id),
-  });
-  if (!instance) throw new Error("Failed to load current instance");
-
+function InstanceSettingsPanel(props: { instance: Instance; sudo: boolean }) {
   return (
-    <>
+    <div class="flex flex-col">
       <h1 class="text-xl font-bold mx-auto mb-6">Instance settings</h1>
       <form
         method="post"
@@ -94,13 +100,17 @@ async function instanceEditor(id: string, sudo: boolean) {
         name="instance"
       >
         <label for="input-name" class="justify-self-end">Name:</label>
-        <AdminInput name="name" value={instance.name} required />
-        {sudo && (
+        <AdminTextInput name="name" value={props.instance.name} required />
+        {props.sudo && (
           <>
             <label for="input-host" class="justify-self-end">Host:</label>
-            <AdminInput name="host" value={instance.host} required />
+            <AdminTextInput name="host" value={props.instance.host} required />
             <label for="input-owner" class="justify-self-end">Owner:</label>
-            <AdminInput name="owner" value={fromSnowflake(instance.owner)} />
+            <ValidatedAdminTextInput
+              name="owner"
+              value={fromSnowflake(props.instance.owner)}
+              checkSnowflake="Please enter a valid Discord user ID."
+            />
           </>
         )}
         <div
@@ -109,7 +119,7 @@ async function instanceEditor(id: string, sudo: boolean) {
           aria-label="Guild settings"
         >
           <label for="input-guild" class="justify-self-end">
-            Id:
+            ID:
           </label>
           <label for="input-admin-role" class="justify-self-end">
             Admin role:
@@ -119,14 +129,16 @@ async function instanceEditor(id: string, sudo: boolean) {
             class="row-span-2 row-start-1 col-start-2 grid grid-cols-form grid-rows-subgrid gap-2"
           >
             <GroupLabel label="Guild" title="Guild settings" />
-            <AdminInput
+            <ValidatedAdminTextInput
               name="guild"
-              value={fromSnowflake(instance.guildId)}
+              value={fromSnowflake(props.instance.guildId)}
+              checkSnowflake="Please enter a valid Discord guild ID."
               required
             />
-            <AdminInput
+            <ValidatedAdminTextInput
               name="admin-role"
-              value={fromSnowflake(instance.adminRole)}
+              value={fromSnowflake(props.instance.adminRole)}
+              checkSnowflake="Please enter a valid Discord role ID."
               required
             />
           </div>
@@ -155,16 +167,19 @@ async function instanceEditor(id: string, sudo: boolean) {
             <AdminFileInput name="favicon-ico" accept=".ico" />
           </div>
         </div>
-        {sudo && (
+        {props.sudo && (
           <label for="textarea-privacy-policy" class="justify-self-end">
             Privacy policy:
           </label>
         )}
         <div
           role="presentation"
-          class={classnames("grid gap-y-4", sudo ? "w-64" : "w-50 col-start-2")}
+          class={classnames(
+            "grid gap-y-4",
+            props.sudo ? "w-64" : "w-50 col-start-2",
+          )}
         >
-          {sudo && (
+          {props.sudo && (
             <div
               role="presentation"
               class="flex p-[2px] shadow-debossed border border-windows-gray"
@@ -175,20 +190,70 @@ async function instanceEditor(id: string, sudo: boolean) {
                 class="px-[2px] w-full"
                 rows={4}
               >
-                {instance.privacyPolicy}
+                {props.instance.privacyPolicy}
               </textarea>
             </div>
           )}
           <div class="justify-self-end" role="presentation">
-            <button class="px-4 py-1 text-sm bg-windows-gray shadow-embossed active:shadow-debossed focus-visible:outline-1 focus-visible:outline-dotted focus-visible:outline-offset-[-5px] focus-visible:outline-black group">
-              <span class="relative group-active:top-[1px] group-active:left-[1px]">
-                Save
-              </span>
-            </button>
+            <AdminButton name="Save" />
           </div>
         </div>
       </form>
       <FormResetter form="instance" />
+    </div>
+  );
+}
+
+function RefreshButtonPanel(props: { instance: Instance }) {
+  return (
+    <div class="flex flex-col">
+      <h1 class="text-xl font-bold mx-auto mb-6">Create a refresh button</h1>
+      <form
+        method="post"
+        action="/admin/refresh-button"
+        class="mx-auto grid grid-cols-form gap-y-4 gap-x-2 auto-rows-min justify-items-start"
+        name="refresh-button"
+      >
+        <label for="input-channel" class="justify-self-end">Channel ID:</label>
+        <ValidatedAdminTextInput
+          name="channel"
+          checkSnowflake="Please enter a valid Discord channel ID."
+          required
+        />
+        <label for="input-label" class="justify-self-end">Buttom label:</label>
+        <AdminTextInput name="label" />
+        <label for="textarea-message" class="justify-self-end">
+          Message:
+        </label>
+        <div
+          role="presentation"
+          class="flex p-[2px] shadow-debossed border border-windows-gray"
+        >
+          <textarea
+            name="message"
+            id="textarea-message"
+            class="px-[2px] w-full"
+            rows={4}
+          />
+        </div>
+        <div class="col-span-2 justify-self-end" role="presentation">
+          <AdminButton name="Send" />
+        </div>
+      </form>
+    </div>
+  );
+}
+
+async function instanceEditor(id: string, sudo: boolean) {
+  const instance = await db.instances.findOne({}, {
+    where: (instance, { eq }) => eq(instance.id, id),
+  });
+  if (!instance) throw new Error("Failed to load current instance");
+
+  return (
+    <>
+      <InstanceSettingsPanel instance={instance} sudo={sudo} />
+      <RefreshButtonPanel instance={instance} />
     </>
   );
 }
@@ -209,7 +274,7 @@ export default defineRoute<State>(async (_req, { state }) => {
           />
         </div>
       </nav>
-      <main class="flex flex-col px-8 py-16">
+      <main class="flex flex-wrap gap-8 items-start justify-center px-8 py-16">
         {component}
       </main>
     </>

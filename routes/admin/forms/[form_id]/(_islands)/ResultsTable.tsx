@@ -2,7 +2,7 @@ import { IS_BROWSER } from "$fresh/runtime.ts";
 import { useComputed, useSignal } from "@preact/signals";
 
 import UserCard from "./UserCard.tsx";
-import AdminButton from "../../../(_components)/AdminButton.tsx";
+import AdminLinkButton from "../../../(_components)/AdminLinkButton.tsx";
 
 type Props = {
   columns: string[];
@@ -108,7 +108,7 @@ export default function ResultsTable(props: Props) {
 
   return (
     <>
-      <AdminButton
+      <AdminLinkButton
         name="Download CSV"
         class="ml-4 mb-2"
         onClick={() => exportCsv(props)}

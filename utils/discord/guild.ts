@@ -1,4 +1,5 @@
-import { APIGuildMember } from "discord_api_types/payloads/v10/guild.ts";
+import type { APIGuildMember } from "discord_api_types/payloads/v10/guild.ts";
+import type { RESTPostAPIChannelMessageJSONBody } from "discord_api_types/rest/v10/channel.ts";
 
 import {
   authorizeBot,
@@ -100,6 +101,27 @@ export async function removeRole(
         ...BASE_HEADERS,
         ...authorizeBot(DISCORD_BOT_TOKEN),
       }),
+    },
+  );
+  if (!res.ok) throw new DiscordHTTPError(await res.json());
+}
+
+export async function sendMessage(
+  channel: bigint,
+  message: RESTPostAPIChannelMessageJSONBody,
+): Promise<void> {
+  const channelString = fromSnowflake(channel);
+
+  const res = await fetch(
+    `${BASE_URL}/channels/${channelString}/messages`,
+    {
+      method: "POST",
+      headers: new Headers({
+        ...BASE_HEADERS,
+        ...authorizeBot(DISCORD_BOT_TOKEN),
+        "Content-Type": "application/json",
+      }),
+      body: JSON.stringify(message),
     },
   );
   if (!res.ok) throw new DiscordHTTPError(await res.json());

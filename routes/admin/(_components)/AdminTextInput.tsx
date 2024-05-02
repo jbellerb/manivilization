@@ -7,7 +7,7 @@ type Props = {
   class?: string;
 } & JSX.HTMLAttributes<HTMLInputElement>;
 
-export default function AdminInput(
+export default function AdminTextInput(
   { name, class: extraClasses, ...props }: Props,
 ) {
   return (

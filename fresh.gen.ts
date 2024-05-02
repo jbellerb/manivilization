@@ -20,6 +20,7 @@ import * as $admin_forms_form_id_refresh from "./routes/admin/forms/[form_id]/re
 import * as $admin_forms_form_id_results from "./routes/admin/forms/[form_id]/results.tsx";
 import * as $admin_forms_new from "./routes/admin/forms/new.ts";
 import * as $admin_index from "./routes/admin/index.tsx";
+import * as $admin_refresh_button from "./routes/admin/refresh-button.ts";
 import * as $api_interactions from "./routes/api/interactions.ts";
 import * as $favicon from "./routes/favicon.ts";
 import * as $oauth_callback from "./routes/oauth/callback.ts";
@@ -30,6 +31,7 @@ import * as $CheckboxGroup from "./islands/CheckboxGroup.tsx";
 import * as $FormResetter from "./islands/FormResetter.tsx";
 import * as $GrowableTextArea from "./islands/GrowableTextArea.tsx";
 import * as $ValidatedTextInput from "./islands/ValidatedTextInput.tsx";
+import * as $admin_islands_ValidatedAdminTextInput from "./routes/admin/(_islands)/ValidatedAdminTextInput.tsx";
 import * as $admin_forms_form_id_islands_OptionsEditor from "./routes/admin/forms/[form_id]/(_islands)/OptionsEditor.tsx";
 import * as $admin_forms_form_id_islands_OptionsRolesEditor from "./routes/admin/forms/[form_id]/(_islands)/OptionsRolesEditor.tsx";
 import * as $admin_forms_form_id_islands_QuestionEditor from "./routes/admin/forms/[form_id]/(_islands)/QuestionEditor.tsx";
@@ -60,6 +62,7 @@ const manifest = {
     "./routes/admin/forms/[form_id]/results.tsx": $admin_forms_form_id_results,
     "./routes/admin/forms/new.ts": $admin_forms_new,
     "./routes/admin/index.tsx": $admin_index,
+    "./routes/admin/refresh-button.ts": $admin_refresh_button,
     "./routes/api/interactions.ts": $api_interactions,
     "./routes/favicon.ts": $favicon,
     "./routes/oauth/callback.ts": $oauth_callback,
@@ -72,6 +75,8 @@ const manifest = {
     "./islands/FormResetter.tsx": $FormResetter,
     "./islands/GrowableTextArea.tsx": $GrowableTextArea,
     "./islands/ValidatedTextInput.tsx": $ValidatedTextInput,
+    "./routes/admin/(_islands)/ValidatedAdminTextInput.tsx":
+      $admin_islands_ValidatedAdminTextInput,
     "./routes/admin/forms/[form_id]/(_islands)/OptionsEditor.tsx":
       $admin_forms_form_id_islands_OptionsEditor,
     "./routes/admin/forms/[form_id]/(_islands)/OptionsRolesEditor.tsx":

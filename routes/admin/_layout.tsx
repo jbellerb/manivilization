@@ -3,7 +3,7 @@ import { Head } from "$fresh/runtime.ts";
 
 import type { LayoutConfig } from "$fresh/server.ts";
 
-import AdminButton from "./(_components)/AdminButton.tsx";
+import AdminLinkButton from "./(_components)/AdminLinkButton.tsx";
 import NavItem from "./(_components)/NavItem.tsx";
 import db from "../../utils/db/mod.ts";
 
@@ -53,7 +53,7 @@ export default defineLayout<State>(async (_req, ctx) => {
           </nav>
           <hr class="my-4 border-white shadow-box" />
           <form class="ml-2" method="post" action="/admin/forms/new">
-            <AdminButton name="Create new form" />
+            <AdminLinkButton name="Create new form" />
           </form>
         </aside>
         <div class="flex flex-col grow h-full overflow-y-auto">

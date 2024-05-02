@@ -7,19 +7,19 @@ type Props = {
   class?: string;
 } & JSX.HTMLAttributes<HTMLButtonElement>;
 
-export default function AdminButton(
+export default function AdminLinkButton(
   { name, class: extraClasses, ...props }: Props,
 ) {
   return (
     <button
       type={props.onClick ? "button" : "submit"}
       class={classnames(
-        "px-4 py-1 text-sm bg-windows-gray shadow-embossed active:shadow-debossed focus-visible:outline-1 focus-visible:outline-dotted focus-visible:outline-offset-[-5px] focus-visible:outline-black group",
+        "group text-browser-blue active:text-browser-purple",
         extraClasses,
       )}
       {...props}
     >
-      <span class="relative group-active:top-[1px] group-active:left-[1px]">
+      <span class="border-b border-transparent group-hover:border-current group-focus-visible:outline-auto">
         {name}
       </span>
     </button>
