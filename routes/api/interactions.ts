@@ -103,7 +103,7 @@ async function handleComponentButton(
       return {
         type: InteractionResponseType.ChannelMessageWithSource,
         data: {
-          content: "test",
+          content: "Roles successfully refreshed",
           flags: MessageFlags.Ephemeral,
         },
       };
