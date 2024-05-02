@@ -12,9 +12,8 @@ type Props = {
 } & JSX.HTMLAttributes<HTMLInputElement>;
 
 export default function ValidatedAdminTextInput(
-  { value: initialValue, onChange, onFocus, onBlur, ...props }: Props,
+  { value: initialValue, onChange, ...props }: Props,
 ) {
-  const untouched = useSignal<boolean>(true);
   const value = useSignal(initialValue);
 
   return (
@@ -31,14 +30,6 @@ export default function ValidatedAdminTextInput(
       onChange={(e) => {
         value.value = e.currentTarget.value;
         onChange && onChange(e);
-      }}
-      onFocus={(e) => {
-        untouched.value = true;
-        onFocus && onFocus(e);
-      }}
-      onBlur={(e) => {
-        untouched.value = false;
-        onBlur && onBlur(e);
       }}
     />
   );
