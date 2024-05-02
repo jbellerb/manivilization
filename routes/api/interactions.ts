@@ -28,7 +28,7 @@ import type { Instance } from "../../utils/db/schema.ts";
 
 const encoder = new TextEncoder();
 
-async function verifyReqSignature(
+async function verifySignature(
   req: Request,
   verificationKey: CryptoKey,
 ): Promise<boolean> {
@@ -187,14 +187,16 @@ export const handler: Handler<void, State> = async (req, ctx) => {
   if (!ctx.state.constants.interactionsVerifyingKey) {
     return ctx.renderNotFound();
   }
+  if (!ctx.config.dev && ctx.url.host !== INTERACTIONS_HOST) {
+    return new Response("Forbidden", { status: STATUS_CODE.Forbidden });
+  }
   if (
-    !ctx.config.dev &&
-    (ctx.url.host !== INTERACTIONS_HOST || !(await verifyReqSignature(
+    !(await verifySignature(
       req,
       ctx.state.constants.interactionsVerifyingKey,
-    )))
+    ))
   ) {
-    return new Response("Forbidden", { status: STATUS_CODE.Forbidden });
+    return new Response(null, { status: STATUS_CODE.Unauthorized });
   }
   if (req.method !== "POST") {
     return new Response(null, { status: STATUS_CODE.MethodNotAllowed });
