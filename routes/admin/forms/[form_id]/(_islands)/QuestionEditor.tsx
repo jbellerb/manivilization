@@ -30,6 +30,8 @@ type LooseQuestion = {
 function loosen(
   { type, name, required, comment, ...props }: Question,
 ): LooseQuestion {
+  const stableId = crypto.randomUUID();
+  required = type === "radio" ? true : required;
   const stringifiedProps: Record<string, string[]> = {};
   for (const [key, value] of Object.entries(props)) {
     if (type === "checkbox_roles" && key === "options") {
@@ -40,7 +42,6 @@ function loosen(
       stringifiedProps[key] = Array.isArray(value) ? value : [value];
     }
   }
-  const stableId = crypto.randomUUID();
 
   return ({ type, stableId, name, required, comment, props: stringifiedProps });
 }
@@ -49,11 +50,12 @@ function changeType(
   question: LooseQuestion,
   type: Question["type"],
 ): LooseQuestion {
+  const required = type === "radio" ? true : question.required;
   const props = {
     ...question.props,
     ...(type === "text"
       ? { label: question.props.label ?? "" }
-      : type === "checkbox"
+      : type === "checkbox" || type === "radio"
       ? { options: question.props.options ?? ["New Option"] }
       : type === "checkbox_roles"
       ? {
@@ -64,7 +66,7 @@ function changeType(
       : undefined),
   };
 
-  return { ...question, type, props };
+  return { ...question, type, required, props };
 }
 
 export default function QuestionEditor(props: Props) {
@@ -129,6 +131,7 @@ export default function QuestionEditor(props: Props) {
                   <option value="text">Textbox</option>
                   <option value="checkbox">Checkboxes</option>
                   <option value="checkbox_roles">Role Checkboxes</option>
+                  <option value="radio">Radio Buttons</option>
                 </Select>
                 <ValidatedTextInput
                   name={`question-${idx}-name`}
@@ -145,6 +148,7 @@ export default function QuestionEditor(props: Props) {
                   name={`question-${idx}-required`}
                   label="Required"
                   checked={question.required}
+                  disabled={question.type === "radio"}
                   onChange={(e) =>
                     updateQuestion(
                       { ...question, required: e.currentTarget.checked },
@@ -162,7 +166,7 @@ export default function QuestionEditor(props: Props) {
                     comment: e.currentTarget.value,
                   }, idx)}
               />
-              {(question.type === "text")
+              {question.type === "text"
                 ? (
                   <TextInput
                     name={`question-${idx}-label`}
@@ -178,7 +182,7 @@ export default function QuestionEditor(props: Props) {
                       }, idx)}
                   />
                 )
-                : (question.type === "checkbox")
+                : question.type === "checkbox" || question.type === "radio"
                 ? (
                   <OptionsEditor
                     name={`question-${idx}`}
@@ -190,7 +194,7 @@ export default function QuestionEditor(props: Props) {
                       }, idx)}
                   />
                 )
-                : (question.type === "checkbox_roles")
+                : question.type === "checkbox_roles"
                 ? (
                   <OptionsRolesEditor
                     name={`question-${idx}`}

@@ -22,6 +22,18 @@ export type CheckboxRolesQuestion = {
   options: { label: string; role: string }[];
 };
 
-export type Question = TextQuestion | CheckboxQuestion | CheckboxRolesQuestion;
+export type RadioQuestion = {
+  type: "radio";
+  name: string;
+  required: true;
+  comment?: string;
+  options: string[];
+};
 
-export type ValidationIssue = "required";
+export type Question =
+  | TextQuestion
+  | CheckboxQuestion
+  | CheckboxRolesQuestion
+  | RadioQuestion;
+
+export type ValidationIssue = "excess" | "required";

@@ -104,22 +104,27 @@ export function parseEditorFormData(
       const label = mapMaybe(isValues, `question.${key}.label`, value.label)
         ?.[0];
       questions.push({ type, name, required, comment, label });
-    } else if (type === "checkbox") {
+    } else if (type === "checkbox" || type === "radio") {
       const options = isAttrs(`question.${key}.options`, value.options);
-      const optionsArray = Object.keys(options).sort().map((i) =>
+      const optionsList = Object.keys(options).sort().map((i) =>
         isValues(`question.${key}.options[${i}]`, options[i])[0]
       );
-      questions.push({ type, name, required, comment, options: optionsArray });
+      if (type === "checkbox") {
+        questions.push({ type, name, required, comment, options: optionsList });
+      } else {
+        const required = true;
+        questions.push({ type, name, required, comment, options: optionsList });
+      }
     } else if (type === "checkbox_roles") {
       const labels = isAttrs(`question.${key}.labels`, value.labels);
       const roles = isAttrs(`question.${key}.roles`, value.roles);
-      const optionsArray = Object.keys(labels).sort().map((i) => ({
+      const optionsList = Object.keys(labels).sort().map((i) => ({
         label: isValues(`question.${key}.options[${i}]`, labels[i])[0],
         role: fromSnowflake(
           toSnowflake(isValues(`question.${key}.roles[${i}]`, roles[i])[0]),
         ),
       }));
-      questions.push({ type, name, required, comment, options: optionsArray });
+      questions.push({ type, name, required, comment, options: optionsList });
     } else {
       throw new FormParseError(
         `question.${key}.type is unexpected type "${type}"`,
@@ -168,6 +173,15 @@ export function parseFormData(
       ) {
         answers[question.name] =
           mapMaybe(isValues, name, values[question.name])?.join(", ") ?? "";
+      } else if (question.type === "radio") {
+        const answer = mapMaybe(isValues, name, values[question.name]);
+        if (answer && answer.length > 0) {
+          answers[question.name] = answer[0];
+          if (answer.length > 1) {
+            issues[question.name] ??= [];
+            issues[question.name].push("excess");
+          }
+        }
       }
 
       if (!answers[question.name] && question.required) {

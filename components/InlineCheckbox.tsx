@@ -23,7 +23,7 @@ export default function InlineCheckbox(
         type="checkbox"
         name={name}
         id={`checkbox-${name}`}
-        class="w-6 h-6 mt-[calc(0.5rem+2px)] mb-1 bg-black border-2 checked:border-2 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white rounded transition-border-color"
+        class="w-6 h-6 mt-[calc(0.5rem+2px)] mb-1 bg-black border-2 checked:border-2 disabled:text-gray-600 border-gray-600 hover:border-gray-500 focus-visible:border-white active:border-white disabled:border-gray-600 rounded transition-border-color"
         {...props}
       />
     </div>

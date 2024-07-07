@@ -5,11 +5,11 @@ import { decode, encode } from "cbor-x";
 
 import type { Handlers, PageProps, RouteConfig } from "$fresh/server.ts";
 
+import FormCheckboxQuestion from "./(_components)/FormCheckboxQuestion.tsx";
+import FormRadioQuestion from "./(_components)/FormRadioQuestion.tsx";
+import FormTextQuestion from "./(_components)/FormTextQuestion.tsx";
 import UserBanner from "./(_components)/UserBanner.tsx";
 import Button from "../../components/Button.tsx";
-import CheckboxGroup from "../../islands/CheckboxGroup.tsx";
-import ValidatedTextInput from "../../islands/ValidatedTextInput.tsx";
-import classnames from "../../utils/classnames.ts";
 import db, { FormResponse } from "../../utils/db/mod.ts";
 import { getRoles, setRoles } from "../../utils/discord/guild.ts";
 import { DiscordHTTPError } from "../../utils/discord/http.ts";
@@ -17,12 +17,7 @@ import { FormParseError, parseFormData } from "../../utils/form/parse.ts";
 import { updateRoles } from "../../utils/form/roles.ts";
 
 import type { FormState as State } from "./_middleware.ts";
-import type {
-  CheckboxQuestion,
-  CheckboxRolesQuestion,
-  Question,
-  TextQuestion,
-} from "../../utils/form/types.ts";
+import type { Question } from "../../utils/form/types.ts";
 import FormResetter from "../../islands/FormResetter.tsx";
 
 type Data = {
@@ -163,78 +158,6 @@ function ResubmitWarning() {
   );
 }
 
-function FormTextQuestion(
-  props: { question: TextQuestion; value?: string; issues?: unknown[] },
-) {
-  return (
-    <div
-      id={`question-${props.question.name}`}
-      aria-role="group"
-      aria-labelledby={props.question.comment
-        ? `question-${props.question.name}-comment`
-        : undefined}
-      class="space-y-2"
-    >
-      {props.question.comment != null && (
-        <label
-          class="block text-lg"
-          id={`question-${props.question.name}-comment`}
-        >
-          {props.question.comment}
-          {props.question.required && (
-            <span
-              class={classnames(
-                "block text-sm font-semibold",
-                props.issues?.includes("required")
-                  ? "text-red-400"
-                  : "text-gray-400",
-              )}
-            >
-              * Required
-            </span>
-          )}
-        </label>
-      )}
-      <ValidatedTextInput
-        name={`question-${props.question.name}`}
-        label={props.question.label}
-        value={props.value}
-        aria-describedby={props.question.comment && props.question.label
-          ? `question-${props.question.name}-comment`
-          : undefined}
-        aria-labelledby={props.question.comment && !props.question.label
-          ? `question-${props.question.name}-comment`
-          : undefined}
-        error={props.issues?.includes("required")}
-        required={props.question.required}
-      />
-    </div>
-  );
-}
-
-function FormCheckboxQuestion(
-  props: {
-    question: CheckboxQuestion | CheckboxRolesQuestion;
-    value?: string;
-    issues?: unknown[];
-  },
-) {
-  const checked = props.value?.split(", ");
-
-  return (
-    <CheckboxGroup
-      name={props.question.name}
-      comment={props.question.comment}
-      options={props.question.type === "checkbox_roles"
-        ? props.question.options.map((option) => option.label)
-        : props.question.options}
-      checked={checked}
-      required={props.question.required}
-      error={props.issues?.includes("required")}
-    />
-  );
-}
-
 export default function FormPage({ data, state }: PageProps<Data, State>) {
   useCSP((csp) => {
     csp.directives.imgSrc = [SELF, "https://cdn.discordapp.com"];
@@ -253,26 +176,20 @@ export default function FormPage({ data, state }: PageProps<Data, State>) {
         >
           {data.completed && <ResubmitWarning />}
           {state.form.questions &&
-            state.form.questions._.map((question: Question) =>
-              question.type === "text"
-                ? (
-                  <FormTextQuestion
-                    question={question}
-                    value={maybeString(data.answers?.[question.name])}
-                    issues={maybeArray(data.issues?.[question.name])}
-                  />
-                )
+            state.form.questions._.map((question: Question) => {
+              const info = {
+                value: maybeString(data.answers?.[question.name]),
+                issues: maybeArray(data.issues?.[question.name]),
+              };
+              return (question.type === "text"
+                ? <FormTextQuestion question={question} {...info} />
                 : question.type === "checkbox" ||
                     question.type === "checkbox_roles"
-                ? (
-                  <FormCheckboxQuestion
-                    question={question}
-                    value={maybeString(data.answers?.[question.name])}
-                    issues={maybeArray(data.issues?.[question.name])}
-                  />
-                )
-                : undefined
-            )}
+                ? <FormCheckboxQuestion question={question} {...info} />
+                : question.type === "radio"
+                ? <FormRadioQuestion question={question} {...info} />
+                : undefined);
+            })}
           <Button name="Submit" class="float-right" />
           {data.completed && <FormResetter form={state.form.slug} />}
         </form>

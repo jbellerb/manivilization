@@ -20,7 +20,7 @@ function formPreflight(): Preflight {
   return buildPreflight({
     "input:focus-visible, textarea:focus-visible, button:focus-visible, select:focus-visible":
       { outline: "none" },
-    "[type='checkbox']": {
+    "[type='checkbox'], [type='radio']": {
       appearance: "none",
       display: "flex",
       color: "inherit",
@@ -29,18 +29,22 @@ function formPreflight(): Preflight {
       height: "1rem",
       border: "2px solid #000",
     },
-    "[type='checkbox']::before": {
+    "[type='radio']": { "border-radius": "50%" },
+    "[type='checkbox']::before, [type='radio']::before": {
       content: '""',
       width: "100%",
       height: "100%",
       "background-color": "currentColor",
-      // Path taken from Firefox source (https://hg.mozilla.org/mozilla-central/file/tip/widget/Theme.cpp#l544)
-      "clip-path":
-        "polygon(18% 54%, 39% 79%, 46% 79%, 86% 32%, 84% 21%, 75% 21%, 46% 57%, 39% 59%, 25% 43%)",
       transform: "scale(0)",
       "transform-origin": "center",
     },
-    "[type='checkbox']:checked::before": {
+    "[type='checkbox']::before": {
+      // Path taken from Firefox source (https://hg.mozilla.org/mozilla-central/file/tip/widget/Theme.cpp#l544)
+      "clip-path":
+        "polygon(18% 54%, 39% 79%, 46% 79%, 86% 32%, 84% 21%, 75% 21%, 46% 57%, 39% 59%, 25% 43%)",
+    },
+    "[type='radio']::before": { "clip-path": "circle(20%)" },
+    "[type='checkbox']:checked::before, [type='radio']:checked::before": {
       transform: "scale(1)",
     },
     "::file-selector-button": {
