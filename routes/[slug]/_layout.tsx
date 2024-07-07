@@ -6,19 +6,40 @@ import { HtmlRenderer, Parser } from "commonmark";
 import classnames from "../../utils/classnames.ts";
 
 import type { FormState as State } from "./_middleware.ts";
+// @deno-types="https://esm.sh/v135/@types/commonmark@0.27.9/index.d.ts"
+import type { Node } from "commonmark";
 
-export default defineLayout<State>((_req, { Component, state }) => {
-  let descriptionLine;
-  if (state.form.description) {
-    descriptionLine = state.form.description;
-    const split = state.form.description.search(/[\n\r]/);
-    if (split !== -1) {
-      descriptionLine = state.form.description.slice(0, split);
-      descriptionLine += descriptionLine[descriptionLine.length - 1] === "."
-        ? ".."
-        : "...";
+function renderDescription(ast: Node) {
+  let descriptionLine = "";
+  const walker = ast.walker();
+
+  let event, inParagraph;
+  while ((event = walker.next())) {
+    const node = event.node;
+    if (node.type === "paragraph") {
+      if (event.entering) inParagraph = true;
+      else break;
+    } else if (inParagraph) {
+      if (node.type === "linebreak") break;
+      else if (node.type === "softbreak") descriptionLine += " ";
+      else if (node.type === "text") descriptionLine += node.literal;
     }
   }
+
+  while ((event = walker.next())) {
+    if (event.entering) {
+      const trailingDot = descriptionLine[descriptionLine.length - 1] === ".";
+      descriptionLine += trailingDot ? ".." : "...";
+      break;
+    }
+  }
+
+  return descriptionLine;
+}
+
+export default defineLayout<State>((_req, { Component, state }) => {
+  const parsed = (new Parser()).parse(state.form.description ?? "");
+  const descriptionLine = renderDescription(parsed);
 
   return (
     <>
@@ -30,7 +51,7 @@ export default defineLayout<State>((_req, { Component, state }) => {
           property="og:url"
           content={`https://${state.instance.host}/${state.form.slug}`}
         />
-        {descriptionLine != null && (
+        {descriptionLine && (
           <meta property="og:description" content={descriptionLine} />
         )}
       </Head>
@@ -39,9 +60,7 @@ export default defineLayout<State>((_req, { Component, state }) => {
         <div
           class="prose prose-invert prose-gray italic"
           dangerouslySetInnerHTML={{
-            __html: (new HtmlRenderer()).render(
-              (new Parser()).parse(state.form.description ?? ""),
-            ),
+            __html: (new HtmlRenderer()).render(parsed),
           }}
         />
       </header>
