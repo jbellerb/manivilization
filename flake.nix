@@ -1,9 +1,13 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    amber = {
+      url = "github:jbellerb/amber";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs }:
+  outputs = { self, nixpkgs, ... }@inputs:
     let
       system = "x86_64-linux";
 
@@ -12,7 +16,7 @@
         overlays = [ self.overlays.default ];
       };
 
-      denoLib = import ./nix/default.nix { inherit (pkgs) lib newScope; };
+      denoLib = inputs.amber.mkLib pkgs;
 
       src = nixpkgs.lib.cleanSourceWith {
         src = ./.;
